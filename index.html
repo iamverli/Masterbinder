@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0c1422">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MasterBinder">
+<link rel="manifest" href="manifest.json">
+<title>MasterBinder — Masterset · TCG Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c1422;
+  --surface:#111e2e;
+  --surface2:#1a2d42;
+  --border:rgba(122,179,212,0.10);
+  --border2:rgba(122,179,212,0.22);
+  --text:#e8f4ff;
+  --text2:#7a9bb5;
+  --text3:#3d5a72;
+  --accent:#f5b922;
+  --accent2:#e8a810;
+  --green:#3ecfaa;
+  --green-bg:rgba(62,207,170,0.10);
+  --green-border:rgba(62,207,170,0.28);
+  --red:#d94f3a;
+  --blue:#7ab3d4;
+  --purple:#c084fc;
+  --navy:#1e2d4d;
+  --radius:12px;
+  --radius-sm:8px;
+  --safe-bottom:env(safe-area-inset-bottom,0px)
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height:100dvh;position:relative;overflow:hidden}
+
+/* ── Screens ── */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);max-width:480px;margin:0 auto;transition:opacity .18s,transform .18s}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateX(30px)}
+
+/* ── Shared topbar ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 12px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.topbar-user{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.topbar-user-info{display:flex;align-items:center;gap:8px}
+.topbar-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#0c1422;font-family:'Space Mono',monospace;flex-shrink:0}
+.topbar-username{font-size:12px;font-weight:700;color:var(--text);font-family:'Space Mono',monospace}
+.logout-btn{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:10px;font-family:'Space Mono',monospace;font-weight:700;padding:4px 8px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase}
+.logout-btn:active{background:var(--surface2)}
+.topbar-title{font-size:11px;font-weight:700;letter-spacing:.15em;color:var(--accent);text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:10px}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;text-align:center}
+.stat-box .val{font-size:20px;font-weight:900;line-height:1;font-family:'Space Mono',monospace}
+.s-owned .val{color:var(--green)}.s-missing .val{color:var(--red)}.s-pct .val{color:var(--accent)}
+.stat-box .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-family:'Space Mono',monospace}
+.progress-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:10px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .4s;width:0%}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'Exo 2',sans-serif;font-size:14px;padding:8px 12px;outline:none}
+.search-input::placeholder{color:var(--text3)}.search-input:focus{border-color:var(--accent)}
+
+/* ── Filter tabs ── */
+.filter-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;flex-shrink:0}
+.tab{flex:1;background:none;border:none;color:var(--text2);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 0;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── Scroll area ── */
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px;padding-bottom:calc(80px + var(--safe-bottom))}
+
+/* ── Era / section headers ── */
+.section{margin-bottom:8px;grid-column:1/-1}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;user-select:none;margin-bottom:4px}
+.section-header.era-started{border-left:3px solid var(--green);background:rgba(61,214,140,.04)}
+.section-header.era-complete{border-left:3px solid var(--accent);background:rgba(232,184,75,.04)}
+.section-header.era-started .section-badge,.section-header.era-complete .section-badge{border-color:var(--green-border)}
+.section-header.era-complete .section-badge{border-color:rgba(232,184,75,.4)}
+.section-header:active{background:var(--surface2)}
+.section-left{display:flex;align-items:center;gap:10px}
+.section-badge{font-size:9px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:.08em;padding:3px 7px;border-radius:4px;background:rgba(232,184,75,.15);color:var(--accent);border:1px solid rgba(232,184,75,.3);white-space:nowrap}
+.section-meta{display:flex;flex-direction:column;gap:2px}
+.section-name{font-size:13px;font-weight:700;color:var(--text)}
+.section-years{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace}
+.section-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.section-count{font-size:11px;font-family:'Space Mono',monospace;color:var(--text2);white-space:nowrap}
+.mini-bar{width:40px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.mini-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+.chevron{font-size:10px;color:var(--text3);transition:transform .2s;display:inline-block}
+.section-header.open .chevron{transform:rotate(180deg)}
+
+/* ── Set rows — 2 col grid ── */
+.set-rows{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
+.set-rows.collapsed{display:none}
+.set-row{display:flex;flex-direction:column;padding:9px 10px;background:var(--surface);border:1px solid var(--border);border-top:3px solid transparent;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s,border-color .12s,transform .1s;min-width:0}
+.set-row:active{transform:scale(.97)}
+.set-row.started{border-top-color:var(--green)}
+.set-row.complete{border-top-color:var(--accent);background:rgba(232,184,75,.04)}
+.set-row-left{min-width:0}
+.set-row-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.set-row-year{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px}
+.set-row-right{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.set-row-stats{font-size:9px;font-family:'Space Mono',monospace;color:var(--text2);white-space:nowrap}
+.set-row-bar{width:36px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.set-row-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+.set-row.complete .set-row-fill{background:var(--accent)}
+.set-chevron{display:none}
+
+/* ── Set screen global stats ── */
+.set-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+
+/* ── Tracker topbar extras ── */
+.tracker-title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.back-btn{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:10px;font-family:'Space Mono',monospace;font-weight:700;padding:4px 8px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
+.back-btn:active{background:var(--surface2)}
+.tracker-set-name{font-size:11px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+
+/* ── Card grid — 2 col compact ── */
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
+.card-grid.collapsed{display:none}
+.card-item{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 4px;background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s,border-color .12s,transform .1s;min-width:0;position:relative;min-height:58px}
+.card-item:active{transform:scale(.98)}
+.card-item.owned{background:var(--green-bg);border-left-color:var(--green)}
+/* card thumbnail on left */
+.card-thumb{width:34px;height:48px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border2);box-shadow:0 1px 6px rgba(0,0,0,.4)}
+.card-thumb-placeholder{width:34px;height:48px;border-radius:3px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text3)}
+.card-fallback-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:1px solid;flex-shrink:0}
+.sym-poke{background:rgba(245,185,34,.12);color:var(--accent);border-color:rgba(245,185,34,.3)}
+.sym-trainer{background:rgba(122,179,212,.12);color:var(--blue);border-color:rgba(122,179,212,.3)}
+.sym-energy{background:rgba(62,207,170,.12);color:var(--green);border-color:rgba(62,207,170,.3)}
+.sym-other{background:var(--surface2);color:var(--text2);border-color:var(--border)}
+/* card info */
+.card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.card-name-row{display:flex;align-items:center;gap:3px;min-width:0}
+.card-num-badge{font-size:8px;font-family:'Space Mono',monospace;color:var(--text3);flex-shrink:0}
+.card-item.owned .card-num-badge{color:rgba(62,207,170,.5)}
+.card-name{font-size:11px;font-weight:700;color:var(--text);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+.card-item.owned .card-name{color:var(--green)}
+.rarity-badge{font-size:7px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.04em;padding:1px 3px;border-radius:3px;border:1px solid;background:rgba(255,255,255,.04);flex-shrink:0;align-self:flex-start}
+/* right col */
+.card-right-col{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;flex-shrink:0;padding:2px 0;height:48px}
+.three-dot-btn{width:20px;height:20px;background:none;border:none;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;letter-spacing:-1px;padding-bottom:2px;transition:color .12s}
+.three-dot-btn:active{color:var(--accent)}
+/* check */
+.check-circle{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;background:var(--surface);flex-shrink:0}
+.card-item.owned .check-circle{background:var(--green);border-color:var(--green)}
+.check-icon{width:9px;height:7px;opacity:0;transition:opacity .15s}
+.card-item.owned .check-icon{opacity:1}
+/* ── Card popup ── */
+.card-popup-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.card-popup-bg.show{opacity:1;pointer-events:all}
+.card-popup{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + var(--safe-bottom));width:100%;max-width:480px;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1,.56,1);max-height:90vh;overflow-y:auto;position:relative}
+.card-popup-bg.show .card-popup{transform:translateY(0)}
+.card-popup-close{position:absolute;top:14px;right:16px;background:var(--surface2);border:none;border-radius:50%;width:28px;height:28px;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.card-popup-img{width:150px;height:210px;object-fit:contain;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:block;margin:0 auto 14px}
+.card-popup-name{font-size:17px;font-weight:900;color:var(--text);text-align:center;margin-bottom:3px}
+.card-popup-set{font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.06em;text-transform:uppercase}
+.card-popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.card-popup-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;text-align:center}
+.card-popup-val{font-size:12px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace}
+.card-popup-lbl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-family:'Space Mono',monospace}
+.price-section{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px}
+.price-section-title{font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)}
+.price-row:last-child{border-bottom:none}
+.price-label{font-size:11px;color:var(--text2)}
+.price-value{font-size:12px;font-weight:700;font-family:'Space Mono',monospace;color:var(--green)}
+.price-na{color:var(--text3)!important}
+.card-popup-own-btn{width:100%;padding:13px;border-radius:var(--radius-sm);border:none;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:background .15s}
+.card-popup-own-btn.mark{background:var(--green);color:#0c1422}
+.card-popup-own-btn.unmark{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
+
+/* ── Pokédex 2-col tiles ── */
+.dex-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
+.dex-grid.collapsed{display:none}
+.dex-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px 7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:background .12s,border-color .12s,transform .1s;min-width:0;position:relative;gap:4px;min-height:72px}
+.dex-item:active{transform:scale(.97)}
+.dex-item.owned{background:rgba(232,184,75,.06);border-color:rgba(232,184,75,.3)}
+.dex-item .card-sprite{width:40px;height:40px}
+.dex-item .card-num-badge{font-size:8px;color:var(--text3);font-family:'Space Mono',monospace}
+.dex-item.owned .card-num-badge{color:rgba(232,184,75,.6)}
+.dex-item .card-name{font-size:11px;font-weight:700;color:var(--text);text-align:center;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;width:100%}
+.dex-item.owned .card-name{color:var(--accent)}
+.dex-item .check-circle{position:absolute;top:5px;right:5px;width:16px;height:16px}
+.dex-item.owned .check-circle{background:var(--accent);border-color:var(--accent)}
+.dex-item .check-icon{width:8px;height:6px}
+
+/* ── Pinned Pokédex entry ── */
+.dex-pin{display:flex;flex-direction:column;padding:14px 14px;background:rgba(232,184,75,.07);border:1.5px solid rgba(232,184,75,.3);border-radius:var(--radius);cursor:pointer;margin-bottom:14px;transition:background .15s,transform .1s;position:relative;overflow:hidden}
+.dex-pin::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(232,184,75,.06),transparent);pointer-events:none}
+.dex-pin:active{transform:scale(.98)}
+.dex-pin-icon{width:44px;height:44px;border-radius:50%;background:rgba(232,184,75,.15);border:1.5px solid rgba(232,184,75,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px}
+.dex-pin-info{flex:1;min-width:0}
+.dex-pin-name{font-size:14px;font-weight:900;color:var(--text)}
+.dex-pin-sub{font-size:10px;color:var(--text2);font-family:'Space Mono',monospace;margin-top:2px}
+.dex-pin-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.dex-pin-stats{font-size:10px;font-family:'Space Mono',monospace;color:var(--accent);white-space:nowrap}
+.dex-pin-bar{width:48px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.dex-pin-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+/* ── Collapse/Expand all row ── */
+.collapse-row{display:flex;gap:6px;margin-bottom:10px}
+.collapse-btn{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-size:10px;font-family:'Space Mono',monospace;font-weight:700;padding:6px 0;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;text-align:center}
+.collapse-btn:active{background:var(--surface);color:var(--accent)}
+
+/* ── Export/Import buttons ── */
+.io-row{display:flex;gap:8px;width:100%;margin-bottom:16px}
+.io-btn{flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;padding:11px 0;cursor:pointer;text-align:center;transition:border-color .15s,color .15s}
+.io-btn:active{background:var(--surface2)}
+.io-btn.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+.io-btn.import-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* ── Masterset toggle ── */
+.mega-toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px;margin-bottom:4px;cursor:pointer}
+.mega-toggle-label{font-size:11px;font-family:'Space Mono',monospace;font-weight:700;color:var(--text2);letter-spacing:.06em;text-transform:uppercase}
+.mega-toggle-label span{color:var(--accent);margin-left:4px}
+.toggle-pill{width:36px;height:20px;border-radius:10px;background:var(--surface);border:1.5px solid var(--border2);position:relative;transition:background .2s,border-color .2s;flex-shrink:0}
+.toggle-pill.on{background:var(--accent);border-color:var(--accent)}
+.toggle-dot{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle-pill.on .toggle-dot{transform:translateX(16px)}
+/* Masterset sub-options */
+.masterset-subopts{background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:6px 12px 8px;margin-bottom:10px;display:none}
+.masterset-subopts.visible{display:block}
+.subopt-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.subopt-row:last-child{border-bottom:none}
+.subopt-label{font-size:10px;font-family:'Space Mono',monospace;color:var(--text2);letter-spacing:.04em}
+.subopt-label small{display:block;font-size:8px;color:var(--text3);margin-top:1px}
+.subopt-pill{width:28px;height:16px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border2);position:relative;transition:background .2s;cursor:pointer;flex-shrink:0}
+.subopt-pill.on{background:var(--accent);border-color:var(--accent)}
+.subopt-dot{position:absolute;top:1.5px;left:1.5px;width:10px;height:10px;border-radius:50%;background:#fff;transition:transform .2s}
+.subopt-pill.on .subopt-dot{transform:translateX(12px)}
+/* Dual progress bars */
+.dual-progress{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.dual-bar-row{display:flex;align-items:center;gap:6px}
+.dual-bar-label{font-size:8px;font-family:'Space Mono',monospace;color:var(--text3);width:48px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em}
+.dual-bar-track{flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.dual-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.dual-bar-pct{font-size:8px;font-family:'Space Mono',monospace;color:var(--text3);width:28px;text-align:right;flex-shrink:0}
+/* Scroll to top FAB */
+.scroll-top-fab{position:fixed;bottom:calc(88px + var(--safe-bottom));right:16px;z-index:400;width:40px;height:40px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4);transition:opacity .2s,transform .2s,background .15s;opacity:0;pointer-events:none;transform:translateY(8px)}
+.scroll-top-fab.visible{opacity:1;pointer-events:all;transform:translateY(0)}
+.scroll-top-fab:active{background:var(--surface);transform:scale(.92)}
+.dex-pin-compact{display:flex;align-items:center;gap:10px;padding:11px 12px;background:rgba(232,184,75,.07);border:1.5px solid rgba(232,184,75,.3);border-radius:var(--radius-sm);cursor:pointer;margin-bottom:6px;transition:background .15s,transform .1s}
+.dex-pin-compact:active{transform:scale(.98)}
+.dex-pin-compact-icon{width:30px;height:30px;border-radius:50%;background:rgba(232,184,75,.15);border:1.5px solid rgba(232,184,75,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.dex-pin-compact-info{flex:1;min-width:0}
+.dex-pin-compact-name{font-size:13px;font-weight:700;color:var(--text)}
+.dex-pin-compact-sub{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:1px}
+.dex-pin-compact-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.dex-pin-compact-stats{font-size:9px;font-family:'Space Mono',monospace;color:var(--text2)}
+.dex-pin-compact-bar{width:40px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.dex-pin-compact-fill{height:100%;background:var(--accent);border-radius:2px}
+/* ── Started set pin ── */
+.started-pin{display:flex;flex-direction:column;padding:12px 14px;background:var(--surface);border:1.5px solid var(--green-border);border-radius:var(--radius);cursor:pointer;margin-bottom:6px;transition:background .15s,transform .1s}
+.started-pin.complete{border-color:rgba(232,184,75,.4);background:rgba(232,184,75,.04)}
+.started-pin:active{transform:scale(.98)}
+.started-pin-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.started-pin-icon{width:30px;height:30px;border-radius:50%;background:var(--green-bg);border:1.5px solid var(--green-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:var(--green)}
+.started-pin.complete .started-pin-icon{background:rgba(232,184,75,.12);border-color:rgba(232,184,75,.3);color:var(--accent)}
+.started-pin-info{flex:1;min-width:0}
+.started-pin-label{font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--green);text-transform:uppercase;font-family:'Space Mono',monospace}
+.started-pin.complete .started-pin-label{color:var(--accent)}
+.started-pin-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ── Start new set button ── */
+.start-new-btn{width:100%;background:none;border:1.5px dashed var(--border2);border-radius:var(--radius);padding:13px;color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s;text-align:center;margin-bottom:10px;display:block}
+.start-new-btn:active,.start-new-btn.open{border-color:var(--accent);color:var(--accent);border-style:solid}
+.loading-overlay{position:absolute;inset:0;background:rgba(12,20,34,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:16px;pointer-events:all}
+.loading-overlay.hidden{display:none;pointer-events:none}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:11px;font-family:'Space Mono',monospace;color:var(--text2);letter-spacing:.12em;text-transform:uppercase}
+
+/* ── Login ── */
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 24px 32px;overflow-y:auto;max-width:480px;margin:0 auto}
+.login-screen.hidden{display:none}
+.login-logo{font-size:11px;font-weight:700;letter-spacing:.15em;color:var(--accent);text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:6px}
+.login-title{font-size:26px;font-weight:900;color:var(--text);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:32px}
+.users-grid{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.user-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:16px 12px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s;position:relative}
+.user-card:active{transform:scale(.97)}
+.user-card:hover,.user-card:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,185,34,.15)}
+.user-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#0c1422;margin:0 auto 8px;font-family:'Space Mono',monospace}
+.user-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-stats{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace}
+.user-tap-hint{font-size:10px;color:var(--accent);font-family:'Space Mono',monospace;margin-top:6px;opacity:.7;letter-spacing:.04em}
+.user-del{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:rgba(255,107,107,.15);border:1px solid rgba(255,107,107,.3);color:var(--red);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .15s}
+.user-card:hover .user-del{opacity:1}
+.new-user-btn{width:100%;background:none;border:1.5px dashed var(--border2);border-radius:var(--radius);padding:16px;color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s}
+.new-user-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:flex-end;justify-content:center}
+.modal-bg.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--safe-bottom));width:100%;max-width:480px}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+.modal-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'Exo 2',sans-serif;font-size:16px;padding:12px 14px;outline:none;margin-bottom:10px}
+.modal-input:focus{border-color:var(--accent)}
+.modal-input::placeholder{color:var(--text3)}
+.modal-btns{display:flex;gap:8px}
+.btn-primary{flex:1;background:var(--accent);color:#0d0d1a;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:var(--radius-sm);padding:13px;cursor:pointer}
+.btn-primary:active{opacity:.85}
+.btn-secondary{flex:1;background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:13px;cursor:pointer}
+
+/* ── Save FAB ── */
+.save-fab{position:fixed;bottom:calc(24px + var(--safe-bottom,0px));right:20px;z-index:500;display:flex;align-items:center;gap:8px;background:var(--accent);color:#0d0d1a;border:none;border-radius:50px;padding:13px 20px;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(232,184,75,.4);transition:opacity .2s,transform .2s,background .15s;letter-spacing:.02em}
+.save-fab:active{transform:scale(.95)}
+.save-fab.hidden{opacity:0;pointer-events:none;transform:translateY(12px)}
+.save-fab.saved{background:var(--green);box-shadow:0 4px 20px rgba(61,214,140,.4)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:calc(20px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--text);z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}.toast.green{color:var(--green);border-color:var(--green-border)}
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;line-height:1.6}
+.error-msg{text-align:center;padding:24px 20px;color:var(--red);font-size:13px;font-family:'Space Mono',monospace;line-height:1.6;background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:var(--radius);margin:12px 0}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════ LOGIN ════════════════════════════════ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-logo">&#9670; MasterBinder</div>
+  <div class="login-title">Who's collecting?</div>
+  <div class="login-sub" id="login-sub">Select your trainer to continue</div>
+  <div class="users-grid" id="users-grid"></div>
+  <button class="new-user-btn" id="new-user-btn" onclick="openCreateModal()">+ Create new trainer</button>
+  <div style="flex:1"></div>
+  <img src="logo.png" alt="Blue Mccn Collectibles" style="width:160px;object-fit:contain;margin-bottom:14px;mix-blend-mode:screen;opacity:.95">
+  <div class="io-row">
+    <button class="io-btn export-btn" onclick="exportData()">⬆ Export</button>
+    <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
+  </div>
+  <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
+</div>
+<div class="screen hidden" id="set-screen">
+  <div class="topbar">
+    <div class="topbar-user">
+      <div class="topbar-user-info">
+        <div class="topbar-avatar" id="set-topbar-avatar"></div>
+        <span class="topbar-username" id="set-topbar-username"></span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Switch</button>
+    </div>
+    <div class="topbar-title">&#9670; Masterset · TCG Tracker</div>
+    <div class="set-stats-row">
+      <div class="stat-box" id="stat-box-progress" style="cursor:pointer" onclick="scrollToPinned('progress')"><div class="val" id="set-stat-progress" style="color:var(--green)">0</div><div class="lbl">In Progress</div></div>
+      <div class="stat-box" id="stat-box-complete" style="cursor:pointer" onclick="scrollToPinned('complete')"><div class="val" id="set-stat-complete" style="color:var(--accent)">0</div><div class="lbl">Complete</div></div>
+    </div>
+    <input class="search-input" type="search" id="search-sets" placeholder="Search sets..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="collapse-row" style="margin-top:8px">
+      <button class="collapse-btn" onclick="collapseAllEras()">⊟ Collapse All</button>
+      <button class="collapse-btn" onclick="expandAllEras()">⊞ Expand All</button>
+    </div>
+  </div>
+  <div class="scroll-area" id="set-scroll-area"></div>
+</div>
+
+<!-- ══════════════════════════ CARD TRACKER ════════════════════════════════ -->
+<div class="screen hidden" id="tracker-screen">
+  <div class="topbar">
+    <div class="tracker-title-row">
+      <button class="back-btn" onclick="backToSets()">&#8592; SETS</button>
+      <span class="tracker-set-name" id="tracker-set-name"></span>
+    </div>
+    <div class="topbar-user">
+      <div class="topbar-user-info">
+        <div class="topbar-avatar" id="tracker-topbar-avatar"></div>
+        <span class="topbar-username" id="tracker-topbar-username"></span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Switch</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box s-owned"><div class="val" id="t-owned">0</div><div class="lbl">Owned</div></div>
+      <div class="stat-box s-missing"><div class="val" id="t-missing">—</div><div class="lbl">Missing</div></div>
+      <div class="stat-box s-pct"><div class="val" id="t-pct">0%</div><div class="lbl">Complete</div></div>
+    </div>
+    <div class="progress-track" id="t-prog-single"><div class="progress-fill" id="t-prog"></div></div>
+    <div class="dual-progress hidden" id="t-prog-dual">
+      <div class="dual-bar-row">
+        <span class="dual-bar-label">Base Set</span>
+        <div class="dual-bar-track"><div class="dual-bar-fill" id="t-prog-base" style="background:linear-gradient(90deg,var(--green),var(--accent))"></div></div>
+        <span class="dual-bar-pct" id="t-pct-base">0%</span>
+      </div>
+      <div class="dual-bar-row">
+        <span class="dual-bar-label">Masterset</span>
+        <div class="dual-bar-track"><div class="dual-bar-fill" id="t-prog-ms" style="background:linear-gradient(90deg,var(--accent),#c47b2b)"></div></div>
+        <span class="dual-bar-pct" id="t-pct-ms">0%</span>
+      </div>
+    </div>
+    <div class="mega-toggle-row" onclick="toggleMegaMode()">
+      <div class="mega-toggle-label">Masterset Mode<span>◆</span></div>
+      <div class="toggle-pill" id="mega-pill"><div class="toggle-dot"></div></div>
+    </div>
+    <div class="masterset-subopts" id="masterset-subopts">
+      <div class="subopt-row">
+        <div class="subopt-label">Reverse Holo <small>Poké Ball pattern</small></div>
+        <div class="subopt-pill on" id="sub-rh" onclick="toggleSubopt(event,'rh')"><div class="subopt-dot"></div></div>
+      </div>
+      <div class="subopt-row" id="subopt-masterball-row">
+        <div class="subopt-label">Reverse Holo <small>Master Ball pattern · S&V only</small></div>
+        <div class="subopt-pill on" id="sub-mb" onclick="toggleSubopt(event,'mb')"><div class="subopt-dot"></div></div>
+      </div>
+      <div class="subopt-row">
+        <div class="subopt-label">Cosmos Holo <small>WOTC / older sets</small></div>
+        <div class="subopt-pill" id="sub-ch" onclick="toggleSubopt(event,'ch')"><div class="subopt-dot"></div></div>
+      </div>
+    </div>
+    <input class="search-input" type="search" id="search-tracker" placeholder="Search card name or number..." autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="filter-tabs">
+    <button class="tab active" id="tf-all" onclick="setTrackerFilter('all')">All</button>
+    <button class="tab" id="tf-owned" onclick="setTrackerFilter('owned')">Owned</button>
+    <button class="tab" id="tf-missing" onclick="setTrackerFilter('missing')">Missing</button>
+  </div>
+  <div class="collapse-row" style="padding:6px 16px 0">
+    <button class="collapse-btn" onclick="collapseAllGroups()">⊟ Collapse All</button>
+    <button class="collapse-btn" onclick="expandAllGroups()">⊞ Expand All</button>
+  </div>
+  <div class="scroll-area" id="tracker-scroll-area" style="position:relative">
+    <div class="loading-overlay hidden" id="tracker-loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading cards...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ POKÉDEX SCREEN ══════════════════════════════ -->
+<div class="screen hidden" id="dex-screen">
+  <div class="topbar">
+    <div class="tracker-title-row">
+      <button class="back-btn" onclick="backToSets()">&#8592; SETS</button>
+      <span class="tracker-set-name" style="color:var(--green)">&#9670; NATIONAL POKÉDEX</span>
+    </div>
+    <div class="topbar-user">
+      <div class="topbar-user-info">
+        <div class="topbar-avatar" id="dex-topbar-avatar"></div>
+        <span class="topbar-username" id="dex-topbar-username"></span>
+      </div>
+      <button class="logout-btn" onclick="logout()">Switch</button>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box s-owned"><div class="val" id="d-owned">0</div><div class="lbl">Owned</div></div>
+      <div class="stat-box s-missing"><div class="val" id="d-missing">—</div><div class="lbl">Missing</div></div>
+      <div class="stat-box s-pct"><div class="val" id="d-pct">0%</div><div class="lbl">Complete</div></div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="d-prog" style="background:linear-gradient(90deg,var(--green),var(--green))"></div></div>
+    <input class="search-input" type="search" id="search-dex" placeholder="Search Pokémon..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="collapse-row" style="margin-top:8px">
+      <button class="collapse-btn" onclick="collapseAllGens()">⊟ Collapse All</button>
+      <button class="collapse-btn" onclick="expandAllGens()">⊞ Expand All</button>
+    </div>
+  </div>
+  <div class="filter-tabs">
+    <button class="tab active" id="df-all" onclick="setDexFilter('all')">All</button>
+    <button class="tab" id="df-owned" onclick="setDexFilter('owned')">Owned</button>
+    <button class="tab" id="df-missing" onclick="setDexFilter('missing')">Missing</button>
+  </div>
+  <div class="scroll-area" id="dex-scroll-area" style="position:relative"></div>
+</div>
+<!-- ══════════════════════════ CARD POPUP ══════════════════════════════════ -->
+<div class="card-popup-bg" id="card-popup-bg" onclick="closeCardPopup(event)">
+  <div class="card-popup" id="card-popup">
+    <button class="card-popup-close" onclick="closeCardPopup()">✕</button>
+    <img class="card-popup-img" id="popup-img" src="" alt="">
+    <div class="card-popup-name" id="popup-name"></div>
+    <div class="card-popup-set" id="popup-set"></div>
+    <div class="card-popup-grid">
+      <div class="card-popup-box"><div class="card-popup-val" id="popup-rarity">—</div><div class="card-popup-lbl">Rarity</div></div>
+      <div class="card-popup-box"><div class="card-popup-val" id="popup-type">—</div><div class="card-popup-lbl">Type</div></div>
+      <div class="card-popup-box"><div class="card-popup-val" id="popup-num">—</div><div class="card-popup-lbl">Number</div></div>
+      <div class="card-popup-box"><div class="card-popup-val" id="popup-cat">—</div><div class="card-popup-lbl">Category</div></div>
+    </div>
+    <div class="price-section">
+      <div class="price-section-title">💰 Market Prices (TCGPlayer)</div>
+      <div class="price-row"><span class="price-label">Normal</span><span class="price-value" id="popup-price-normal">—</span></div>
+      <div class="price-row"><span class="price-label">Holofoil</span><span class="price-value" id="popup-price-holo">—</span></div>
+      <div class="price-row"><span class="price-label">Reverse Holo</span><span class="price-value" id="popup-price-rh">—</span></div>
+      <div class="price-row" style="border-bottom:none;padding-top:6px;margin-top:2px">
+        <span class="price-label" style="font-size:9px;color:var(--text3)">Low</span><span class="price-value" id="popup-price-low" style="font-size:10px;color:var(--text3)">—</span>
+        <span class="price-label" style="font-size:9px;color:var(--text3);margin-left:12px">High</span><span class="price-value" id="popup-price-high" style="font-size:10px;color:var(--text3)">—</span>
+      </div>
+    </div>
+    <button class="card-popup-own-btn" id="popup-own-btn" onclick="toggleCardFromPopup()">✓ Mark as Owned</button>
+  </div>
+</div>
+
+<div class="modal-bg hidden" id="create-modal">
+  <div class="modal">
+    <div class="modal-title">New Trainer</div>
+    <div class="modal-sub">Choose a name for your profile</div>
+    <input class="modal-input" id="new-username" type="text" placeholder="Trainer name..." maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+      <button class="btn-primary" onclick="createUser()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ SAVE FAB ════════════════════════════════ -->
+<button class="save-fab hidden" id="save-fab" onclick="manualSave()">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 2H4L2 4V13C2 13.6 2.4 14 3 14H13C13.6 14 14 13.6 14 13V3C14 2.4 13.6 2 13 2ZM8 12C6.9 12 6 11.1 6 10C6 8.9 6.9 8 8 8C9.1 8 10 8.9 10 10C10 11.1 9.1 12 8 12ZM10 5H4V3H10V5Z" fill="currentColor"/></svg>
+  <span id="save-fab-label">Save</span>
+</button>
+
+<button class="scroll-top-fab" id="scroll-top-fab" onclick="scrollToTop()">↑</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// DATA — loaded dynamically from the API
+// ════════════════════════════════════════════════════════
+let ERAS=[];   // built after API fetch
+let ALL_SETS=[];// flat array from API
+
+// Series → display era info mapping
+const ERA_META={
+  'Base':      {badge:'WOTC',name:'Base / Wizards'},
+  'Gym':       {badge:'WOTC',name:'Gym Series'},
+  'Neo':       {badge:'WOTC',name:'Neo Series'},
+  'E-Card':    {badge:'WOTC',name:'E-Card Series'},
+  'EX':        {badge:'EX',  name:'EX Series'},
+  'Diamond & Pearl':{badge:'D&P', name:'Diamond & Pearl'},
+  'Platinum':  {badge:'PLAT',name:'Platinum Series'},
+  'HeartGold & SoulSilver':{badge:'HGSS',name:'HeartGold & SoulSilver'},
+  'Black & White':{badge:'B&W',name:'Black & White'},
+  'XY':        {badge:'XY',  name:'XY Series'},
+  'Sun & Moon':{badge:'S&M', name:'Sun & Moon'},
+  'Sword & Shield':{badge:'SWSH',name:'Sword & Shield'},
+  'Scarlet & Violet':{badge:'S&V',name:'Scarlet & Violet'},
+  'POP':       {badge:'POP', name:'POP Series'},
+  'NP':        {badge:'PROMO',name:'Nintendo Promos'},
+  'Other':     {badge:'OTHER',name:'Other / Promos'},
+};
+
+async function loadAllSets(){
+  const cacheKey='pb_all_sets_v2';
+  const cacheAge='pb_all_sets_age';
+  const ONE_DAY=86400000;
+  const cached=localStorage.getItem(cacheKey);
+  const age=parseInt(localStorage.getItem(cacheAge)||'0');
+  if(cached&&Date.now()-age<ONE_DAY){
+    try{ALL_SETS=JSON.parse(cached);buildEras();return;}catch{}
+  }
+  const resp=await fetch('https://api.pokemontcg.io/v2/sets?orderBy=releaseDate&pageSize=250');
+  if(!resp.ok)throw new Error('HTTP '+resp.status);
+  const data=await resp.json();
+  ALL_SETS=data.data.map(s=>({
+    id:s.id,
+    name:s.name,
+    series:s.series||'Other',
+    total:s.total||s.printedTotal||0,
+    year:s.releaseDate?parseInt(s.releaseDate.substring(0,4)):0,
+    symbol:s.images?.symbol||'',
+    logo:s.images?.logo||''
+  }));
+  localStorage.setItem(cacheKey,JSON.stringify(ALL_SETS));
+  localStorage.setItem(cacheAge,String(Date.now()));
+  buildEras();
+}
+
+function buildEras(){
+  const grouped={};
+  const seriesOrder=[];
+  ALL_SETS.forEach(s=>{
+    if(!grouped[s.series]){grouped[s.series]=[];seriesOrder.push(s.series);}
+    grouped[s.series].push(s);
+  });
+  ERAS=seriesOrder.map(series=>{
+    const sets=grouped[series];
+    const meta=ERA_META[series]||{badge:series.substring(0,4).toUpperCase(),name:series};
+    const years=sets.length>0?`${sets[0].year}–${sets[sets.length-1].year!==sets[0].year?sets[sets.length-1].year:''}`.replace(/–$/,''):'';
+    return{id:series.replace(/[^a-z0-9]/gi,'_'),badge:meta.badge,name:meta.name,years,sets};
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let currentUser=null,currentSet=null,currentCards=[],owned=new Set();
+let eraCollapsed=new Set(),trackerFilter='all',trackerSearch='',setSearch='';
+let trackerGroupCollapsed=new Set();
+let megaMode=false;
+let mastersetOpts={rh:true,mb:true,ch:false}; // reverse holo, master ball, cosmos holo
+let showEraList=false;
+let _dirty=false,toastT=null;
+
+// ════════════════════════════════════════════════════════
+// STORAGE
+// ════════════════════════════════════════════════════════
+const getUsers=()=>JSON.parse(localStorage.getItem('pb_users')||'{}');
+const saveUsers=u=>localStorage.setItem('pb_users',JSON.stringify(u));
+const ownedKey=(u,sid)=>`pb_u_${u}_s_${sid}`;
+const eraColKey=u=>`pb_u_${u}_era_col`;
+const totalKey=sid=>`pb_ms_tot_${sid}`;
+const megaKey=(u,sid)=>`pb_u_${u}_mega_${sid}`;
+const megaOptsKey=(u,sid)=>`pb_u_${u}_megaopts_${sid}`;
+
+function getOwnedSet(user,setId){
+  try{return new Set(JSON.parse(localStorage.getItem(ownedKey(user,setId))||'[]'));}
+  catch{return new Set();}
+}
+function saveOwnedSet(user,setId,s){
+  try{localStorage.setItem(ownedKey(user,setId),JSON.stringify([...s]));}
+  catch(e){showToast('Save failed – storage full?',false);}
+}
+function getCachedTotal(sid){
+  const v=localStorage.getItem(totalKey(sid));
+  if(v)return parseInt(v);
+  const s=ALL_SETS.find(x=>x.id===sid);
+  return s&&s.total>0?s.total:null;
+}
+function setCachedTotal(sid,n){localStorage.setItem(totalKey(sid),String(n));}
+
+// ════════════════════════════════════════════════════════
+// DIRTY / SAVE
+// ════════════════════════════════════════════════════════
+function markDirty(){
+  if(!currentUser||!currentSet)return;
+  _dirty=true;
+  const fab=document.getElementById('save-fab');
+  if(fab){fab.classList.remove('hidden','saved');document.getElementById('save-fab-label').textContent='Save';}
+}
+function saveCurrentSet(){
+  if(!currentUser||!currentSet)return;
+  saveOwnedSet(currentUser,currentSet.id,owned);
+}
+function manualSave(){
+  saveCurrentSet();_dirty=false;
+  const fab=document.getElementById('save-fab');
+  const lbl=document.getElementById('save-fab-label');
+  if(fab){fab.classList.add('saved');lbl.textContent='Saved!';}
+  setTimeout(()=>{if(fab&&!_dirty)fab.classList.add('hidden');},1800);
+}
+
+// ════════════════════════════════════════════════════════
+// LOGIN SCREEN
+// ════════════════════════════════════════════════════════
+function renderLoginScreen(){
+  const users=getUsers(),grid=document.getElementById('users-grid'),keys=Object.keys(users);
+  const sub=document.getElementById('login-sub'),newBtn=document.getElementById('new-user-btn');
+  if(!keys.length){
+    grid.innerHTML='';
+    if(sub)sub.textContent='Create a trainer to get started';
+    if(newBtn)newBtn.textContent='+ Create your first trainer';
+    return;
+  }
+  if(sub)sub.textContent='Tap your trainer to continue';
+  if(newBtn)newBtn.textContent='+ Add new trainer';
+  grid.innerHTML=keys.map(name=>{
+    const allSetKeys=Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_s_`));
+    const setsStarted=allSetKeys.filter(k=>{
+      try{return JSON.parse(localStorage.getItem(k)||'[]').length>0;}catch{return false;}
+    }).length;
+    const av=name.substring(0,2).toUpperCase();
+    return `<div class="user-card" onclick="loginAs('${name}')">
+      <div onclick="deleteUser(event,'${name}')" class="user-del">✕</div>
+      <div class="user-avatar">${av}</div>
+      <div class="user-name">${name}</div>
+      <div class="user-stats">${setsStarted} set${setsStarted!==1?'s':''} tracked</div>
+      <div class="user-tap-hint">Tap to log in</div>
+    </div>`;
+  }).join('');
+}
+
+function openCreateModal(){
+  document.getElementById('create-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('new-username').focus(),100);
+}
+function closeCreateModal(){
+  document.getElementById('create-modal').classList.add('hidden');
+  document.getElementById('new-username').value='';
+}
+function createUser(){
+  const name=document.getElementById('new-username').value.trim();
+  if(!name){document.getElementById('new-username').focus();return;}
+  if(name.length<2){alert('Name must be at least 2 characters');return;}
+  const users=getUsers();
+  if(users[name]){alert('That name is already taken!');return;}
+  users[name]={created:Date.now()};
+  saveUsers(users);closeCreateModal();loginAs(name);
+}
+function deleteUser(e,name){
+  e.stopPropagation();
+  if(!confirm(`Delete trainer "${name}"? All data will be lost.`))return;
+  const users=getUsers();delete users[name];saveUsers(users);
+  Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_`)).forEach(k=>localStorage.removeItem(k));
+  if(localStorage.getItem('pb_session')===name)localStorage.removeItem('pb_session');
+  renderLoginScreen();
+}
+
+// ════════════════════════════════════════════════════════
+// SESSION
+// ════════════════════════════════════════════════════════
+async function loginAs(name){
+  if(currentUser&&_dirty)saveCurrentSet();
+  currentUser=name;_dirty=false;
+  localStorage.setItem('pb_session',name);
+  eraCollapsed=new Set(JSON.parse(localStorage.getItem(eraColKey(name))||'[]'));
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('save-fab').classList.add('hidden');
+  // Push login → sets history
+  history.replaceState({screen:'login'},'','');
+  pushState('sets');
+  showSetScreen();
+  if(ALL_SETS.length===0){
+    const area=document.getElementById('set-scroll-area');
+    area.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:16px"><div class="spinner"></div><div class="loading-text">Loading sets...</div></div>';
+    try{await loadAllSets();}
+    catch(e){area.innerHTML=`<div class="error-msg">&#9888; Could not load sets list.<br>Check your internet connection.<br><small>${e.message}</small></div>`;return;}
+    renderSetScreen();
+  }
+}
+function logout(){
+  if(currentUser&&_dirty)saveCurrentSet();
+  currentUser=null;currentSet=null;_dirty=false;
+  localStorage.removeItem('pb_session');
+  owned=new Set();currentCards=[];
+  trackerFilter='all';trackerSearch='';setSearch='';showEraList=false;
+  document.getElementById('save-fab').classList.add('hidden');
+  document.getElementById('set-screen').classList.add('hidden');
+  document.getElementById('tracker-screen').classList.add('hidden');
+  document.getElementById('dex-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  renderLoginScreen();
+}
+
+// ════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════
+function showSetScreen(){
+  document.getElementById('tracker-screen').classList.add('hidden');
+  document.getElementById('dex-screen').classList.add('hidden');
+  document.getElementById('set-screen').classList.remove('hidden');
+  document.getElementById('save-fab').classList.add('hidden');
+  document.getElementById('set-topbar-avatar').textContent=currentUser.substring(0,2).toUpperCase();
+  document.getElementById('set-topbar-username').textContent=currentUser;
+  document.getElementById('search-sets').value=setSearch;
+  renderSetScreen();
+}
+function showTrackerScreen(){
+  document.getElementById('set-screen').classList.add('hidden');
+  document.getElementById('tracker-screen').classList.remove('hidden');
+  document.getElementById('tracker-topbar-avatar').textContent=currentUser.substring(0,2).toUpperCase();
+  document.getElementById('tracker-topbar-username').textContent=currentUser;
+  // Set name + symbol
+  const setData=ALL_SETS.find(s=>s.id===currentSet.id);
+  const symHtml=setData?.symbol?`<img src="${setData.symbol}" style="height:18px;width:auto;object-fit:contain;margin-left:6px;opacity:.85" alt="">`:'' ;
+  document.getElementById('tracker-set-name').innerHTML=currentSet.name+symHtml;
+  document.getElementById('mega-pill').classList.toggle('on',megaMode);
+  document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
+  // Show Master Ball option only for S&V
+  const isSV=setData?.series==='Scarlet & Violet';
+  document.getElementById('subopt-masterball-row').style.display=isSV?'':'none';
+  syncSuboptPills();
+}
+
+// ════════════════════════════════════════════════════════
+// SET SELECTION
+// ════════════════════════════════════════════════════════
+function renderSetScreen(){
+  const q=setSearch.toLowerCase().trim();
+  const area=document.getElementById('set-scroll-area');
+
+  // Global stats — include Pokédex
+  const allSetIds=ERAS.flatMap(e=>e.sets.map(s=>s.id));
+  let inProgress=0,complete=0;
+  // Count dex
+  const dexO=getDexOwned(currentUser).size;
+  if(dexO>0&&dexO<1025)inProgress++;
+  else if(dexO>=1025)complete++;
+  allSetIds.forEach(sid=>{
+    const n=getOwnedSet(currentUser,sid).size;
+    if(n===0)return;
+    const tot=getCachedTotal(sid);
+    if(tot&&n>=tot)complete++;
+    else inProgress++;
+  });
+  document.getElementById('set-stat-progress').textContent=inProgress;
+  document.getElementById('set-stat-complete').textContent=complete;
+
+  let html='';
+
+  // ── Pokédex pin (compact if not started, full if started) ──
+  if(!q||'national pokédex'.includes(q)||'pokedex'.includes(q)){
+    const dexOwned=getDexOwned(currentUser).size;
+    const dexTotal=1025;
+    const dexPct=Math.round(dexOwned/dexTotal*100);
+    if(dexOwned===0){
+      // Compact
+      html+=`<div class="dex-pin-compact" onclick="openDex()">
+        <div class="dex-pin-compact-icon">&#9670;</div>
+        <div class="dex-pin-compact-info">
+          <div class="dex-pin-compact-name">National Pokédex</div>
+          <div class="dex-pin-compact-sub">Gen I–IX · 1025 Pokémon</div>
+        </div>
+        <div class="dex-pin-compact-right">
+          <div class="dex-pin-compact-stats">0/1025</div>
+          <div class="dex-pin-compact-bar"><div class="dex-pin-compact-fill" style="width:0%"></div></div>
+        </div>
+      </div>`;
+    } else {
+      // Full stats
+      html+=`<div class="dex-pin" onclick="openDex()">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="dex-pin-icon">&#9670;</div>
+          <div class="dex-pin-info">
+            <div class="dex-pin-name">National Pokédex</div>
+            <div class="dex-pin-sub">Gen I – IX &nbsp;·&nbsp; All Regions</div>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-bottom:6px">
+          <div class="stat-box s-owned"><div class="val" style="font-size:16px">${dexOwned}</div><div class="lbl">Owned</div></div>
+          <div class="stat-box s-missing"><div class="val" style="font-size:16px">${Math.max(0,dexTotal-dexOwned)}</div><div class="lbl">Missing</div></div>
+          <div class="stat-box s-pct"><div class="val" style="font-size:16px">${dexPct}%</div><div class="lbl">Complete</div></div>
+        </div>
+        <div class="progress-track" style="margin-bottom:0"><div class="progress-fill" style="width:${dexPct}%;background:linear-gradient(90deg,var(--accent),var(--accent))"></div></div>
+      </div>`;
+    }
+  }
+
+  // ── Started sets pinned section — in-progress first, then complete ──
+  const startedSets=[];
+  ERAS.forEach(era=>{
+    era.sets.forEach(s=>{
+      const userOwned=getOwnedSet(currentUser,s.id);
+      if(userOwned.size>0)startedSets.push({era,s,userOwned});
+    });
+  });
+  // Sort: in-progress first, complete after
+  startedSets.sort((a,b)=>{
+    const aTot=getCachedTotal(a.s.id);
+    const bTot=getCachedTotal(b.s.id);
+    const aComplete=!!(aTot&&a.userOwned.size>=aTot);
+    const bComplete=!!(bTot&&b.userOwned.size>=bTot);
+    if(aComplete===bComplete)return 0;
+    return aComplete?1:-1;
+  });
+
+  if(startedSets.length>0&&(!q||startedSets.some(({s})=>s.name.toLowerCase().includes(q)))){
+    startedSets.forEach(({era,s,userOwned})=>{
+      if(q&&!s.name.toLowerCase().includes(q)&&!String(s.year).includes(q))return;
+      const tot=getCachedTotal(s.id);
+      const pct=tot?Math.round(userOwned.size/tot*100):0;
+      const isComplete=!!(tot&&userOwned.size>=tot);
+      const sname=s.name.replace(/'/g,"\\'");
+      const setData=ALL_SETS.find(x=>x.id===s.id);
+      const symImg=setData?.symbol?`<img src="${setData.symbol}" style="height:20px;width:auto;object-fit:contain;opacity:.8" alt="">`:era.badge;
+      html+=`<div class="started-pin${isComplete?' complete':''}" onclick="selectSet('${era.id}','${s.id}','${sname}')">
+        <div class="started-pin-top">
+          <div class="started-pin-icon">${symImg}</div>
+          <div class="started-pin-info">
+            <div class="started-pin-label">${isComplete?'Complete':'In Progress'} · ${era.badge}</div>
+            <div class="started-pin-name">${s.name}</div>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-bottom:6px">
+          <div class="stat-box s-owned"><div class="val" style="font-size:15px">${userOwned.size}</div><div class="lbl">Owned</div></div>
+          <div class="stat-box s-missing"><div class="val" style="font-size:15px">${tot?Math.max(0,tot-userOwned.size):'??'}</div><div class="lbl">Missing</div></div>
+          <div class="stat-box s-pct"><div class="val" style="font-size:15px">${pct}%</div><div class="lbl">Complete</div></div>
+        </div>
+        <div class="progress-track" style="margin-bottom:0"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    });
+  }
+
+  // ── Start New Set button ──
+  const eraVisible=showEraList||q;
+  if(!q){
+    html+=`<button class="start-new-btn${eraVisible?' open':''}" onclick="toggleEraList()">
+      ${eraVisible?'▲ Hide Set Browser':'+ Start a New Set'}
+    </button>`;
+  }
+
+  // ── Era list (hidden unless showEraList or searching) ──
+  if(eraVisible){
+    ERAS.forEach(era=>{
+      const filtered=era.sets.filter(s=>!q||s.name.toLowerCase().includes(q)||String(s.year).includes(q));
+      if(!filtered.length)return;
+
+      const open=q||!eraCollapsed.has(era.id);
+      let eOwned=0,eTotal=0;
+      era.sets.forEach(s=>{
+        const tot=getCachedTotal(s.id);
+        if(tot){eTotal+=tot;eOwned+=getOwnedSet(currentUser,s.id).size;}
+      });
+      const ePct=eTotal>0?Math.round(eOwned/eTotal*100):0;
+      const eraSetStates=era.sets.map(s=>{
+        const o=getOwnedSet(currentUser,s.id).size;
+        const tot=getCachedTotal(s.id);
+        return{started:o>0,complete:!!(tot&&o>=tot)};
+      });
+      const eraAnyStarted=eraSetStates.some(x=>x.started);
+      const eraAllComplete=eraAnyStarted&&eraSetStates.every(x=>x.complete);
+      const eraHeaderClass=eraAllComplete?' era-complete':eraAnyStarted?' era-started':'';
+
+      html+=`<div class="section">
+        <div class="section-header${open?' open':''}${eraHeaderClass}" onclick="toggleEra('${era.id}')">
+          <div class="section-left">
+            <span class="section-badge">${era.badge}</span>
+            <div class="section-meta">
+              <div class="section-name">${era.name}</div>
+              <div class="section-years">${era.years}</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <span class="section-count">${era.sets.length} sets</span>
+            <div class="mini-bar"><div class="mini-fill" style="width:${ePct}%"></div></div>
+            <span class="chevron">&#9660;</span>
+          </div>
+        </div>
+        <div class="set-rows${open?'':' collapsed'}">`;
+
+      filtered.forEach(s=>{
+        const userOwned=getOwnedSet(currentUser,s.id);
+        const tot=getCachedTotal(s.id);
+        const pct=tot&&tot>0?Math.round(userOwned.size/tot*100):0;
+        const isStarted=userOwned.size>0;
+        const isComplete=!!(tot&&userOwned.size>=tot);
+        const statsStr=tot?`${userOwned.size}/${tot}`:(isStarted?`${userOwned.size}/??`:'—');
+        const sname=s.name.replace(/'/g,"\\'");
+        const sData=ALL_SETS.find(x=>x.id===s.id);
+        const sSymImg=sData?.symbol?`<img src="${sData.symbol}" style="height:16px;width:16px;object-fit:contain;opacity:.7;margin-bottom:3px" alt="">`:'';
+        html+=`<div class="set-row${isComplete?' complete':isStarted?' started':''}" onclick="selectSet('${era.id}','${s.id}','${sname}')">
+          <div class="set-row-left">
+            ${sSymImg}
+            <div class="set-row-name">${s.name}</div>
+            <div class="set-row-year">${s.year}</div>
+          </div>
+          <div class="set-row-right">
+            <div class="set-row-stats">${statsStr}${isComplete?' ✓':''}</div>
+            <div class="set-row-bar"><div class="set-row-fill" style="width:${pct}%"></div></div>
+          </div>
+        </div>`;
+      });
+
+      html+=`</div></div>`;
+    });
+  }
+
+  area.innerHTML=html||'<div class="empty">No sets found</div>';
+}
+
+function toggleEraList(){
+  showEraList=!showEraList;
+  renderSetScreen();
+}
+function toggleEra(eraId){
+  if(eraCollapsed.has(eraId))eraCollapsed.delete(eraId);else eraCollapsed.add(eraId);
+  localStorage.setItem(eraColKey(currentUser),JSON.stringify([...eraCollapsed]));
+  renderSetScreen();
+}
+
+// ════════════════════════════════════════════════════════
+// SELECT A SET → LOAD CARDS
+// ════════════════════════════════════════════════════════
+async function selectSet(eraId,setId,setName){
+  if(_dirty)saveCurrentSet();
+  currentSet={id:setId,name:setName,eraId};
+  owned=getOwnedSet(currentUser,setId);
+  _dirty=false;
+  trackerFilter='all';trackerSearch='';
+  trackerGroupCollapsed=new Set();
+  megaMode=localStorage.getItem(megaKey(currentUser,setId))==='1';
+  try{mastersetOpts=JSON.parse(localStorage.getItem(megaOptsKey(currentUser,setId))||'null')||{rh:true,mb:true,ch:false};}
+  catch{mastersetOpts={rh:true,mb:true,ch:false};}
+
+  showTrackerScreen();
+  pushState('tracker');
+  document.getElementById('search-tracker').value='';
+  ['all','owned','missing'].forEach(x=>document.getElementById('tf-'+x).classList.toggle('active',x==='all'));
+  document.getElementById('tracker-scroll-area').innerHTML=
+    '<div class="loading-overlay" id="tracker-loading"><div class="spinner"></div><div class="loading-text">Loading cards...</div></div>';
+  updateTrackerStats(0,0);
+
+  try{
+    currentCards=await fetchCards(setId);
+    setCachedTotal(setId,currentCards.length);
+  }catch(err){
+    currentCards=[];
+    document.getElementById('tracker-scroll-area').innerHTML=
+      `<div class="error-msg">&#9888; Could not load cards for this set.<br>Check your internet connection and try again.<br><br><small>${err.message||'Network error'}</small></div>`;
+    return;
+  }
+
+  updateTrackerStats(owned.size,currentCards.length);
+  renderTracker();
+
+  const fab=document.getElementById('save-fab');
+  fab.classList.remove('saved');fab.classList.add('hidden');
+  document.getElementById('save-fab-label').textContent='Save';
+}
+
+// ════════════════════════════════════════════════════════
+// CARD NUMBER SORT
+// Handles: "1","12","001","TG01","GG05","SV01","SWSH001" etc.
+// ════════════════════════════════════════════════════════
+function cardNumSort(a,b){
+  // Split into leading alpha prefix + numeric part
+  const parse=n=>{
+    const m=String(n).match(/^([A-Za-z]*)(\d+)(.*)$/);
+    if(!m)return{pre:String(n),num:0,suf:''};
+    return{pre:m[1],num:parseInt(m[2]),suf:m[3]};
+  };
+  const pa=parse(a),pb=parse(b);
+  // Numbers with no prefix come first, then prefixed (secret rares / special)
+  const aHasPre=pa.pre.length>0,bHasPre=pb.pre.length>0;
+  if(!aHasPre&&bHasPre)return -1;
+  if(aHasPre&&!bHasPre)return 1;
+  if(pa.pre!==pb.pre)return pa.pre.localeCompare(pb.pre);
+  return pa.num-pb.num;
+}
+
+// ════════════════════════════════════════════════════════
+// FETCH CARDS FROM API
+// ════════════════════════════════════════════════════════
+async function fetchCards(setId){
+  const cacheKey=`pb_cards_v4_${setId}`;
+  const cached=sessionStorage.getItem(cacheKey);
+  if(cached){try{return JSON.parse(cached);}catch{}}
+
+  const cardsMap=new Map(); // keyed by id to prevent duplicates
+  let page=1,totalCount=Infinity;
+
+  while(cardsMap.size<totalCount){
+    const resp=await fetch(
+      `https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&orderBy=number&page=${page}&pageSize=250`,
+      {cache:'default'}
+    );
+    if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
+    const data=await resp.json();
+    if(!data.data||data.data.length===0)break;
+    totalCount=data.totalCount||data.data.length;
+    data.data.forEach(c=>{
+      if(!cardsMap.has(c.id)){
+        cardsMap.set(c.id,{
+          id:c.id,
+          number:c.number||'?',
+          name:c.name||'Unknown',
+          rarity:c.rarity||'',
+          supertype:c.supertype||'',
+          types:c.types||[],
+          imgSmall:c.images?.small||'',
+          imgLarge:c.images?.large||'',
+          prices:{
+            normal:c.tcgplayer?.prices?.normal?.market||null,
+            holofoil:c.tcgplayer?.prices?.holofoil?.market||null,
+            reverseHolo:c.tcgplayer?.prices?.reverseHolofoil?.market||null,
+            low:c.tcgplayer?.prices?.normal?.low||c.tcgplayer?.prices?.holofoil?.low||null,
+            high:c.tcgplayer?.prices?.normal?.high||c.tcgplayer?.prices?.holofoil?.high||null,
+          },
+          setName:c.set?.name||'',
+          setSeries:c.set?.series||'',
+        });
+      }
+    });
+    if(cardsMap.size>=totalCount)break;
+    page++;
+  }
+
+  const cards=[...cardsMap.values()];
+  if(cards.length>0){
+    cards.sort((a,b)=>cardNumSort(a.number,b.number));
+    sessionStorage.setItem(cacheKey,JSON.stringify(cards));
+    // Clear old cache versions
+    sessionStorage.removeItem(`pb_cards_v2_${setId}`);
+    sessionStorage.removeItem(`pb_cards_v3_${setId}`);
+  }
+  return cards;
+}
+
+// ════════════════════════════════════════════════════════
+// TRACKER
+// ════════════════════════════════════════════════════════
+function updateTrackerStats(ownedCount,totalCount){
+  const baseTotal=totalCount??currentCards.length;
+  // Count only base card owned (exclude variant suffixes)
+  const baseOwned=ownedCount??[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch')).length;
+  const basePct=baseTotal>0?Math.min(100,Math.round(baseOwned/baseTotal*100)):0;
+
+  if(megaMode&&currentCards.length>0){
+    const msExtra=getMastersetExtraCount();
+    // Masterset bar tracks ONLY the variant extras
+    const msVariantOwned=[...owned].filter(id=>id.endsWith('_rh')||id.endsWith('_mb')||id.endsWith('_ch')).length;
+    const msPct=msExtra>0?Math.min(100,Math.round(msVariantOwned/msExtra*100)):0;
+
+    document.getElementById('t-owned').textContent=baseOwned;
+    document.getElementById('t-missing').textContent=Math.max(0,(baseTotal+msExtra)-(baseOwned+msVariantOwned));
+    document.getElementById('t-pct').textContent=basePct+'%';
+
+    document.getElementById('t-prog-single').classList.add('hidden');
+    document.getElementById('t-prog-dual').classList.remove('hidden');
+    document.getElementById('t-prog-base').style.width=basePct+'%';
+    document.getElementById('t-pct-base').textContent=basePct+'%';
+    document.getElementById('t-prog-ms').style.width=msPct+'%';
+    document.getElementById('t-pct-ms').textContent=msPct+'%';
+  } else {
+    document.getElementById('t-owned').textContent=baseOwned;
+    document.getElementById('t-missing').textContent=baseTotal>0?Math.max(0,baseTotal-baseOwned):'—';
+    document.getElementById('t-pct').textContent=basePct+'%';
+    document.getElementById('t-prog').style.width=basePct+'%';
+    document.getElementById('t-prog-single').classList.remove('hidden');
+    document.getElementById('t-prog-dual').classList.add('hidden');
+  }
+}
+
+function getMastersetExtraCount(){
+  return currentCards.filter(c=>{
+    const r=(c.rarity||'').toLowerCase();
+    const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
+    const eligible=!noRH.some(x=>r.includes(x));
+    if(!eligible)return false;
+    let count=0;
+    if(mastersetOpts.rh)count++;
+    if(mastersetOpts.mb&&ALL_SETS.find(s=>s.id===currentSet.id)?.series==='Scarlet & Violet')count++;
+    if(mastersetOpts.ch)count++;
+    return count>0;
+  }).reduce((acc,c)=>{
+    const r=(c.rarity||'').toLowerCase();
+    const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
+    const eligible=!noRH.some(x=>r.includes(x));
+    if(!eligible)return acc;
+    const isSV=ALL_SETS.find(s=>s.id===currentSet.id)?.series==='Scarlet & Violet';
+    let count=0;
+    if(mastersetOpts.rh)count++;
+    if(mastersetOpts.mb&&isSV)count++;
+    if(mastersetOpts.ch)count++;
+    return acc+count;
+  },0);
+}
+
+function setTrackerFilter(f){
+  trackerFilter=f;
+  ['all','owned','missing'].forEach(x=>document.getElementById('tf-'+x).classList.toggle('active',x===f));
+  renderTracker();
+}
+
+function renderTracker(){
+  const q=trackerSearch.toLowerCase().trim();
+  const area=document.getElementById('tracker-scroll-area');
+  const scrollPos=area.scrollTop;
+
+  // Group by supertype
+  const groups={};
+  const ORDER=['Pokémon','Trainer','Energy'];
+  currentCards.forEach(card=>{
+    const g=ORDER.includes(card.supertype)?card.supertype:'Other';
+    if(!groups[g])groups[g]=[];
+    groups[g].push(card);
+  });
+  const groupOrder=[...ORDER.filter(g=>groups[g]?.length),...(groups['Other']?['Other']:[])];
+
+  let html='';let anyVisible=false;
+
+  groupOrder.forEach(gName=>{
+    const filtered=(groups[gName]||[]).filter(card=>{
+      if(q&&!card.name.toLowerCase().includes(q)&&!card.number.toLowerCase().includes(q))return false;
+      const io=owned.has(card.id);
+      if(trackerFilter==='owned'&&!io)return false;
+      if(trackerFilter==='missing'&&io)return false;
+      return true;
+    });
+    if(!filtered.length)return;
+    anyVisible=true;
+
+    const gOwned=filtered.filter(c=>owned.has(c.id)).length;
+    const gPct=filtered.length>0?Math.round(gOwned/filtered.length*100):0;
+    const open=!trackerGroupCollapsed.has(gName);
+    const gLabel=gName==='Pokémon'?'&#9670; POKÉMON':gName==='Trainer'?'&#9650; TRAINER':gName==='Energy'?'&#11042; ENERGY':'&#9632; OTHER';
+
+    html+=`<div class="section">
+      <div class="section-header${open?' open':''}" onclick="toggleTrackerGroup('${gName}')">
+        <div class="section-left"><span class="section-badge">${gLabel}</span></div>
+        <div class="section-right">
+          <span class="section-count">${gOwned}/${filtered.length}</span>
+          <div class="mini-bar"><div class="mini-fill" style="width:${gPct}%"></div></div>
+          <span class="chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="card-grid${open?'':' collapsed'}">`;
+
+    // In masterset mode, add variant cards based on sub-options
+    let displayCards=[...filtered];
+    if(megaMode){
+      const isSV=ALL_SETS.find(s=>s.id===currentSet.id)?.series==='Scarlet & Violet';
+      const expanded=[];
+      filtered.forEach(card=>{
+        expanded.push(card);
+        const r=(card.rarity||'').toLowerCase();
+        const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
+        const eligible=!noRH.some(x=>r.includes(x));
+        if(eligible){
+          if(mastersetOpts.rh)expanded.push({...card,id:card.id+'_rh',_variant:'RH',rarity:'Reverse Holo'});
+          if(mastersetOpts.mb&&isSV)expanded.push({...card,id:card.id+'_mb',_variant:'MB',rarity:'Master Ball RH'});
+          if(mastersetOpts.ch)expanded.push({...card,id:card.id+'_ch',_variant:'CH',rarity:'Cosmos Holo'});
+        }
+      });
+      displayCards=expanded.filter(card=>{
+        const io=owned.has(card.id);
+        if(trackerFilter==='owned'&&!io)return false;
+        if(trackerFilter==='missing'&&io)return false;
+        return true;
+      });
+    }
+
+    displayCards.forEach(card=>{
+      const io=owned.has(card.id);
+      const rc=rarityColor(card.rarity);
+      const rs=rarityShort(card.rarity);
+      const symClass=card.supertype==='Pokémon'?'sym-poke':card.supertype==='Trainer'?'sym-trainer':card.supertype==='Energy'?'sym-energy':'sym-other';
+      const symIcon=card.supertype==='Pokémon'?'&#9670;':card.supertype==='Trainer'?'&#9650;':card.supertype==='Energy'?'&#11042;':'&#9632;';
+      const sname=card.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      const dispNum=formatNumber(card.number);
+      const variantLabel=card._variant?` ◈${card._variant}`:'';
+      const rhBorder=card._variant?'border-color:rgba(245,185,34,.3);background:rgba(245,185,34,.04);':'';
+
+      const thumbHtml=card.imgSmall
+        ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy">`
+        :`<div class="card-thumb-placeholder ${symClass}">${symIcon}</div>`;
+
+      const popupData=encodeURIComponent(JSON.stringify({
+        id:card.id,name:card.name,number:card.number,rarity:card.rarity,
+        supertype:card.supertype,types:card.types||[],
+        imgLarge:card.imgLarge||card.imgSmall||'',
+        setName:card.setName||currentSet.name,
+        prices:card.prices||{}
+      }));
+
+      html+=`<div class="card-item${io?' owned':''}" style="${rhBorder}" onclick="toggleCard('${card.id}','${sname}')">
+        ${thumbHtml}
+        <div class="card-info">
+          <span class="card-num-badge">${dispNum}${variantLabel}</span>
+          <span class="card-name">${card.name}</span>
+          <div class="rarity-badge" style="color:${rc};border-color:${rc}3a">${rs}</div>
+        </div>
+        <div class="card-right-col">
+          <button class="three-dot-btn" onclick="openCardPopup(event,'${popupData}','${card.id}')">···</button>
+          <div class="check-circle"><svg class="check-icon" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+      </div>`;
+    });
+
+    html+=`</div></div>`;
+  });
+
+  if(!anyVisible)html='<div class="empty">No cards found</div>';
+  area.innerHTML=html;
+  area.scrollTop=scrollPos;
+}
+
+function toggleCard(cardId,cardName){
+  if(owned.has(cardId)){owned.delete(cardId);showToast('Removed '+cardName,false);}
+  else{owned.add(cardId);showToast('Got '+cardName+'!',true);}
+  markDirty();
+  updateTrackerStats(owned.size,currentCards.length);
+  renderTracker();
+}
+
+function backToSets(){
+  if(_dirty)saveCurrentSet();
+  _dirty=false;currentSet=null;currentCards=[];owned=new Set();
+  trackerFilter='all';trackerSearch='';dexFilter='all';dexSearch='';
+  document.getElementById('search-tracker').value='';
+  document.getElementById('search-dex').value='';
+  ['all','owned','missing'].forEach(x=>document.getElementById('tf-'+x).classList.toggle('active',x==='all'));
+  ['all','owned','missing'].forEach(x=>document.getElementById('df-'+x).classList.toggle('active',x==='all'));
+  showSetScreen();
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function formatNumber(n){
+  if(!n||n==='?')return '#?';
+  const num=parseInt(n);
+  if(!isNaN(num)&&String(num)===String(n))return '#'+String(num).padStart(3,'0');
+  return n; // special numbers like TG01, GG01, SV01 etc
+}
+
+function rarityColor(r){
+  if(!r)return'var(--text3)';
+  const rl=r.toLowerCase();
+  if(rl.includes('hyper')||rl.includes('rainbow'))return'#ff6b9d';
+  if(rl.includes('secret'))return'#ff6b9d';
+  if(rl.includes('special illustration'))return'var(--purple)';
+  if(rl.includes('illustration rare'))return'#818cf8';
+  if(rl.includes('tera'))return'#60a5fa';
+  if(rl.includes('ultra rare')||rl.includes('full art'))return'#ff9f43';
+  if(rl.includes('rare holo')||rl.includes('holo rare'))return'var(--accent)';
+  if(rl.includes('rare'))return'#facc15';
+  if(rl.includes('uncommon'))return'var(--blue)';
+  if(rl.includes('common'))return'var(--text3)';
+  return'var(--text2)';
+}
+
+function rarityShort(r){
+  if(!r)return'?';
+  const rl=r.toLowerCase();
+  if(rl.includes('hyper')||rl.includes('rainbow'))return'HR';
+  if(rl.includes('secret'))return'SR';
+  if(rl.includes('special illustration'))return'SIR';
+  if(rl.includes('illustration rare'))return'IR';
+  if(rl.includes('ultra rare'))return'UR';
+  if(rl.includes('full art'))return'FA';
+  if(rl.includes('tera'))return'TR';
+  if(rl.includes('rare holo vmax'))return'VM';
+  if(rl.includes('rare holo v'))return'V';
+  if(rl.includes('rare holo gx'))return'GX';
+  if(rl.includes('rare holo ex'))return'EX';
+  if(rl.includes('rare holo lv'))return'LV';
+  if(rl.includes('rare holo'))return'RH';
+  if(rl.includes('rare'))return'R';
+  if(rl.includes('uncommon'))return'U';
+  if(rl.includes('common'))return'C';
+  return'?';
+}
+
+function showToast(msg,green){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(green?' green':'');
+  if(toastT)clearTimeout(toastT);
+  toastT=setTimeout(()=>t.className='toast',1800);
+}
+
+// ════════════════════════════════════════════════════════
+// CARD POPUP
+// ════════════════════════════════════════════════════════
+let popupCardId=null;
+
+function openCardPopup(e,encodedData,cardId){
+  e.stopPropagation();
+  popupCardId=cardId;
+  let card;
+  try{card=JSON.parse(decodeURIComponent(encodedData));}
+  catch{return;}
+
+  // Populate image
+  const img=document.getElementById('popup-img');
+  img.src=card.imgLarge||card.imgSmall||'';
+  img.alt=card.name;
+
+  // Populate info
+  document.getElementById('popup-name').textContent=card.name;
+  document.getElementById('popup-set').textContent=`${card.setName} · #${card.number}`;
+  document.getElementById('popup-rarity').textContent=card.rarity||'—';
+  document.getElementById('popup-type').textContent=(card.types&&card.types.length)?card.types.join(', '):(card.supertype||'—');
+  document.getElementById('popup-num').textContent=`#${card.number}`;
+  document.getElementById('popup-cat').textContent=card.supertype||'—';
+
+  // Prices
+  const p=card.prices||{};
+  const fmt=v=>v!=null?`$${Number(v).toFixed(2)}`:'—';
+  const setPrice=(id,v)=>{
+    const el=document.getElementById(id);
+    el.textContent=fmt(v);
+    el.className='price-value'+(v==null?' price-na':'');
+  };
+  setPrice('popup-price-normal',p.normal);
+  setPrice('popup-price-holo',p.holofoil);
+  setPrice('popup-price-rh',p.reverseHolo);
+  setPrice('popup-price-low',p.low);
+  setPrice('popup-price-high',p.high);
+
+  // Own button
+  updatePopupOwnBtn();
+
+  document.getElementById('card-popup-bg').classList.add('show');
+}
+
+function updatePopupOwnBtn(){
+  const btn=document.getElementById('popup-own-btn');
+  const isOwned=owned.has(popupCardId);
+  btn.className='card-popup-own-btn '+(isOwned?'unmark':'mark');
+  btn.textContent=isOwned?'✕ Mark as Not Owned':'✓ Mark as Owned';
+}
+
+function toggleCardFromPopup(){
+  if(!popupCardId)return;
+  const card=currentCards.find(c=>c.id===popupCardId);
+  const name=card?card.name:'Card';
+  if(owned.has(popupCardId)){owned.delete(popupCardId);showToast('Removed '+name,false);}
+  else{owned.add(popupCardId);showToast('Got '+name+'!',true);}
+  markDirty();
+  updateTrackerStats(owned.size,currentCards.length);
+  updatePopupOwnBtn();
+  renderTracker();
+}
+
+function closeCardPopup(e){
+  if(!e||e.target===document.getElementById('card-popup-bg')||e.target.classList.contains('card-popup-close')){
+    document.getElementById('card-popup-bg').classList.remove('show');
+    popupCardId=null;
+  }
+}
+// ════════════════════════════════════════════════════════
+function getSpriteUrl(cardName){
+  // Strip common TCG suffixes to get the base Pokémon name
+  let n=cardName
+    .replace(/\s*&\s*.+$/,'')           // "Pikachu & Zekrom" → "Pikachu"
+    .replace(/\s+(ex|EX|GX|V|VMAX|VSTAR|VStar|BREAK|Star|Prime|Legend|LV\.X|Lv\.X|δ|☆)(\s|$)/gi,' ')
+    .replace(/\s+(TAG TEAM|Radiant|Shining|Dark|Light|Shadow|Crystal|Baby)/gi,' ')
+    .replace(/\s+/g,' ').trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s\-♀♂]/g,'')
+    .replace(/♀/g,'-f').replace(/♂/g,'-m')
+    .replace(/\s+/g,'-');
+  // pokemondb icon sprites work well by name
+  return`https://img.pokemondb.net/sprites/sword-shield/icon/${n}.png`;
+}
+
+// ════════════════════════════════════════════════════════
+// POKÉDEX STORAGE
+// ════════════════════════════════════════════════════════
+const dexKey=u=>`pb_u_${u}_dex`;
+function getDexOwned(u){
+  try{return new Set(JSON.parse(localStorage.getItem(dexKey(u))||'[]'));}
+  catch{return new Set();}
+}
+function saveDexOwned(u,s){
+  try{localStorage.setItem(dexKey(u),JSON.stringify([...s]));}
+  catch{showToast('Save failed',false);}
+}
+
+// ════════════════════════════════════════════════════════
+// POKÉDEX SCREEN
+// ════════════════════════════════════════════════════════
+const DEX_GENS=[
+  {id:1,name:'Generation I',region:'Kanto',  start:1,  end:151},
+  {id:2,name:'Generation II',region:'Johto', start:152,end:251},
+  {id:3,name:'Generation III',region:'Hoenn',start:252,end:386},
+  {id:4,name:'Generation IV',region:'Sinnoh',start:387,end:493},
+  {id:5,name:'Generation V',region:'Unova',  start:494,end:649},
+  {id:6,name:'Generation VI',region:'Kalos', start:650,end:721},
+  {id:7,name:'Generation VII',region:'Alola', start:722,end:809},
+  {id:8,name:'Generation VIII',region:'Galar',start:810,end:905},
+  {id:9,name:'Generation IX',region:'Paldea',start:906,end:1025},
+];
+
+let dexOwned=new Set();
+let dexFilter='all';
+let dexSearch='';
+let dexGenCollapsed=new Set();
+let dexNames={};// dexNum→name cache
+
+const dexNamesKey='pb_dex_names_v1';
+
+async function openDex(){
+  if(_dirty)saveCurrentSet();
+  dexOwned=getDexOwned(currentUser);
+  dexFilter='all';dexSearch='';
+  document.getElementById('set-screen').classList.add('hidden');
+  document.getElementById('dex-screen').classList.remove('hidden');
+  pushState('dex');
+  document.getElementById('dex-topbar-avatar').textContent=currentUser.substring(0,2).toUpperCase();
+  document.getElementById('dex-topbar-username').textContent=currentUser;
+  document.getElementById('search-dex').value='';
+  ['all','owned','missing'].forEach(x=>document.getElementById('df-'+x).classList.toggle('active',x==='all'));
+  updateDexStats();
+  // Load names if not cached
+  const cached=localStorage.getItem(dexNamesKey);
+  if(cached){try{dexNames=JSON.parse(cached);}catch{dexNames={};}}
+  renderDex();
+  if(!cached||Object.keys(dexNames).length<1025){
+    fetchDexNames();
+  }
+}
+
+async function fetchDexNames(){
+  try{
+    const r=await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0');
+    const d=await r.json();
+    const map={};
+    d.results.forEach((p,i)=>{
+      const num=i+1;
+      map[num]=p.name.charAt(0).toUpperCase()+p.name.slice(1).replace(/-/g,' ');
+    });
+    dexNames=map;
+    localStorage.setItem(dexNamesKey,JSON.stringify(map));
+    renderDex();
+  }catch{}
+}
+
+function updateDexStats(){
+  const total=1025,o=dexOwned.size;
+  const pct=Math.round(o/total*100);
+  document.getElementById('d-owned').textContent=o;
+  document.getElementById('d-missing').textContent=Math.max(0,total-o);
+  document.getElementById('d-pct').textContent=pct+'%';
+  document.getElementById('d-prog').style.width=pct+'%';
+}
+
+function setDexFilter(f){
+  dexFilter=f;
+  ['all','owned','missing'].forEach(x=>document.getElementById('df-'+x).classList.toggle('active',x===f));
+  renderDex();
+}
+
+function renderDex(){
+  const q=dexSearch.toLowerCase().trim();
+  const area=document.getElementById('dex-scroll-area');
+  const scrollPos=area.scrollTop;
+  let html='';let anyVisible=false;
+
+  DEX_GENS.forEach(gen=>{
+    const gid='g'+gen.id;
+    const open=!dexGenCollapsed.has(gid);
+    const pokes=[];
+    for(let n=gen.start;n<=gen.end;n++){
+      const name=dexNames[n]||'#'+String(n).padStart(3,'0');
+      if(q&&!name.toLowerCase().includes(q)&&!String(n).includes(q))continue;
+      const io=dexOwned.has(n);
+      if(dexFilter==='owned'&&!io)continue;
+      if(dexFilter==='missing'&&io)continue;
+      pokes.push({n,name,io});
+    }
+    if(!pokes.length)return;
+    anyVisible=true;
+
+    const gOwned=pokes.filter(p=>p.io).length;
+    const gTotal=gen.end-gen.start+1;
+    const gPct=Math.round(gOwned/gTotal*100);
+
+    html+=`<div class="section">
+      <div class="section-header${open?' open':''}" onclick="toggleDexGen('${gid}')">
+        <div class="section-left">
+          <span class="section-badge" style="background:rgba(232,184,75,.15);color:var(--accent);border-color:rgba(232,184,75,.3)">GEN ${gen.id}</span>
+          <div class="section-meta">
+            <div class="section-name">${gen.name}</div>
+            <div class="section-years">${gen.region} · #${gen.start}–${gen.end}</div>
+          </div>
+        </div>
+        <div class="section-right">
+          <span class="section-count">${gOwned}/${gTotal}</span>
+          <div class="mini-bar"><div class="mini-fill" style="width:${gPct}%;background:var(--accent)"></div></div>
+          <span class="chevron">&#9660;</span>
+        </div>
+      </div>
+      <div class="dex-grid${open?'':' collapsed'}">`;
+
+    pokes.forEach(({n,name,io})=>{
+      const spriteUrl=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${n}.png`;
+      const sname=name.replace(/'/g,"\\'");
+      html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
+        <img class="card-sprite" src="${spriteUrl}" alt="" loading="lazy">
+        <span class="card-num-badge">#${String(n).padStart(3,'0')}</span>
+        <span class="card-name">${name}</span>
+        <div class="check-circle"><svg class="check-icon" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>`;
+    });
+
+    html+=`</div></div>`;
+  });
+
+  area.innerHTML=html||'<div class="empty">No Pokémon found</div>';
+  area.scrollTop=scrollPos;
+}
+
+function toggleDexGen(gid){
+  if(dexGenCollapsed.has(gid))dexGenCollapsed.delete(gid);else dexGenCollapsed.add(gid);
+  renderDex();
+}
+
+function toggleDexPoke(num,name){
+  if(dexOwned.has(num)){dexOwned.delete(num);showToast('Removed '+name,false);}
+  else{dexOwned.add(num);showToast('Got '+name+'! · Saved',true);}
+  saveDexOwned(currentUser,dexOwned);
+  updateDexStats();
+  renderDex();
+  renderSetScreen(); // refresh dex pin progress
+}
+
+// ════════════════════════════════════════════════════════
+// COLLAPSE / EXPAND ALL
+// ════════════════════════════════════════════════════════
+function collapseAllEras(){
+  ERAS.forEach(e=>eraCollapsed.add(e.id));
+  localStorage.setItem(eraColKey(currentUser),JSON.stringify([...eraCollapsed]));
+  renderSetScreen();
+}
+function expandAllEras(){
+  eraCollapsed.clear();
+  localStorage.setItem(eraColKey(currentUser),JSON.stringify([]));
+  renderSetScreen();
+}
+function collapseAllGroups(){
+  const ORDER=['Pokémon','Trainer','Energy','Other'];
+  ORDER.forEach(g=>trackerGroupCollapsed.add(g));
+  renderTracker();
+}
+function expandAllGroups(){
+  trackerGroupCollapsed.clear();
+  renderTracker();
+}
+function toggleTrackerGroup(gName){
+  if(trackerGroupCollapsed.has(gName))trackerGroupCollapsed.delete(gName);
+  else trackerGroupCollapsed.add(gName);
+  renderTracker();
+}
+function collapseAllGens(){
+  DEX_GENS.forEach(g=>dexGenCollapsed.add('g'+g.id));
+  renderDex();
+}
+function expandAllGens(){
+  dexGenCollapsed.clear();
+  renderDex();
+}
+
+// ════════════════════════════════════════════════════════
+// MEGA MASTERSET MODE
+// ════════════════════════════════════════════════════════
+function toggleMegaMode(){
+  megaMode=!megaMode;
+  localStorage.setItem(megaKey(currentUser,currentSet.id),megaMode?'1':'0');
+  document.getElementById('mega-pill').classList.toggle('on',megaMode);
+  document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
+  updateTrackerStats(owned.size);
+  renderTracker();
+  showToast(megaMode?'Masterset Mode ON ◆':'Masterset Mode OFF',megaMode);
+}
+function toggleSubopt(e,key){
+  e.stopPropagation();
+  mastersetOpts[key]=!mastersetOpts[key];
+  localStorage.setItem(megaOptsKey(currentUser,currentSet.id),JSON.stringify(mastersetOpts));
+  syncSuboptPills();
+  updateTrackerStats(owned.size);
+  renderTracker();
+}
+function syncSuboptPills(){
+  ['rh','mb','ch'].forEach(k=>{
+    const pill=document.getElementById('sub-'+k);
+    if(pill)pill.classList.toggle('on',!!mastersetOpts[k]);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ════════════════════════════════════════════════════════
+async function exportData(){
+  const users=getUsers();
+  if(!Object.keys(users).length){showToast('No trainer data to export',false);return;}
+  const data={version:2,exported:new Date().toISOString(),users:{}};
+  Object.keys(users).forEach(name=>{
+    data.users[name]={profile:users[name],sets:{},dex:[...getDexOwned(name)],megaModes:{},megaOpts:{}};
+    Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_s_`)).forEach(k=>{
+      const sid=k.replace(`pb_u_${name}_s_`,'');
+      try{data.users[name].sets[sid]=JSON.parse(localStorage.getItem(k)||'[]');}catch{}
+    });
+    Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_mega_`)).forEach(k=>{
+      const sid=k.replace(`pb_u_${name}_mega_`,'');
+      data.users[name].megaModes[sid]=localStorage.getItem(k);
+    });
+    Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_megaopts_`)).forEach(k=>{
+      const sid=k.replace(`pb_u_${name}_megaopts_`,'');
+      data.users[name].megaOpts[sid]=localStorage.getItem(k);
+    });
+  });
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  // Use native Save dialog if available (modern browsers)
+  if(window.showSaveFilePicker){
+    try{
+      const fh=await window.showSaveFilePicker({
+        suggestedName:`masterbinder-backup-${new Date().toISOString().slice(0,10)}.json`,
+        types:[{description:'JSON Backup',accept:{'application/json':['.json']}}]
+      });
+      const writable=await fh.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      showToast('Exported! ✓',true);return;
+    }catch(e){if(e.name==='AbortError')return;}
+  }
+  // Fallback
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`masterbinder-backup-${Date.now()}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('Exported! ✓',true);
+}
+
+function importData(){document.getElementById('import-file').click();}
+function handleImportFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.users)throw new Error('Invalid backup file');
+      const names=Object.keys(data.users);
+      if(!names.length){showToast('No trainers found in file',false);return;}
+      const existing=getUsers();
+      let imported=0;
+      names.forEach(name=>{
+        const ud=data.users[name];
+        existing[name]=ud.profile||{created:Date.now()};
+        if(ud.sets)Object.entries(ud.sets).forEach(([sid,cards])=>{localStorage.setItem(ownedKey(name,sid),JSON.stringify(cards));});
+        if(ud.dex)localStorage.setItem(dexKey(name),JSON.stringify(ud.dex));
+        if(ud.megaModes)Object.entries(ud.megaModes).forEach(([sid,v])=>{localStorage.setItem(megaKey(name,sid),v);});
+        if(ud.megaOpts)Object.entries(ud.megaOpts).forEach(([sid,v])=>{localStorage.setItem(megaOptsKey(name,sid),v);});
+        imported++;
+      });
+      saveUsers(existing);renderLoginScreen();
+      showToast(`Imported ${imported} trainer${imported!==1?'s':''}! ✓`,true);
+    }catch(err){showToast('Import failed: '+err.message,false);}
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════════════════
+// SCROLL TO PINNED (item 3)
+// ════════════════════════════════════════════════════════
+function scrollToPinned(type){
+  const area=document.getElementById('set-scroll-area');
+  const pins=[...area.querySelectorAll('.started-pin')];
+  const target=type==='complete'
+    ?pins.find(p=>p.classList.contains('complete'))
+    :pins.find(p=>!p.classList.contains('complete'));
+  if(target){
+    target.scrollIntoView({behavior:'smooth',block:'center'});
+    target.style.outline='2px solid '+(type==='complete'?'var(--accent)':'var(--green)');
+    setTimeout(()=>target.style.outline='',1200);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// SCROLL TO TOP (item 5)
+// ════════════════════════════════════════════════════════
+function scrollToTop(){
+  const active=['set-scroll-area','tracker-scroll-area','dex-scroll-area'].find(id=>{
+    const el=document.getElementById(id);
+    return el&&!el.closest('.screen.hidden')&&!el.closest('.screen[style*="display:none"]');
+  });
+  if(active)document.getElementById(active).scrollTo({top:0,behavior:'smooth'});
+}
+
+function setupScrollTopFab(){
+  const fab=document.getElementById('scroll-top-fab');
+  const areas=['set-scroll-area','tracker-scroll-area','dex-scroll-area'];
+  areas.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('scroll',()=>{
+      fab.classList.toggle('visible',el.scrollTop>150);
+    },{passive:true});
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// BACK GESTURE / HISTORY
+// ════════════════════════════════════════════════════════
+function pushState(screenName){
+  history.pushState({screen:screenName},'','');
+}
+window.addEventListener('popstate',e=>{
+  const screen=e.state?.screen;
+  if(screen==='tracker'||screen==='dex'){
+    if(_dirty)saveCurrentSet();
+    _dirty=false;currentSet=null;currentCards=[];owned=new Set();
+    trackerFilter='all';trackerSearch='';dexFilter='all';dexSearch='';
+    document.getElementById('search-tracker').value='';
+    document.getElementById('search-dex').value='';
+    ['all','owned','missing'].forEach(x=>{
+      document.getElementById('tf-'+x).classList.toggle('active',x==='all');
+      document.getElementById('df-'+x).classList.toggle('active',x==='all');
+    });
+    showSetScreen();
+  } else if(screen==='sets'||screen==='login'||!screen){
+    logout();
+  }
+});
+
+// ════════════════════════════════════════════════════════
+// SEARCH LISTENERS
+// ════════════════════════════════════════════════════════
+document.getElementById('search-sets').addEventListener('input',e=>{
+  setSearch=e.target.value;renderSetScreen();
+});
+document.getElementById('search-tracker').addEventListener('input',e=>{
+  trackerSearch=e.target.value;renderTracker();
+});
+document.getElementById('search-dex').addEventListener('input',e=>{
+  dexSearch=e.target.value;renderDex();
+});
+document.getElementById('new-username').addEventListener('keydown',e=>{
+  if(e.key==='Enter')createUser();
+});
+
+// ════════════════════════════════════════════════════════
+// AUTO-SAVE + BOOT
+// ════════════════════════════════════════════════════════
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'&&currentUser&&_dirty)saveCurrentSet();
+});
+window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();});
+
+(async function boot(){
+  try{
+    const cached=localStorage.getItem('pb_all_sets_v2');
+    if(cached){ALL_SETS=JSON.parse(cached);buildEras();}
+  }catch{}
+  history.replaceState({screen:'login'},'','');
+  renderLoginScreen();
+  setupScrollTopFab();
+})();
+
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
