@@ -138,8 +138,8 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .card-item.owned .card-name{color:var(--green)}
 .rarity-badge{font-size:7px;font-family:'Space Mono',monospace;font-weight:700;letter-spacing:.04em;padding:1px 3px;border-radius:3px;border:1px solid;background:rgba(255,255,255,.04);flex-shrink:0;align-self:flex-start}
 /* right col */
-.card-right-col{display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;flex-shrink:0;padding:2px 0;height:48px}
-.three-dot-btn{width:20px;height:20px;background:none;border:none;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;letter-spacing:-1px;padding-bottom:2px;transition:color .12s}
+.card-right-col{display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.three-dot-btn{width:28px;height:44px;background:none;border:none;color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;letter-spacing:-1px;padding-bottom:2px;transition:color .12s;flex-shrink:0}
 .three-dot-btn:active{color:var(--accent)}
 /* check */
 .check-circle{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;background:var(--surface);flex-shrink:0}
@@ -326,7 +326,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
   <div class="users-grid" id="users-grid"></div>
   <button class="new-user-btn" id="new-user-btn" onclick="openCreateModal()">+ Create new trainer</button>
   <div style="flex:1"></div>
-  <img src="logo.png" alt="Blue Mccn Collectibles" style="width:160px;object-fit:contain;margin-bottom:14px;mix-blend-mode:screen;opacity:.95">
+  <img src="logo.png" alt="Blue Mccn Collectibles" style="width:160px;object-fit:contain;margin-bottom:32px;mix-blend-mode:screen;opacity:.95">
   <div class="io-row">
     <button class="io-btn export-btn" onclick="exportData()">⬆ Export</button>
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
@@ -362,13 +362,6 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="tracker-title-row">
       <button class="back-btn" onclick="backToSets()">&#8592; SETS</button>
       <span class="tracker-set-name" id="tracker-set-name"></span>
-    </div>
-    <div class="topbar-user">
-      <div class="topbar-user-info">
-        <div class="topbar-avatar" id="tracker-topbar-avatar"></div>
-        <span class="topbar-username" id="tracker-topbar-username"></span>
-      </div>
-      <button class="logout-btn" onclick="logout()">Switch</button>
     </div>
     <div class="stats-row">
       <div class="stat-box s-owned"><div class="val" id="t-owned">0</div><div class="lbl">Owned</div></div>
@@ -430,14 +423,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
   <div class="topbar">
     <div class="tracker-title-row">
       <button class="back-btn" onclick="backToSets()">&#8592; SETS</button>
-      <span class="tracker-set-name" style="color:var(--green)">&#9670; NATIONAL POKÉDEX</span>
-    </div>
-    <div class="topbar-user">
-      <div class="topbar-user-info">
-        <div class="topbar-avatar" id="dex-topbar-avatar"></div>
-        <span class="topbar-username" id="dex-topbar-username"></span>
-      </div>
-      <button class="logout-btn" onclick="logout()">Switch</button>
+      <span class="tracker-set-name" style="color:var(--accent)">&#9670; NATIONAL POKÉDEX</span>
     </div>
     <div class="stats-row">
       <div class="stat-box s-owned"><div class="val" id="d-owned">0</div><div class="lbl">Owned</div></div>
@@ -582,9 +568,10 @@ let currentUser=null,currentSet=null,currentCards=[],owned=new Set();
 let eraCollapsed=new Set(),trackerFilter='all',trackerSearch='',setSearch='';
 let trackerGroupCollapsed=new Set();
 let megaMode=false;
-let mastersetOpts={rh:true,mb:true,ch:false}; // reverse holo, master ball, cosmos holo
+let mastersetOpts={rh:true,mb:true,ch:false};
 let showEraList=false;
 let _dirty=false,toastT=null;
+let _popupCards=[];
 
 // ════════════════════════════════════════════════════════
 // STORAGE
@@ -742,15 +729,11 @@ function showSetScreen(){
 function showTrackerScreen(){
   document.getElementById('set-screen').classList.add('hidden');
   document.getElementById('tracker-screen').classList.remove('hidden');
-  document.getElementById('tracker-topbar-avatar').textContent=currentUser.substring(0,2).toUpperCase();
-  document.getElementById('tracker-topbar-username').textContent=currentUser;
-  // Set name + symbol
   const setData=ALL_SETS.find(s=>s.id===currentSet.id);
   const symHtml=setData?.symbol?`<img src="${setData.symbol}" style="height:18px;width:auto;object-fit:contain;margin-left:6px;opacity:.85" alt="">`:'' ;
   document.getElementById('tracker-set-name').innerHTML=currentSet.name+symHtml;
   document.getElementById('mega-pill').classList.toggle('on',megaMode);
   document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
-  // Show Master Ball option only for S&V
   const isSV=setData?.series==='Scarlet & Violet';
   document.getElementById('subopt-masterball-row').style.display=isSV?'':'none';
   syncSuboptPills();
@@ -1075,20 +1058,23 @@ async function fetchCards(setId){
 // ════════════════════════════════════════════════════════
 function updateTrackerStats(ownedCount,totalCount){
   const baseTotal=totalCount??currentCards.length;
-  // Count only base card owned (exclude variant suffixes)
-  const baseOwned=ownedCount??[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch')).length;
+  const baseOwned=[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch')).length;
   const basePct=baseTotal>0?Math.min(100,Math.round(baseOwned/baseTotal*100)):0;
 
   if(megaMode&&currentCards.length>0){
     const msExtra=getMastersetExtraCount();
-    // Masterset bar tracks ONLY the variant extras
-    const msVariantOwned=[...owned].filter(id=>id.endsWith('_rh')||id.endsWith('_mb')||id.endsWith('_ch')).length;
-    const msPct=msExtra>0?Math.min(100,Math.round(msVariantOwned/msExtra*100)):0;
+    const msOwned=[...owned].filter(id=>id.endsWith('_rh')||id.endsWith('_mb')||id.endsWith('_ch')).length;
+    const msPct=msExtra>0?Math.min(100,Math.round(msOwned/msExtra*100)):0;
+    const totalOwned=baseOwned+msOwned;
+    const totalCards=baseTotal+msExtra;
+    const totalPct=totalCards>0?Math.min(100,Math.round(totalOwned/totalCards*100)):0;
 
-    document.getElementById('t-owned').textContent=baseOwned;
-    document.getElementById('t-missing').textContent=Math.max(0,(baseTotal+msExtra)-(baseOwned+msVariantOwned));
-    document.getElementById('t-pct').textContent=basePct+'%';
+    // Top counters show combined total
+    document.getElementById('t-owned').textContent=totalOwned;
+    document.getElementById('t-missing').textContent=Math.max(0,totalCards-totalOwned);
+    document.getElementById('t-pct').textContent=totalPct+'%';
 
+    // Dual bars — each independent
     document.getElementById('t-prog-single').classList.add('hidden');
     document.getElementById('t-prog-dual').classList.remove('hidden');
     document.getElementById('t-prog-base').style.width=basePct+'%';
@@ -1137,6 +1123,7 @@ function setTrackerFilter(f){
 }
 
 function renderTracker(){
+  _popupCards=[];
   const q=trackerSearch.toLowerCase().trim();
   const area=document.getElementById('tracker-scroll-area');
   const scrollPos=area.scrollTop;
@@ -1219,13 +1206,15 @@ function renderTracker(){
         ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy">`
         :`<div class="card-thumb-placeholder ${symClass}">${symIcon}</div>`;
 
-      const popupData=encodeURIComponent(JSON.stringify({
+      // Store card data for popup by index to avoid encoding issues
+      const cardIdx=_popupCards.length;
+      _popupCards.push({
         id:card.id,name:card.name,number:card.number,rarity:card.rarity,
         supertype:card.supertype,types:card.types||[],
         imgLarge:card.imgLarge||card.imgSmall||'',
         setName:card.setName||currentSet.name,
         prices:card.prices||{}
-      }));
+      });
 
       html+=`<div class="card-item${io?' owned':''}" style="${rhBorder}" onclick="toggleCard('${card.id}','${sname}')">
         ${thumbHtml}
@@ -1235,8 +1224,7 @@ function renderTracker(){
           <div class="rarity-badge" style="color:${rc};border-color:${rc}3a">${rs}</div>
         </div>
         <div class="card-right-col">
-          <button class="three-dot-btn" onclick="openCardPopup(event,'${popupData}','${card.id}')">···</button>
-          <div class="check-circle"><svg class="check-icon" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <button class="three-dot-btn" onclick="openCardPopup(event,${cardIdx},'${card.id}')">···</button>
         </div>
       </div>`;
     });
@@ -1328,12 +1316,11 @@ function showToast(msg,green){
 // ════════════════════════════════════════════════════════
 let popupCardId=null;
 
-function openCardPopup(e,encodedData,cardId){
+function openCardPopup(e,cardIdx,cardId){
   e.stopPropagation();
   popupCardId=cardId;
-  let card;
-  try{card=JSON.parse(decodeURIComponent(encodedData));}
-  catch{return;}
+  const card=_popupCards[cardIdx];
+  if(!card)return;
 
   // Populate image
   const img=document.getElementById('popup-img');
@@ -1452,8 +1439,6 @@ async function openDex(){
   document.getElementById('set-screen').classList.add('hidden');
   document.getElementById('dex-screen').classList.remove('hidden');
   pushState('dex');
-  document.getElementById('dex-topbar-avatar').textContent=currentUser.substring(0,2).toUpperCase();
-  document.getElementById('dex-topbar-username').textContent=currentUser;
   document.getElementById('search-dex').value='';
   ['all','owned','missing'].forEach(x=>document.getElementById('df-'+x).classList.toggle('active',x==='all'));
   updateDexStats();
