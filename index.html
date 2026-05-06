@@ -231,18 +231,19 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .help-btn:active{border-color:var(--accent);color:var(--accent)}
 .dex-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
 .dex-grid.collapsed{display:none}
-.dex-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px 7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:background .12s,border-color .12s,transform .1s;min-width:0;position:relative;gap:4px;min-height:72px}
-.dex-item:active{transform:scale(.97)}
-.dex-item.owned{background:rgba(232,184,75,.06);border-color:rgba(232,184,75,.3)}
-.dex-item .card-sprite{width:40px;height:40px}
-.dex-item .card-num-badge{font-size:8px;color:var(--text3);font-family:'Space Mono',monospace}
-.dex-item.owned .card-num-badge{color:rgba(232,184,75,.6)}
-.dex-item .card-name{font-size:11px;font-weight:700;color:var(--text);text-align:center;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;width:100%}
-.dex-item.owned .card-name{color:var(--accent)}
-.dex-item .check-circle{position:absolute;top:5px;right:5px;width:16px;height:16px}
-.dex-item.owned .check-circle{background:var(--accent);border-color:var(--accent)}
-.dex-item .check-icon{width:8px;height:6px}
-.dex-item .dex-three-dot{position:absolute;bottom:4px;right:4px;background:none;border:none;color:var(--text2);font-size:15px;cursor:pointer;letter-spacing:-1px;padding:2px;line-height:1;transition:color .12s}
+.dex-item{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 4px;background:var(--surface);border:1px solid var(--border);border-left:3px solid transparent;border-radius:var(--radius-sm);cursor:pointer;transition:background .12s,border-color .12s,transform .1s;min-width:0;position:relative;min-height:58px}
+.dex-item:active{transform:scale(.98)}
+.dex-item.owned{background:var(--green-bg);border-left-color:var(--green)}
+.dex-sprite-wrap{width:34px;height:48px;border-radius:3px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.dex-sprite-wrap img{width:38px;height:38px;object-fit:contain;image-rendering:pixelated}
+.dex-card-thumb{width:34px;height:48px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border2);box-shadow:0 1px 6px rgba(0,0,0,.4)}
+.dex-item-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dex-item-num{font-size:8px;font-family:'Space Mono',monospace;color:var(--text3)}
+.dex-item.owned .dex-item-num{color:rgba(62,207,170,.5)}
+.dex-item-name{font-size:11px;font-weight:700;color:var(--text);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+.dex-item.owned .dex-item-name{color:var(--green)}
+.dex-set-label{font-size:8px;color:var(--text3);font-family:'Space Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dex-item .dex-three-dot{width:28px;height:44px;background:none;border:none;color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;letter-spacing:-1px;padding-bottom:2px;transition:color .12s;flex-shrink:0}
 .dex-item .dex-three-dot:active{color:var(--accent)}
 
 /* ── Pinned Pokédex entry ── */
@@ -392,6 +393,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v5</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -531,6 +533,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       </div>
     </div>
     <button class="card-popup-own-btn" id="popup-own-btn" onclick="toggleCardFromPopup()">✓ Mark as Owned</button>
+    <button class="card-popup-own-btn" id="popup-change-card-btn" onclick="" style="margin-top:8px;display:none;background:var(--surface2);color:var(--blue);border:1px solid var(--border2)">↺ Change Card</button>
     <button class="card-popup-own-btn" id="popup-store-btn" onclick="openInStore()" style="margin-top:8px;background:var(--navy);color:var(--blue);border:1px solid var(--border2)">🛒 See Availability in Store</button>
   </div>
 </div>
@@ -1464,6 +1467,75 @@ function clearDexCard(dexNum){
   closeDexPicker();
   renderDex();
 }
+function openDexPopup(e,dexNum,pokeName){
+  e.stopPropagation();
+  const card=dexSelectedCards[dexNum];
+  if(!card){openDexCardPicker(e,dexNum,pokeName);return;}
+
+  // Populate popup with selected card data
+  popupCardId='dex_'+dexNum;
+  _dexPopupNum=dexNum;
+  _dexPopupPokeName=pokeName;
+
+  document.getElementById('popup-img').src=card.imgLarge||card.imgSmall||'';
+  document.getElementById('popup-img').alt=card.name;
+  document.getElementById('popup-name').textContent=card.name;
+  document.getElementById('popup-set').textContent=`${card.setName||''} · #${card.number||''}`;
+  document.getElementById('popup-rarity').textContent=card.rarity||'—';
+  document.getElementById('popup-type').textContent=card.type||'Pokémon';
+  document.getElementById('popup-num').textContent=card.number?`#${card.number}`:'—';
+  document.getElementById('popup-cat').textContent='Pokémon';
+
+  // Prices
+  const p=card.prices||{};
+  const fmt=v=>v!=null&&v>0?`$${Number(v).toFixed(2)}`:null;
+  const setPrice=(id,v)=>{
+    const el=document.getElementById(id);
+    const formatted=fmt(v);
+    el.textContent=formatted||'—';
+    el.className='price-value'+(formatted==null?' price-na':'');
+  };
+  setPrice('popup-price-normal',p.normal||null);
+  setPrice('popup-price-holo',p.holofoil||null);
+  setPrice('popup-price-rh',p.reverseHolo||null);
+  setPrice('popup-price-low',p.low||null);
+  setPrice('popup-price-high',p.high||null);
+
+  // Change own btn to "Mark Owned" for dex context
+  const ownBtn=document.getElementById('popup-own-btn');
+  const isOwned=dexOwned.has(dexNum);
+  ownBtn.className='card-popup-own-btn '+(isOwned?'unmark':'mark');
+  ownBtn.textContent=isOwned?'✕ Remove from Pokédex':'✓ Mark as Owned';
+  ownBtn.onclick=()=>toggleDexFromPopup(dexNum,pokeName);
+
+  // Change Card button
+  const changeBtn=document.getElementById('popup-change-card-btn');
+  if(changeBtn){changeBtn.style.display='block';changeBtn.onclick=()=>{closeCardPopup();openDexCardPicker({stopPropagation:()=>{}},dexNum,pokeName);};}
+
+  // Store button — search by Pokémon name only
+  const storeBtn=document.getElementById('popup-store-btn');
+  if(storeBtn){
+    storeBtn.style.display='block';
+    storeBtn.onclick=()=>window.open(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(pokeName)}`,'_blank');
+  }
+
+  document.getElementById('card-popup-bg').classList.add('show');
+}
+
+let _dexPopupNum=null,_dexPopupPokeName=null;
+
+function toggleDexFromPopup(dexNum,name){
+  if(dexOwned.has(dexNum)){dexOwned.delete(dexNum);showToast('Removed '+name,false);}
+  else{dexOwned.add(dexNum);showToast('Got '+name+'! · Saved',true);}
+  saveDexOwned(currentUser,dexOwned);
+  updateDexStats();
+  const ownBtn=document.getElementById('popup-own-btn');
+  const isOwned=dexOwned.has(dexNum);
+  ownBtn.className='card-popup-own-btn '+(isOwned?'unmark':'mark');
+  ownBtn.textContent=isOwned?'✕ Remove from Pokédex':'✓ Mark as Owned';
+  renderDex();
+  renderSetScreen();
+}
 function closeDexPicker(e){
   if(!e||e.target===document.getElementById('dex-picker-bg')||e.target.classList.contains('dex-picker-close')){
     document.getElementById('dex-picker-bg').classList.remove('show');
@@ -1576,7 +1648,13 @@ function openCardPopup(e,cardIdx,cardId){
   const storeBtn=document.getElementById('popup-store-btn');
   if(storeBtn)storeBtn.style.display=owned.has(popupCardId)?'none':'block';
 
-  // Own button
+  // Reset own button to set tracker context
+  const ownBtn=document.getElementById('popup-own-btn');
+  ownBtn.onclick=toggleCardFromPopup;
+  // Hide change card btn in set tracker context
+  const changeBtn=document.getElementById('popup-change-card-btn');
+  if(changeBtn)changeBtn.style.display='none';
+  // Own button state
   updatePopupOwnBtn();
 
   document.getElementById('card-popup-bg').classList.add('show');
@@ -1757,26 +1835,28 @@ function renderDex(){
       const spriteUrl=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${n}.png`;
       const sname=name.replace(/'/g,"\\'");
       const selectedCard=dexSelectedCards[n];
+      const numStr=`#${String(n).padStart(3,'0')}`;
 
       if(selectedCard){
-        // Card art tile — same style as set tracker
-        html+=`<div class="dex-item has-card${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
+        // Card art tile
+        html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
           <img class="dex-card-thumb" src="${selectedCard.imgSmall}" alt="" loading="lazy">
-          <div class="dex-card-info">
-            <span class="card-num-badge">#${String(n).padStart(3,'0')}</span>
-            <span class="card-name">${name}</span>
+          <div class="dex-item-info">
+            <span class="dex-item-num">${numStr}</span>
+            <span class="dex-item-name">${name}</span>
             <span class="dex-set-label">${selectedCard.setName||''}</span>
           </div>
-          <button class="dex-three-dot" onclick="openDexCardPicker(event,${n},'${sname}')">···</button>
+          <button class="dex-three-dot" onclick="openDexPopup(event,${n},'${sname}')">···</button>
         </div>`;
       } else {
-        // Default sprite tile
+        // Sprite placeholder tile
         html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
-          <img class="card-sprite" src="${spriteUrl}" alt="" loading="lazy">
-          <span class="card-num-badge">#${String(n).padStart(3,'0')}</span>
-          <span class="card-name">${name}</span>
+          <div class="dex-sprite-wrap"><img src="${spriteUrl}" alt="" loading="lazy"></div>
+          <div class="dex-item-info">
+            <span class="dex-item-num">${numStr}</span>
+            <span class="dex-item-name">${name}</span>
+          </div>
           <button class="dex-three-dot" onclick="openDexCardPicker(event,${n},'${sname}')">···</button>
-          <div class="check-circle"><svg class="check-icon" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </div>`;
       }
     });
