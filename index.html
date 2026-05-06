@@ -227,8 +227,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .welcome-skip{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text3);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;padding:12px;cursor:pointer}
 .welcome-next{flex:2;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#0c1422;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;padding:12px;cursor:pointer}
 .welcome-next:active{opacity:.85}
-/* ? help button */
-.help-btn{position:absolute;top:14px;right:16px;width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace}
+.help-btn{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;flex-shrink:0}
 .help-btn:active{border-color:var(--accent);color:var(--accent)}
 .dex-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
 .dex-grid.collapsed{display:none}
