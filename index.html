@@ -398,7 +398,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v7 · Squirtle 💧</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v9 · Blastoise 💧</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -1413,10 +1413,21 @@ function dismissWelcome(){
 // ════════════════════════════════════════════════════════
 // STORE AVAILABILITY
 // ════════════════════════════════════════════════════════
+function openUrl(url){
+  // Use anchor trick so iOS PWA opens in browser, not same webview
+  const a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener noreferrer';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
 function openInStore(){
   const card=_popupCards.find(c=>c.id===popupCardId);
   if(!card)return;
-  window.open(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(card.name)}`,'_blank');
+  // Extract base Pokémon name (strip suffixes like ex, V, VMAX etc.)
+  const baseName=card.name
+    .replace(/\s+(ex|EX|GX|V|VMAX|VSTAR|VStar|BREAK|Star|Prime)$/gi,'')
+    .replace(/\s*&\s*.+$/,'')
+    .trim();
+  openUrl(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(baseName)}`);
 }
 
 // ════════════════════════════════════════════════════════
@@ -1452,12 +1463,21 @@ async function fetchPickerCards(pokeName,lang){
   document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · TAGGING AS ${langLabels[lang]||'EN'}`;
   document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
   try{
-    // Use wildcard to catch all variants (EX, Mega, VMAX, etc.)
-    const baseName=pokeName.replace(/"/g,'');
-    const url=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${baseName}*`)}&orderBy=set.releaseDate&pageSize=250`;
-    const resp=await fetch(url);
-    const data=await resp.json();
-    _pickerCards=(data.data||[]).filter(c=>c.supertype==='Pokémon');
+    // Use unquoted name (contains search) to catch M Venusaur-EX, Venusaur VMAX etc.
+    const baseName=pokeName.replace(/"/g,'').replace(/[*]/g,'');
+    const allCards=[];
+    let page=1,totalCount=Infinity;
+    while(allCards.length<totalCount){
+      const url=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${baseName}`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`;
+      const resp=await fetch(url);
+      const data=await resp.json();
+      if(!data.data||data.data.length===0)break;
+      totalCount=data.totalCount||data.data.length;
+      allCards.push(...data.data.filter(c=>c.supertype==='Pokémon'));
+      if(allCards.length>=totalCount)break;
+      page++;
+    }
+    _pickerCards=allCards;
     renderPickerCards();
   }catch{document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Failed to load. Check connection.</div>';}
 }
@@ -1574,7 +1594,7 @@ function openDexPopup(e,dexNum,pokeName){
   const storeBtn=document.getElementById('popup-store-btn');
   if(storeBtn){
     storeBtn.style.display='block';
-    storeBtn.onclick=()=>window.open(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(pokeName)}`,'_blank');
+    storeBtn.onclick=()=>openUrl(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(pokeName)}`);
   }
 
   document.getElementById('card-popup-bg').classList.add('show');
