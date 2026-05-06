@@ -398,7 +398,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v6 · Charizard 🔥</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v7 · Squirtle 💧</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -1448,17 +1448,13 @@ async function openDexCardPicker(e,dexNum,pokeName){
 }
 
 async function fetchPickerCards(pokeName,lang){
+  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 Japanese',cn:'🇨🇳 Chinese'};
+  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · TAGGING AS ${langLabels[lang]||'EN'}`;
   document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
   try{
-    let query=`name:"${pokeName.replace(/"/g,'')}"`;
-    if(lang==='jp')query+=' set.series:*';
-    // pokemontcg.io supports language filter for some sets
-    const langParam=lang==='jp'?'&q='+encodeURIComponent(`name:"${pokeName.replace(/"/g,'')}" nationalPokedexNumbers:[*]`):
-                    lang==='cn'?'&q='+encodeURIComponent(`name:"${pokeName.replace(/"/g,'')}" nationalPokedexNumbers:[*]`):
-                    `&q=${encodeURIComponent(`name:"${pokeName.replace(/"/g,'')}"`)}&orderBy=set.releaseDate`;
-    const url=lang==='en'
-      ?`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:"${pokeName.replace(/"/g,'')}"`)}&orderBy=set.releaseDate&pageSize=250`
-      :`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:"${pokeName.replace(/"/g,'')}" set.series:"${lang==='jp'?'Japanese':'Chinese'}"`)}&orderBy=set.releaseDate&pageSize=250`;
+    // Use wildcard to catch all variants (EX, Mega, VMAX, etc.)
+    const baseName=pokeName.replace(/"/g,'');
+    const url=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${baseName}*`)}&orderBy=set.releaseDate&pageSize=250`;
     const resp=await fetch(url);
     const data=await resp.json();
     _pickerCards=(data.data||[]).filter(c=>c.supertype==='Pokémon');
@@ -1502,15 +1498,18 @@ function renderPickerCards(){
 function setPickerLang(lang){
   _pickerLang=lang;
   setPickerLangUI(lang);
-  document.getElementById('picker-search').value='';
-  fetchPickerCards(_pickerPokeName,lang);
+  // No re-fetch — language is just a tag applied on selection
+  // Re-render to show which language will be tagged
+  renderPickerCards();
 }
 
 function setPickerLangUI(lang){
   ['en','jp','cn'].forEach(l=>document.getElementById('lang-'+l).classList.toggle('active',l===lang));
+  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 Japanese',cn:'🇨🇳 Chinese'};
+  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · TAGGING AS ${langLabels[lang]}`;
 }
 function selectDexCard(dexNum,cardId,imgSmall,name,setName){
-  dexSelectedCards[dexNum]={id:cardId,name,imgSmall,setName};
+  dexSelectedCards[dexNum]={id:cardId,name,imgSmall,setName,lang:_pickerLang||'en'};
   saveDexSelectedCards(currentUser);
   dexOwned.add(dexNum);
   saveDexOwned(currentUser,dexOwned);
@@ -1897,13 +1896,15 @@ function renderDex(){
       const numStr=`#${String(n).padStart(3,'0')}`;
 
       if(selectedCard){
+        const langBadge=selectedCard.lang&&selectedCard.lang!=='en'
+          ?`<span style="font-size:7px;font-family:'Space Mono',monospace;background:rgba(245,185,34,.15);color:var(--accent);border:1px solid rgba(245,185,34,.3);border-radius:3px;padding:1px 4px">${selectedCard.lang.toUpperCase()}</span>`:'';
         // Card art tile
         html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
           <img class="dex-card-thumb" src="${selectedCard.imgSmall}" alt="" loading="lazy">
           <div class="dex-item-info">
             <span class="dex-item-num">${numStr}</span>
             <span class="dex-item-name">${name}</span>
-            <span class="dex-set-label">${selectedCard.setName||''}</span>
+            <span class="dex-set-label">${selectedCard.setName||''}${langBadge}</span>
           </div>
           <button class="dex-three-dot" onclick="openDexPopup(event,${n},'${sname}')">···</button>
         </div>`;
