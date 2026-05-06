@@ -170,7 +170,66 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .card-popup-own-btn.mark{background:var(--green);color:#0c1422}
 .card-popup-own-btn.unmark{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
 
-/* ── Pokédex 2-col tiles ── */
+/* ── Masterset variant colors ── */
+.card-item.var-rh{border-left-color:#818cf8;background:rgba(129,140,248,0.08)}
+.card-item.var-rh.owned{border-left-color:#818cf8;background:rgba(129,140,248,0.18)}
+.card-item.var-rh .card-num-badge{color:#818cf8}
+.card-item.var-mb{border-left-color:var(--purple);background:rgba(192,132,252,0.08)}
+.card-item.var-mb.owned{border-left-color:var(--purple);background:rgba(192,132,252,0.18)}
+.card-item.var-mb .card-num-badge{color:var(--purple)}
+.card-item.var-ch{border-left-color:#fb923c;background:rgba(251,146,60,0.08)}
+.card-item.var-ch.owned{border-left-color:#fb923c;background:rgba(251,146,60,0.18)}
+.card-item.var-ch .card-num-badge{color:#fb923c}
+
+/* ── Dex tile with card art ── */
+.dex-item.has-card{flex-direction:row;align-items:center;gap:7px;padding:5px 8px 5px 5px;min-height:58px;justify-content:flex-start}
+.dex-item.has-card .dex-card-thumb{width:34px;height:48px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border2);box-shadow:0 1px 6px rgba(0,0,0,.4)}
+.dex-item.has-card .dex-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dex-item.has-card .card-num-badge{font-size:8px}
+.dex-item.has-card .card-name{font-size:11px;font-weight:700;text-align:left}
+.dex-item.has-card .dex-set-label{font-size:8px;color:var(--text3);font-family:'Space Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dex-item .dex-three-dot{position:absolute;top:4px;right:4px;background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;letter-spacing:-1px;padding:2px;line-height:1;transition:color .12s}
+.dex-item .dex-three-dot:active{color:var(--accent)}
+
+/* ── Dex card picker popup ── */
+.dex-picker-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.dex-picker-bg.show{opacity:1;pointer-events:all}
+.dex-picker{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + var(--safe-bottom));width:100%;max-width:480px;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1,.56,1);max-height:85vh;display:flex;flex-direction:column;position:relative}
+.dex-picker-bg.show .dex-picker{transform:translateY(0)}
+.dex-picker-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:4px;padding-right:32px}
+.dex-picker-sub{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-bottom:10px;letter-spacing:.06em}
+.dex-picker-close{position:absolute;top:14px;right:16px;background:var(--surface2);border:none;border-radius:50%;width:28px;height:28px;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dex-picker-list{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px}
+.dex-picker-card{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .12s,background .12s}
+.dex-picker-card:active{transform:scale(.98)}
+.dex-picker-card.selected{border-color:var(--accent);background:rgba(245,185,34,.08)}
+.dex-picker-card img{width:38px;height:53px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border2)}
+.dex-picker-card-info{flex:1;min-width:0}
+.dex-picker-card-name{font-size:12px;font-weight:700;color:var(--text)}
+.dex-picker-card-set{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px}
+.dex-picker-card-rarity{font-size:9px;color:var(--text2);margin-top:1px}
+.dex-picker-none{width:100%;padding:13px;border-radius:var(--radius-sm);border:1px dashed var(--border2);background:none;color:var(--text3);font-family:'Exo 2',sans-serif;font-size:13px;cursor:pointer;text-align:center;margin-top:4px}
+.dex-picker-none:active{border-color:var(--red);color:var(--red)}
+.dex-picker-loading{text-align:center;padding:32px;color:var(--text3);font-size:12px;font-family:'Space Mono',monospace}
+
+/* ── Welcome modal ── */
+.welcome-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);z-index:999999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.welcome-bg.show{opacity:1;pointer-events:all}
+.welcome-modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:28px 24px calc(28px + var(--safe-bottom));width:100%;max-width:480px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.56,1)}
+.welcome-bg.show .welcome-modal{transform:translateY(0)}
+.welcome-icon{font-size:44px;text-align:center;margin-bottom:12px}
+.welcome-title{font-size:20px;font-weight:900;color:var(--text);text-align:center;margin-bottom:6px}
+.welcome-body{font-size:14px;color:var(--text2);text-align:center;line-height:1.6;margin-bottom:24px;min-height:60px}
+.welcome-dots{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.welcome-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);transition:background .2s}
+.welcome-dot.active{background:var(--accent)}
+.welcome-btns{display:flex;gap:8px}
+.welcome-skip{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text3);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;padding:12px;cursor:pointer}
+.welcome-next{flex:2;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#0c1422;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:800;padding:12px;cursor:pointer}
+.welcome-next:active{opacity:.85}
+/* ? help button */
+.help-btn{position:absolute;top:14px;right:16px;width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace}
+.help-btn:active{border-color:var(--accent);color:var(--accent)}
 .dex-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
 .dex-grid.collapsed{display:none}
 .dex-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 6px 7px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:background .12s,border-color .12s,transform .1s;min-width:0;position:relative;gap:4px;min-height:72px}
@@ -335,12 +394,15 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
-    <div class="topbar-user">
+    <div class="topbar-user" style="position:relative">
       <div class="topbar-user-info">
         <div class="topbar-avatar" id="set-topbar-avatar"></div>
         <span class="topbar-username" id="set-topbar-username"></span>
       </div>
-      <button class="logout-btn" onclick="logout()">Switch</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="help-btn" onclick="showWelcome()" title="How to use">?</button>
+        <button class="logout-btn" onclick="logout()">Switch</button>
+      </div>
     </div>
     <div class="topbar-title">&#9670; Masterset · TCG Tracker</div>
     <div class="set-stats-row">
@@ -458,7 +520,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <div class="card-popup-box"><div class="card-popup-val" id="popup-cat">—</div><div class="card-popup-lbl">Category</div></div>
     </div>
     <div class="price-section">
-      <div class="price-section-title">💰 Market Prices (TCGPlayer)</div>
+      <div class="price-section-title" id="price-section-title">💰 Market Prices (TCGPlayer)</div>
       <div class="price-row"><span class="price-label">Normal</span><span class="price-value" id="popup-price-normal">—</span></div>
       <div class="price-row"><span class="price-label">Holofoil</span><span class="price-value" id="popup-price-holo">—</span></div>
       <div class="price-row"><span class="price-label">Reverse Holo</span><span class="price-value" id="popup-price-rh">—</span></div>
@@ -468,6 +530,31 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       </div>
     </div>
     <button class="card-popup-own-btn" id="popup-own-btn" onclick="toggleCardFromPopup()">✓ Mark as Owned</button>
+    <button class="card-popup-own-btn" id="popup-store-btn" onclick="openInStore()" style="margin-top:8px;background:var(--navy);color:var(--blue);border:1px solid var(--border2)">🛒 See Availability in Store</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════ WELCOME MODAL ══════════════════════════════ -->
+<div class="welcome-bg" id="welcome-bg">
+  <div class="welcome-modal">
+    <div class="welcome-icon" id="welcome-icon">👋</div>
+    <div class="welcome-title" id="welcome-title">Welcome to MasterBinder!</div>
+    <div class="welcome-body" id="welcome-body">Your personal Pokémon TCG collection tracker. Let's show you around!</div>
+    <div class="welcome-dots" id="welcome-dots"></div>
+    <div class="welcome-btns">
+      <button class="welcome-skip" onclick="dismissWelcome()">Skip</button>
+      <button class="welcome-next" id="welcome-next-btn" onclick="nextWelcomeSlide()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ DEX CARD PICKER ════════════════════════════ -->
+<div class="dex-picker-bg" id="dex-picker-bg" onclick="closeDexPicker(event)">
+  <div class="dex-picker">
+    <button class="dex-picker-close" onclick="closeDexPicker()">✕</button>
+    <div class="dex-picker-title" id="dex-picker-title">Choose a card</div>
+    <div class="dex-picker-sub" id="dex-picker-sub">SELECT YOUR VERSION</div>
+    <div class="dex-picker-list" id="dex-picker-list"></div>
   </div>
 </div>
 
@@ -691,6 +778,7 @@ async function loginAs(name){
   history.replaceState({screen:'login'},'','');
   pushState('sets');
   showSetScreen();
+  showWelcomeIfNeeded(name);
   if(ALL_SETS.length===0){
     const area=document.getElementById('set-scroll-area');
     area.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:16px"><div class="spinner"></div><div class="loading-text">Loading sets...</div></div>';
@@ -1027,11 +1115,27 @@ async function fetchCards(setId){
           imgSmall:c.images?.small||'',
           imgLarge:c.images?.large||'',
           prices:{
-            normal:c.tcgplayer?.prices?.normal?.market||null,
-            holofoil:c.tcgplayer?.prices?.holofoil?.market||null,
-            reverseHolo:c.tcgplayer?.prices?.reverseHolofoil?.market||null,
-            low:c.tcgplayer?.prices?.normal?.low||c.tcgplayer?.prices?.holofoil?.low||null,
-            high:c.tcgplayer?.prices?.normal?.high||c.tcgplayer?.prices?.holofoil?.high||null,
+            normal:c.tcgplayer?.prices?.normal?.market
+              ??c.tcgplayer?.prices?.unlimitedNormal?.market
+              ??c.tcgplayer?.prices?.['1stEditionNormal']?.market
+              ??c.cardmarket?.prices?.averageSellPrice
+              ??null,
+            holofoil:c.tcgplayer?.prices?.holofoil?.market
+              ??c.tcgplayer?.prices?.unlimitedHolofoil?.market
+              ??c.tcgplayer?.prices?.['1stEditionHolofoil']?.market
+              ??null,
+            reverseHolo:c.tcgplayer?.prices?.reverseHolofoil?.market??null,
+            low:c.tcgplayer?.prices?.normal?.low
+              ??c.tcgplayer?.prices?.holofoil?.low
+              ??c.cardmarket?.prices?.lowPrice
+              ??null,
+            high:c.tcgplayer?.prices?.normal?.high
+              ??c.tcgplayer?.prices?.holofoil?.high
+              ??c.cardmarket?.prices?.trendPrice
+              ??null,
+            source:c.tcgplayer?.prices?.normal?.market
+              ||c.tcgplayer?.prices?.holofoil?.market
+              ?'TCGPlayer':'CardMarket',
           },
           setName:c.set?.name||'',
           setSeries:c.set?.series||'',
@@ -1200,7 +1304,7 @@ function renderTracker(){
       const sname=card.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       const dispNum=formatNumber(card.number);
       const variantLabel=card._variant?` ◈${card._variant}`:'';
-      const rhBorder=card._variant?'border-color:rgba(245,185,34,.3);background:rgba(245,185,34,.04);':'';
+      const variantClass=card._variant==='RH'?' var-rh':card._variant==='MB'?' var-mb':card._variant==='CH'?' var-ch':'';
 
       const thumbHtml=card.imgSmall
         ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy">`
@@ -1216,7 +1320,7 @@ function renderTracker(){
         prices:card.prices||{}
       });
 
-      html+=`<div class="card-item${io?' owned':''}" style="${rhBorder}" onclick="toggleCard('${card.id}','${sname}')">
+      html+=`<div class="card-item${io?' owned':''}${variantClass}" onclick="toggleCard('${card.id}','${sname}')">
         ${thumbHtml}
         <div class="card-info">
           <span class="card-num-badge">${dispNum}${variantLabel}</span>
@@ -1259,6 +1363,113 @@ function backToSets(){
 // ════════════════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// WELCOME / HOW-TO
+// ════════════════════════════════════════════════════════
+const WELCOME_SLIDES=[
+  {icon:'👋',title:'Welcome to MasterBinder!',body:'Your personal Pokémon TCG collection tracker. Let\'s show you around!'},
+  {icon:'📖',title:'National Pokédex',body:'Track all 1025 Pokémon. Tap a tile to mark owned. Use ··· to pick which card represents that Pokémon in your binder.'},
+  {icon:'🃏',title:'Set Tracker',body:'Tap "+ Start a New Set" to open any set. Tap a card to mark owned. Use ··· for card details and market prices.'},
+  {icon:'⭐',title:'Masterset Mode',body:'Enable Masterset Mode to also track Reverse Holos, Master Ball variants, and Cosmos Holos — each with their own progress bar.'},
+  {icon:'💾',title:'Your Data is Safe',body:'Everything saves automatically. Use Export on the login screen to back up your data anytime. Tap ? to see this guide again.'},
+];
+let welcomeSlide=0;
+const welcomedKey=u=>`pb_u_${u}_welcomed`;
+function showWelcomeIfNeeded(user){if(!localStorage.getItem(welcomedKey(user)))showWelcome();}
+function showWelcome(){welcomeSlide=0;renderWelcomeSlide();document.getElementById('welcome-bg').classList.add('show');}
+function renderWelcomeSlide(){
+  const s=WELCOME_SLIDES[welcomeSlide];
+  document.getElementById('welcome-icon').textContent=s.icon;
+  document.getElementById('welcome-title').textContent=s.title;
+  document.getElementById('welcome-body').textContent=s.body;
+  document.getElementById('welcome-dots').innerHTML=WELCOME_SLIDES.map((_,i)=>`<div class="welcome-dot${i===welcomeSlide?' active':''}"></div>`).join('');
+  const btn=document.getElementById('welcome-next-btn');
+  btn.textContent=welcomeSlide===WELCOME_SLIDES.length-1?'Got it! ✓':'Next →';
+}
+function nextWelcomeSlide(){
+  if(welcomeSlide<WELCOME_SLIDES.length-1){welcomeSlide++;renderWelcomeSlide();}
+  else dismissWelcome();
+}
+function dismissWelcome(){
+  document.getElementById('welcome-bg').classList.remove('show');
+  if(currentUser)localStorage.setItem(welcomedKey(currentUser),'1');
+}
+
+// ════════════════════════════════════════════════════════
+// STORE AVAILABILITY
+// ════════════════════════════════════════════════════════
+function openInStore(){
+  const card=_popupCards.find(c=>c.id===popupCardId);
+  if(!card)return;
+  window.open(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(card.name)}`,'_blank');
+}
+
+// ════════════════════════════════════════════════════════
+// DEX CARD PICKER
+// ════════════════════════════════════════════════════════
+const dexCardKey=u=>`pb_u_${u}_dex_cards`;
+let dexSelectedCards={};
+let dexPickerNum=null;
+function loadDexSelectedCards(user){try{dexSelectedCards=JSON.parse(localStorage.getItem(dexCardKey(user))||'{}');}catch{dexSelectedCards={};}}
+function saveDexSelectedCards(user){localStorage.setItem(dexCardKey(user),JSON.stringify(dexSelectedCards));}
+
+async function openDexCardPicker(e,dexNum,pokeName){
+  e.stopPropagation();
+  dexPickerNum=dexNum;
+  document.getElementById('dex-picker-title').textContent=pokeName;
+  document.getElementById('dex-picker-sub').textContent='CHOOSE YOUR VERSION';
+  document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
+  document.getElementById('dex-picker-bg').classList.add('show');
+  try{
+    const resp=await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${pokeName.replace(/"/g,'')}"&orderBy=set.releaseDate&pageSize=250`);
+    const data=await resp.json();
+    const cards=(data.data||[]).filter(c=>c.supertype==='Pokémon');
+    const selected=dexSelectedCards[dexNum];
+    let html=cards.map(c=>{
+      const isSel=selected&&selected.id===c.id;
+      const img=c.images?.small||'';
+      const sname=(c.set?.name||'').replace(/'/g,"\\'");
+      const cname=c.name.replace(/'/g,"\\'");
+      const cimg=img.replace(/'/g,"\\'");
+      return`<div class="dex-picker-card${isSel?' selected':''}" onclick="selectDexCard(${dexNum},'${c.id}','${cimg}','${cname}','${sname}')">
+        <img src="${img}" alt="" loading="lazy">
+        <div class="dex-picker-card-info">
+          <div class="dex-picker-card-name">${c.name}</div>
+          <div class="dex-picker-card-set">${c.set?.name||''} · #${c.number}</div>
+          <div class="dex-picker-card-rarity">${c.rarity||'—'}</div>
+        </div>
+        ${isSel?'<span style="color:var(--accent);font-size:16px;flex-shrink:0">✓</span>':''}
+      </div>`;
+    }).join('');
+    if(!html)html='<div class="dex-picker-loading">No cards found</div>';
+    if(selected)html+=`<button class="dex-picker-none" onclick="clearDexCard(${dexNum})">✕ Remove card selection</button>`;
+    document.getElementById('dex-picker-list').innerHTML=html;
+  }catch{document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Failed to load. Check connection.</div>';}
+}
+function selectDexCard(dexNum,cardId,imgSmall,name,setName){
+  dexSelectedCards[dexNum]={id:cardId,name,imgSmall,setName};
+  saveDexSelectedCards(currentUser);
+  dexOwned.add(dexNum);
+  saveDexOwned(currentUser,dexOwned);
+  showToast('Got '+name+'! · Saved',true);
+  updateDexStats();
+  closeDexPicker();
+  renderDex();
+  renderSetScreen();
+}
+function clearDexCard(dexNum){
+  delete dexSelectedCards[dexNum];
+  saveDexSelectedCards(currentUser);
+  closeDexPicker();
+  renderDex();
+}
+function closeDexPicker(e){
+  if(!e||e.target===document.getElementById('dex-picker-bg')||e.target.classList.contains('dex-picker-close')){
+    document.getElementById('dex-picker-bg').classList.remove('show');
+    dexPickerNum=null;
+  }
+}
+
 function formatNumber(n){
   if(!n||n==='?')return '#?';
   const num=parseInt(n);
@@ -1335,19 +1546,34 @@ function openCardPopup(e,cardIdx,cardId){
   document.getElementById('popup-num').textContent=`#${card.number}`;
   document.getElementById('popup-cat').textContent=card.supertype||'—';
 
-  // Prices
+  // Prices — try all available fields
   const p=card.prices||{};
-  const fmt=v=>v!=null?`$${Number(v).toFixed(2)}`:'—';
+  const fmt=v=>v!=null&&v>0?`$${Number(v).toFixed(2)}`:null;
+  const source=p.source||'TCGPlayer';
+  document.getElementById('price-section-title').textContent=`💰 Market Prices (${source})`;
+
+  // Find best normal price
+  const normalPrice=p.normal??p['1stEditionNormal']??p.unlimitedNormal??null;
+  const holoPrice=p.holofoil??p['1stEditionHolofoil']??p.unlimitedHolofoil??null;
+  const rhPrice=p.reverseHolo??p.reverseHolofoil??null;
+  const lowPrice=p.low??null;
+  const highPrice=p.high??null;
+
   const setPrice=(id,v)=>{
     const el=document.getElementById(id);
-    el.textContent=fmt(v);
-    el.className='price-value'+(v==null?' price-na':'');
+    const formatted=fmt(v);
+    el.textContent=formatted||'—';
+    el.className='price-value'+(formatted==null?' price-na':'');
   };
-  setPrice('popup-price-normal',p.normal);
-  setPrice('popup-price-holo',p.holofoil);
-  setPrice('popup-price-rh',p.reverseHolo);
-  setPrice('popup-price-low',p.low);
-  setPrice('popup-price-high',p.high);
+  setPrice('popup-price-normal',normalPrice);
+  setPrice('popup-price-holo',holoPrice);
+  setPrice('popup-price-rh',rhPrice);
+  setPrice('popup-price-low',lowPrice);
+  setPrice('popup-price-high',highPrice);
+
+  // Show store button only when not owned
+  const storeBtn=document.getElementById('popup-store-btn');
+  if(storeBtn)storeBtn.style.display=owned.has(popupCardId)?'none':'block';
 
   // Own button
   updatePopupOwnBtn();
@@ -1360,6 +1586,8 @@ function updatePopupOwnBtn(){
   const isOwned=owned.has(popupCardId);
   btn.className='card-popup-own-btn '+(isOwned?'unmark':'mark');
   btn.textContent=isOwned?'✕ Mark as Not Owned':'✓ Mark as Owned';
+  const storeBtn=document.getElementById('popup-store-btn');
+  if(storeBtn)storeBtn.style.display=isOwned?'none':'block';
 }
 
 function toggleCardFromPopup(){
@@ -1435,6 +1663,7 @@ const dexNamesKey='pb_dex_names_v1';
 async function openDex(){
   if(_dirty)saveCurrentSet();
   dexOwned=getDexOwned(currentUser);
+  loadDexSelectedCards(currentUser);
   dexFilter='all';dexSearch='';
   document.getElementById('set-screen').classList.add('hidden');
   document.getElementById('dex-screen').classList.remove('hidden');
@@ -1526,12 +1755,29 @@ function renderDex(){
     pokes.forEach(({n,name,io})=>{
       const spriteUrl=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${n}.png`;
       const sname=name.replace(/'/g,"\\'");
-      html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
-        <img class="card-sprite" src="${spriteUrl}" alt="" loading="lazy">
-        <span class="card-num-badge">#${String(n).padStart(3,'0')}</span>
-        <span class="card-name">${name}</span>
-        <div class="check-circle"><svg class="check-icon" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      </div>`;
+      const selectedCard=dexSelectedCards[n];
+
+      if(selectedCard){
+        // Card art tile — same style as set tracker
+        html+=`<div class="dex-item has-card${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
+          <img class="dex-card-thumb" src="${selectedCard.imgSmall}" alt="" loading="lazy">
+          <div class="dex-card-info">
+            <span class="card-num-badge">#${String(n).padStart(3,'0')}</span>
+            <span class="card-name">${name}</span>
+            <span class="dex-set-label">${selectedCard.setName||''}</span>
+          </div>
+          <button class="dex-three-dot" onclick="openDexCardPicker(event,${n},'${sname}')">···</button>
+        </div>`;
+      } else {
+        // Default sprite tile
+        html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
+          <img class="card-sprite" src="${spriteUrl}" alt="" loading="lazy">
+          <span class="card-num-badge">#${String(n).padStart(3,'0')}</span>
+          <span class="card-name">${name}</span>
+          <button class="dex-three-dot" onclick="openDexCardPicker(event,${n},'${sname}')">···</button>
+          <div class="check-circle"><svg class="check-icon" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>`;
+      }
     });
 
     html+=`</div></div>`;
