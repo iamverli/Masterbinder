@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <title>MasterBinder — Masterset · TCG Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
 <style>
 :root{
   --bg:#0c1422;
@@ -205,6 +206,15 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .picker-lang-tabs{display:flex;gap:4px;margin-bottom:10px}
 .picker-lang-btn{flex:1;padding:7px 0;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.06em;transition:background .12s,color .12s,border-color .12s}
 .picker-lang-btn.active{background:rgba(245,185,34,.15);border-color:rgba(245,185,34,.4);color:var(--accent)}
+/* Camera scanner button */
+.scanner-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;padding:20px;background:var(--surface2);border:2px dashed var(--border2);border-radius:var(--radius);cursor:pointer;margin-top:10px;transition:border-color .15s,background .15s}
+.scanner-btn:active{border-color:var(--accent);background:rgba(245,185,34,.06)}
+.scanner-btn-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(245,185,34,.3)}
+.scanner-btn-label{font-size:13px;font-weight:700;color:var(--text2);font-family:'Exo 2',sans-serif}
+.scanner-btn-sub{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;letter-spacing:.04em}
+/* OCR loading */
+.ocr-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px;text-align:center}
+.ocr-loading-text{font-size:11px;font-family:'Space Mono',monospace;color:var(--text2);letter-spacing:.08em;text-transform:uppercase}
 .dex-picker-card{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .12s,background .12s}
 .dex-picker-card:active{transform:scale(.98)}
 .dex-picker-card.selected{border-color:var(--accent);background:rgba(245,185,34,.08)}
@@ -398,7 +408,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v9 · Blastoise 💧</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v10 · Caterpie 🐛</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -570,6 +580,12 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     </div>
     <input class="picker-search" id="picker-search" type="search" placeholder="Search sets..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
+    <div class="scanner-btn" onclick="openCardScanner()">
+      <div class="scanner-btn-circle">📷</div>
+      <div class="scanner-btn-label">Add your own card</div>
+      <div class="scanner-btn-sub">Scan card with camera</div>
+    </div>
+    <input type="file" id="card-camera-input" accept="image/*" capture="environment" style="display:none" onchange="processCardImage(event)">
   </div>
 </div>
 
@@ -1463,12 +1479,16 @@ async function fetchPickerCards(pokeName,lang){
   document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · TAGGING AS ${langLabels[lang]||'EN'}`;
   document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
   try{
-    // Use unquoted name (contains search) to catch M Venusaur-EX, Venusaur VMAX etc.
-    const baseName=pokeName.replace(/"/g,'').replace(/[*]/g,'');
+    // Normalize name for TCG API search
+    const baseName=normalizeTCGName(pokeName);
+    const isExact=baseName!==pokeName.toLowerCase().trim();
+    const queryStr=isExact?`name:"${baseName}"`:encodeURIComponent(`name:${baseName}`);
     const allCards=[];
     let page=1,totalCount=Infinity;
     while(allCards.length<totalCount){
-      const url=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${baseName}`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`;
+      const url=isExact
+        ?`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:"${baseName}"`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`
+        :`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${baseName}`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`;
       const resp=await fetch(url);
       const data=await resp.json();
       if(!data.data||data.data.length===0)break;
@@ -2163,7 +2183,105 @@ window.addEventListener('popstate',e=>{
 });
 
 // ════════════════════════════════════════════════════════
-// SEARCH LISTENERS
+// NAME NORMALIZATION FOR TCG API
+// ════════════════════════════════════════════════════════
+const TCG_NAME_MAP={
+  'nidoran f':'Nidoran♀','nidoran-f':'Nidoran♀',
+  'nidoran m':'Nidoran♂','nidoran-m':'Nidoran♂',
+  'mr mime':'Mr. Mime','mr-mime':'Mr. Mime',
+  'mr rime':'Mr. Rime','mr-rime':'Mr. Rime',
+  'mime jr':'Mime Jr.','mime-jr':'Mime Jr.',
+  "farfetch d":"Farfetch'd","farfetch-d":"Farfetch'd",
+  "sirfetch d":"Sirfetch'd","sirfetch-d":"Sirfetch'd",
+  'flabebe':'Flabébé','porygon z':'Porygon-Z','porygon-z':'Porygon-Z',
+  'jangmo o':'Jangmo-o','hakamo o':'Hakamo-o','kommo o':'Kommo-o',
+  'jangmo-o':'Jangmo-o','hakamo-o':'Hakamo-o','kommo-o':'Kommo-o',
+  'ho oh':'Ho-Oh','ho-oh':'Ho-Oh',
+  'type null':'Type: Null','type-null':'Type: Null',
+  'wo chien':'Wo-Chien','chi yu':'Chi-Yu',
+  'ting lu':'Ting-Lu','chien pao':'Chien-Pao',
+  'great tusk':'Great Tusk','iron thorns':'Iron Thorns',
+  'iron bundle':'Iron Bundle','iron hands':'Iron Hands',
+  'iron jugulis':'Iron Jugulis','iron moth':'Iron Moth',
+  'iron valiant':'Iron Valiant','iron treads':'Iron Treads',
+  'scream tail':'Scream Tail','brute bonnet':'Brute Bonnet',
+  'flutter mane':'Flutter Mane','slither wing':'Slither Wing',
+  'sandy shocks':'Sandy Shocks','roaring moon':'Roaring Moon',
+  'walking wake':'Walking Wake','iron leaves':'Iron Leaves',
+};
+function normalizeTCGName(name){
+  const key=name.toLowerCase().trim();
+  if(TCG_NAME_MAP[key])return TCG_NAME_MAP[key];
+  // Strip PokéAPI hyphens used for spaces
+  const dehyphen=key.replace(/-/g,' ');
+  if(TCG_NAME_MAP[dehyphen])return TCG_NAME_MAP[dehyphen];
+  // Return original cleaned up
+  return name.replace(/"/g,'').replace(/[*]/g,'').trim();
+}
+
+// ════════════════════════════════════════════════════════
+// CAMERA CARD SCANNER
+// ════════════════════════════════════════════════════════
+function openCardScanner(){
+  document.getElementById('card-camera-input').click();
+}
+
+async function processCardImage(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  e.target.value='';
+
+  // Show OCR loading
+  document.getElementById('dex-picker-list').innerHTML=`
+    <div class="ocr-loading">
+      <div class="spinner"></div>
+      <div class="ocr-loading-text">Reading card...</div>
+      <div style="font-size:10px;color:var(--text3)">Point camera at card name</div>
+    </div>`;
+
+  try{
+    const imageUrl=URL.createObjectURL(file);
+    const result=await Tesseract.recognize(imageUrl,'eng',{logger:()=>{}});
+    URL.revokeObjectURL(imageUrl);
+
+    // Extract card name — usually first non-empty line with 2+ chars
+    const lines=result.data.text.split('\n')
+      .map(l=>l.trim())
+      .filter(l=>l.length>1&&/[a-zA-Z]/.test(l));
+
+    if(!lines.length){
+      document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Could not read card. Try again in better light.</div>';
+      return;
+    }
+
+    // Take first meaningful line as card name
+    const detectedName=lines[0].replace(/[^a-zA-Z0-9\s.\-♀♂']/g,'').trim();
+    showToast(`Detected: ${detectedName}`,true);
+
+    // Search for the detected name
+    await fetchPickerCardsFromScan(detectedName);
+  }catch(err){
+    document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">Scan failed: ${err.message||'Try again'}</div>`;
+  }
+}
+
+async function fetchPickerCardsFromScan(detectedName){
+  document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">Searching for "${detectedName}"...</div>`;
+  try{
+    const normalized=normalizeTCGName(detectedName);
+    const url=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${normalized}`)}&orderBy=set.releaseDate&pageSize=250`;
+    const resp=await fetch(url);
+    const data=await resp.json();
+    _pickerCards=(data.data||[]).filter(c=>c.supertype==='Pokémon');
+    if(!_pickerCards.length){
+      document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">No cards found for "${detectedName}". Try scanning again or search manually above.</div>`;
+      return;
+    }
+    renderPickerCards();
+  }catch{
+    document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Search failed. Check connection.</div>';
+  }
+}
 // ════════════════════════════════════════════════════════
 document.getElementById('search-sets').addEventListener('input',e=>{
   setSearch=e.target.value;renderSetScreen();
