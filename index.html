@@ -408,7 +408,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v10 · Caterpie 🐛</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v11 · Metapod 🟢</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -578,7 +578,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <button class="picker-lang-btn" id="lang-jp" onclick="setPickerLang('jp')">🇯🇵 JP</button>
       <button class="picker-lang-btn" id="lang-cn" onclick="setPickerLang('cn')">🇨🇳 CN</button>
     </div>
-    <input class="picker-search" id="picker-search" type="search" placeholder="Search sets..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <input class="picker-search" id="picker-search" type="search" placeholder="Search for a card..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
     <div class="scanner-btn" onclick="openCardScanner()">
       <div class="scanner-btn-circle">📷</div>
@@ -1503,13 +1503,7 @@ async function fetchPickerCards(pokeName,lang){
 }
 
 function renderPickerCards(){
-  const q=document.getElementById('picker-search').value.toLowerCase().trim();
-  const filtered=_pickerCards.filter(c=>{
-    if(!q)return true;
-    return (c.set?.name||'').toLowerCase().includes(q)||
-           (c.name||'').toLowerCase().includes(q)||
-           (c.number||'').toLowerCase().includes(q);
-  });
+  const filtered=_pickerCards;
   const selected=dexSelectedCards[_pickerDexNum];
   let html=filtered.map(c=>{
     const isSel=selected&&selected.id===c.id;
@@ -2292,7 +2286,18 @@ document.getElementById('search-tracker').addEventListener('input',e=>{
 document.getElementById('search-dex').addEventListener('input',e=>{
   dexSearch=e.target.value;renderDex();
 });
-document.getElementById('picker-search').addEventListener('input',()=>renderPickerCards());
+let _pickerSearchTimeout=null;
+document.getElementById('picker-search').addEventListener('input',e=>{
+  const q=e.target.value.trim();
+  clearTimeout(_pickerSearchTimeout);
+  if(!q){
+    // Reset to original Pokémon cards
+    if(_pickerPokeName)fetchPickerCards(_pickerPokeName,_pickerLang);
+    return;
+  }
+  // Debounce API search
+  _pickerSearchTimeout=setTimeout(()=>fetchPickerCardsFromScan(q),400);
+});
 document.getElementById('new-username').addEventListener('keydown',e=>{
   if(e.key==='Enter')createUser();
 });
