@@ -11,7 +11,6 @@
 <link rel="manifest" href="manifest.json">
 <title>MasterBinder — Masterset · TCG Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
 <style>
 :root{
   --bg:#0c1422;
@@ -212,9 +211,6 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .scanner-btn-circle{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(245,185,34,.3)}
 .scanner-btn-label{font-size:13px;font-weight:700;color:var(--text2);font-family:'Exo 2',sans-serif}
 .scanner-btn-sub{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;letter-spacing:.04em}
-/* OCR loading */
-.ocr-loading{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px;text-align:center}
-.ocr-loading-text{font-size:11px;font-family:'Space Mono',monospace;color:var(--text2);letter-spacing:.08em;text-transform:uppercase}
 .dex-picker-card{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:border-color .12s,background .12s}
 .dex-picker-card:active{transform:scale(.98)}
 .dex-picker-card.selected{border-color:var(--accent);background:rgba(245,185,34,.08)}
@@ -408,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v11 · Metapod 🟢</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v12 · Butterfree 🦋</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -580,12 +576,38 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     </div>
     <input class="picker-search" id="picker-search" type="search" placeholder="Search for a card..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
-    <div class="scanner-btn" onclick="openCardScanner()">
-      <div class="scanner-btn-circle">📷</div>
+    <div class="scanner-btn" onclick="openAddOwnCard()">
+      <div class="scanner-btn-circle">＋</div>
       <div class="scanner-btn-label">Add your own card</div>
-      <div class="scanner-btn-sub">Scan card with camera</div>
+      <div class="scanner-btn-sub">Paste a URL or upload an image</div>
     </div>
-    <input type="file" id="card-camera-input" accept="image/*" capture="environment" style="display:none" onchange="processCardImage(event)">
+    <input type="file" id="card-image-input" accept="image/*" style="display:none" onchange="handleCardImageUpload(event)">
+  </div>
+</div>
+
+<!-- ══════════════════════ ADD OWN CARD MODAL ════════════════════════════ -->
+<div class="modal-bg hidden" id="add-own-modal">
+  <div class="modal">
+    <div class="modal-title">Add your own card</div>
+    <div class="modal-sub">Paste a card image URL or upload from your gallery</div>
+    <input class="modal-input" id="own-card-url" type="url" placeholder="Paste image or card URL..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">OR</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <button class="btn-secondary" style="width:100%;margin-bottom:10px" onclick="document.getElementById('card-image-input').click()">📁 Upload from Gallery</button>
+    <!-- Manual details (shown after image is set) -->
+    <div id="own-card-details" style="display:none">
+      <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Card details</div>
+      <input class="modal-input" id="own-card-name" type="text" placeholder="Card name..." autocomplete="off">
+      <input class="modal-input" id="own-card-set" type="text" placeholder="Set name..." autocomplete="off">
+      <div id="own-card-preview" style="text-align:center;margin-bottom:10px"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeAddOwnCard()">Cancel</button>
+      <button class="btn-primary" id="own-card-fetch-btn" onclick="fetchOwnCard()">Fetch Card</button>
+    </div>
   </div>
 </div>
 
@@ -2214,67 +2236,102 @@ function normalizeTCGName(name){
 }
 
 // ════════════════════════════════════════════════════════
-// CAMERA CARD SCANNER
+// ADD YOUR OWN CARD
 // ════════════════════════════════════════════════════════
-function openCardScanner(){
-  document.getElementById('card-camera-input').click();
+function openAddOwnCard(){
+  document.getElementById('own-card-url').value='';
+  document.getElementById('own-card-details').style.display='none';
+  document.getElementById('own-card-preview').innerHTML='';
+  document.getElementById('own-card-name').value='';
+  document.getElementById('own-card-set').value='';
+  const btn=document.getElementById('own-card-fetch-btn');
+  btn.textContent='Fetch Card';
+  btn.onclick=fetchOwnCard;
+  document.getElementById('add-own-modal').classList.remove('hidden');
+}
+function closeAddOwnCard(){
+  document.getElementById('add-own-modal').classList.add('hidden');
 }
 
-async function processCardImage(e){
-  const file=e.target.files[0];
-  if(!file)return;
+async function fetchOwnCard(){
+  const url=document.getElementById('own-card-url').value.trim();
+  if(!url){document.getElementById('card-image-input').click();return;}
+  const btn=document.getElementById('own-card-fetch-btn');
+  btn.textContent='Loading...';
+
+  // ── pokemontcg.io image URL ──
+  const tcgMatch=url.match(/images\.pokemontcg\.io\/([^/]+)\/(\d+)/);
+  if(tcgMatch){
+    const setId=tcgMatch[1],num=tcgMatch[2];
+    try{
+      const resp=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`set.id:${setId} number:${num}`)}&pageSize=1`);
+      const data=await resp.json();
+      if(data.data&&data.data.length>0){
+        const c=data.data[0];
+        applyOwnCard({
+          id:c.id,name:c.name,
+          imgSmall:c.images?.small||url,
+          imgLarge:c.images?.large||url,
+          setName:c.set?.name||setId,
+          number:c.number,rarity:c.rarity||'',
+          prices:{normal:c.tcgplayer?.prices?.normal?.market||null,holofoil:c.tcgplayer?.prices?.holofoil?.market||null}
+        });
+        btn.textContent='Fetch Card';
+        closeAddOwnCard();return;
+      }
+    }catch{}
+  }
+
+  // ── Direct image URL or any other URL ──
+  document.getElementById('own-card-details').style.display='block';
+  document.getElementById('own-card-preview').innerHTML=
+    `<img src="${url}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block" onerror="this.style.display='none'">`;
+  btn.textContent='Save Card';
+  btn.onclick=()=>saveManualCard(url);
+}
+
+function saveManualCard(imgUrl){
+  const name=document.getElementById('own-card-name').value.trim()||_pickerPokeName;
+  const setName=document.getElementById('own-card-set').value.trim()||'Custom';
+  applyOwnCard({id:'custom_'+Date.now(),name,imgSmall:imgUrl,imgLarge:imgUrl,setName,number:'?',rarity:'Custom',prices:{}});
+  closeAddOwnCard();
+}
+
+function handleCardImageUpload(e){
+  const file=e.target.files[0];if(!file)return;
   e.target.value='';
-
-  // Show OCR loading
-  document.getElementById('dex-picker-list').innerHTML=`
-    <div class="ocr-loading">
-      <div class="spinner"></div>
-      <div class="ocr-loading-text">Reading card...</div>
-      <div style="font-size:10px;color:var(--text3)">Point camera at card name</div>
-    </div>`;
-
-  try{
-    const imageUrl=URL.createObjectURL(file);
-    const result=await Tesseract.recognize(imageUrl,'eng',{logger:()=>{}});
-    URL.revokeObjectURL(imageUrl);
-
-    // Extract card name — usually first non-empty line with 2+ chars
-    const lines=result.data.text.split('\n')
-      .map(l=>l.trim())
-      .filter(l=>l.length>1&&/[a-zA-Z]/.test(l));
-
-    if(!lines.length){
-      document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Could not read card. Try again in better light.</div>';
-      return;
-    }
-
-    // Take first meaningful line as card name
-    const detectedName=lines[0].replace(/[^a-zA-Z0-9\s.\-♀♂']/g,'').trim();
-    showToast(`Detected: ${detectedName}`,true);
-
-    // Search for the detected name
-    await fetchPickerCardsFromScan(detectedName);
-  }catch(err){
-    document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">Scan failed: ${err.message||'Try again'}</div>`;
-  }
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const dataUrl=ev.target.result;
+    document.getElementById('own-card-url').value='';
+    document.getElementById('own-card-details').style.display='block';
+    document.getElementById('own-card-preview').innerHTML=
+      `<img src="${dataUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
+    const btn=document.getElementById('own-card-fetch-btn');
+    btn.textContent='Save Card';
+    btn.onclick=()=>saveManualCard(dataUrl);
+    document.getElementById('add-own-modal').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
 }
 
-async function fetchPickerCardsFromScan(detectedName){
-  document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">Searching for "${detectedName}"...</div>`;
-  try{
-    const normalized=normalizeTCGName(detectedName);
-    const url=`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${normalized}`)}&orderBy=set.releaseDate&pageSize=250`;
-    const resp=await fetch(url);
-    const data=await resp.json();
-    _pickerCards=(data.data||[]).filter(c=>c.supertype==='Pokémon');
-    if(!_pickerCards.length){
-      document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">No cards found for "${detectedName}". Try scanning again or search manually above.</div>`;
-      return;
-    }
-    renderPickerCards();
-  }catch{
-    document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Search failed. Check connection.</div>';
-  }
+function applyOwnCard(card){
+  if(_pickerDexNum===null&&_pickerDexNum!==0)return;
+  dexSelectedCards[_pickerDexNum]={
+    id:card.id,name:card.name,imgSmall:card.imgSmall,
+    imgLarge:card.imgLarge||card.imgSmall,
+    setName:card.setName,number:card.number,
+    rarity:card.rarity,prices:card.prices||{},
+    lang:_pickerLang||'en'
+  };
+  saveDexSelectedCards(currentUser);
+  dexOwned.add(_pickerDexNum);
+  saveDexOwned(currentUser,dexOwned);
+  showToast('Got '+card.name+'! · Saved',true);
+  updateDexStats();
+  closeDexPicker();
+  renderDex();
+  renderSetScreen();
 }
 // ════════════════════════════════════════════════════════
 document.getElementById('search-sets').addEventListener('input',e=>{
