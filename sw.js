@@ -1,4 +1,4 @@
-const CACHE='masterbinder-v12';
+const CACHE='masterbinder-v13';
 const ASSETS=['./','./index.html','./manifest.json'];
 
 self.addEventListener('install',e=>{

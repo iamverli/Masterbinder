@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v12 · Butterfree 🦋</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v13 · Weedle 🐝</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -576,12 +576,40 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     </div>
     <input class="picker-search" id="picker-search" type="search" placeholder="Search for a card..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
-    <div class="scanner-btn" onclick="openAddOwnCard()">
-      <div class="scanner-btn-circle">＋</div>
-      <div class="scanner-btn-label">Add your own card</div>
-      <div class="scanner-btn-sub">Paste a URL or upload an image</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <div class="scanner-btn" style="flex:1" onclick="openAddOwnCard()">
+        <div class="scanner-btn-circle">＋</div>
+        <div class="scanner-btn-label">Add your own</div>
+        <div class="scanner-btn-sub">URL or image</div>
+      </div>
+      <div class="scanner-btn" style="flex:1" onclick="openSetBrowser()">
+        <div class="scanner-btn-circle">📦</div>
+        <div class="scanner-btn-label">Browse Sets</div>
+        <div class="scanner-btn-sub">Import from any set</div>
+      </div>
     </div>
-    <input type="file" id="card-image-input" accept="image/*" style="display:none" onchange="handleCardImageUpload(event)">
+  </div>
+</div>
+
+<!-- ══════════════════════ SET BROWSER MODAL ═════════════════════════════ -->
+<div class="dex-picker-bg hidden" id="set-browser-bg" onclick="closeSetBrowser(event)">
+  <div class="dex-picker">
+    <button class="dex-picker-close" onclick="closeSetBrowser()">✕</button>
+    <div class="dex-picker-title">Browse Sets</div>
+    <div class="dex-picker-sub">SELECT A SET TO IMPORT FROM</div>
+    <input class="picker-search" id="set-browser-search" type="search" placeholder="Search sets..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="dex-picker-list" id="set-browser-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SET CARDS MODAL ═══════════════════════════════ -->
+<div class="dex-picker-bg hidden" id="set-cards-bg" onclick="closeSetCards(event)">
+  <div class="dex-picker">
+    <button class="dex-picker-close" onclick="closeSetCards()">✕</button>
+    <div class="dex-picker-title" id="set-cards-title">Set Cards</div>
+    <div class="dex-picker-sub">TAP A CARD TO ADD TO YOUR POKÉDEX</div>
+    <input class="picker-search" id="set-cards-search" type="search" placeholder="Search cards..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="dex-picker-list" id="set-cards-list"></div>
   </div>
 </div>
 
@@ -596,7 +624,8 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <span style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">OR</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
-    <button class="btn-secondary" style="width:100%;margin-bottom:10px" onclick="document.getElementById('card-image-input').click()">📁 Upload from Gallery</button>
+    <label class="btn-secondary" style="width:100%;margin-bottom:10px;display:block;text-align:center;cursor:pointer;padding:13px;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border2)" for="card-image-input">📁 Upload from Gallery</label>
+    <input type="file" id="card-image-input" accept="image/*" style="display:none" onchange="handleCardImageUpload(event)">
     <!-- Manual details (shown after image is set) -->
     <div id="own-card-details" style="display:none">
       <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Card details</div>
@@ -2224,19 +2253,129 @@ const TCG_NAME_MAP={
   'flutter mane':'Flutter Mane','slither wing':'Slither Wing',
   'sandy shocks':'Sandy Shocks','roaring moon':'Roaring Moon',
   'walking wake':'Walking Wake','iron leaves':'Iron Leaves',
+  // Gendered forms — TCG uses base name only
+  'meowstic-male':'Meowstic','meowstic-female':'Meowstic',
+  'meowstic male':'Meowstic','meowstic female':'Meowstic',
+  'indeedee-male':'Indeedee','indeedee-female':'Indeedee',
+  'indeedee male':'Indeedee','indeedee female':'Indeedee',
+  'basculegion-male':'Basculegion','basculegion-female':'Basculegion',
+  'basculegion male':'Basculegion','basculegion female':'Basculegion',
+  'urshifu-single-strike':'Urshifu','urshifu-rapid-strike':'Urshifu',
+  'urshifu single strike':'Urshifu','urshifu rapid strike':'Urshifu',
+  'toxtricity-amped':'Toxtricity','toxtricity-low-key':'Toxtricity',
+  'toxtricity amped':'Toxtricity','toxtricity low key':'Toxtricity',
+  'lycanroc-midday':'Lycanroc','lycanroc-midnight':'Lycanroc','lycanroc-dusk':'Lycanroc',
+  'wishiwashi-solo':'Wishiwashi','wishiwashi-school':'Wishiwashi',
+  'zygarde-50':'Zygarde','zygarde-complete':'Zygarde','zygarde-10':'Zygarde',
 };
 function normalizeTCGName(name){
   const key=name.toLowerCase().trim();
   if(TCG_NAME_MAP[key])return TCG_NAME_MAP[key];
-  // Strip PokéAPI hyphens used for spaces
   const dehyphen=key.replace(/-/g,' ');
   if(TCG_NAME_MAP[dehyphen])return TCG_NAME_MAP[dehyphen];
-  // Return original cleaned up
+  // Strip gender/form suffixes as last resort
+  const stripped=key.replace(/[-\s]+(male|female|m|f)$/,'').trim();
+  if(stripped!==key&&TCG_NAME_MAP[stripped])return TCG_NAME_MAP[stripped];
+  // Capitalize properly and return
   return name.replace(/"/g,'').replace(/[*]/g,'').trim();
 }
 
 // ════════════════════════════════════════════════════════
-// ADD YOUR OWN CARD
+// SET BROWSER (Import from Sets)
+// ════════════════════════════════════════════════════════
+let _setBrowserSearch='';
+
+function openSetBrowser(){
+  _setBrowserSearch='';
+  document.getElementById('set-browser-search').value='';
+  document.getElementById('set-browser-bg').classList.remove('hidden');
+  renderSetBrowserList();
+}
+function closeSetBrowser(e){
+  if(!e||e.target===document.getElementById('set-browser-bg')||e.target.classList.contains('dex-picker-close')){
+    document.getElementById('set-browser-bg').classList.add('hidden');
+  }
+}
+function renderSetBrowserList(){
+  const q=_setBrowserSearch.toLowerCase().trim();
+  const list=document.getElementById('set-browser-list');
+  const sets=ALL_SETS.filter(s=>!q||s.name.toLowerCase().includes(q)||String(s.year).includes(q));
+  if(!sets.length){list.innerHTML='<div class="dex-picker-loading">No sets found</div>';return;}
+  list.innerHTML=sets.map(s=>{
+    const symImg=s.symbol?`<img src="${s.symbol}" style="width:20px;height:20px;object-fit:contain;flex-shrink:0" alt="">`:'📦';
+    return`<div class="dex-picker-card" onclick="openSetCards('${s.id}','${s.name.replace(/'/g,"\\'")}')">
+      <div style="width:20px;height:20px;flex-shrink:0;display:flex;align-items:center">${symImg}</div>
+      <div class="dex-picker-card-info">
+        <div class="dex-picker-card-name">${s.name}</div>
+        <div class="dex-picker-card-set">${s.series||''} · ${s.year}</div>
+      </div>
+      <span style="color:var(--text3);font-size:16px">›</span>
+    </div>`;
+  }).join('');
+}
+
+async function openSetCards(setId,setName){
+  document.getElementById('set-cards-title').textContent=setName;
+  document.getElementById('set-cards-search').value='';
+  document.getElementById('set-cards-bg').classList.remove('hidden');
+  document.getElementById('set-cards-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
+  try{
+    const cacheKey=`pb_cards_v4_${setId}`;
+    let cards=null;
+    const cached=sessionStorage.getItem(cacheKey);
+    if(cached)try{cards=JSON.parse(cached);}catch{}
+    if(!cards){
+      const resp=await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`set.id:${setId}`)}&orderBy=number&pageSize=250`);
+      const data=await resp.json();
+      cards=(data.data||[]).map(c=>({
+        id:c.id,number:c.number,name:c.name,rarity:c.rarity||'',
+        supertype:c.supertype||'',
+        imgSmall:c.images?.small||'',imgLarge:c.images?.large||'',
+        setName,
+        prices:{normal:c.tcgplayer?.prices?.normal?.market||null,holofoil:c.tcgplayer?.prices?.holofoil?.market||null}
+      }));
+      if(cards.length)sessionStorage.setItem(cacheKey,JSON.stringify(cards));
+    }
+    renderSetCardsList(cards,setId,setName);
+  }catch{document.getElementById('set-cards-list').innerHTML='<div class="dex-picker-loading">Failed to load. Check connection.</div>';}
+}
+
+function renderSetCardsList(cards,setId,setName){
+  const q=document.getElementById('set-cards-search').value.toLowerCase().trim();
+  const filtered=cards.filter(c=>!q||c.name.toLowerCase().includes(q)||c.number.toLowerCase().includes(q));
+  if(!filtered.length){document.getElementById('set-cards-list').innerHTML='<div class="dex-picker-loading">No cards found</div>';return;}
+  document.getElementById('set-cards-list').innerHTML=filtered.map(c=>{
+    const img=c.imgSmall||'';
+    const sname=c.name.replace(/'/g,"\\'");
+    return`<div class="dex-picker-card" onclick="importCardFromSet('${c.id}','${sname}','${img.replace(/'/g,"\\'")}','${setName.replace(/'/g,"\\'")}','${c.number}','${(c.rarity||'').replace(/'/g,"\\'")}')">
+      ${img?`<img src="${img}" alt="" loading="lazy" style="width:40px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0">`:'<div style="width:40px;height:56px;background:var(--surface2);border-radius:4px;flex-shrink:0"></div>'}
+      <div class="dex-picker-card-info">
+        <div class="dex-picker-card-name">${c.name}</div>
+        <div class="dex-picker-card-set">${setName} · #${c.number}</div>
+        <div class="dex-picker-card-rarity">${c.rarity||'—'}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // Store cards for search
+  document.getElementById('set-cards-list')._cards=cards;
+  document.getElementById('set-cards-list')._setId=setId;
+  document.getElementById('set-cards-list')._setName=setName;
+}
+
+function closeSetCards(e){
+  if(!e||e.target===document.getElementById('set-cards-bg')||e.target.classList.contains('dex-picker-close')){
+    document.getElementById('set-cards-bg').classList.add('hidden');
+  }
+}
+
+function importCardFromSet(cardId,name,imgSmall,setName,number,rarity){
+  applyOwnCard({
+    id:cardId,name,imgSmall,imgLarge:imgSmall.replace('.png','_hires.png'),
+    setName,number,rarity,prices:{}
+  });
+  closeSetCards();
+  closeSetBrowser();
+}
 // ════════════════════════════════════════════════════════
 function openAddOwnCard(){
   document.getElementById('own-card-url').value='';
@@ -2300,19 +2439,28 @@ function saveManualCard(imgUrl){
 function handleCardImageUpload(e){
   const file=e.target.files[0];if(!file)return;
   e.target.value='';
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    const dataUrl=ev.target.result;
+  // Compress image via canvas to avoid freeze on large files
+  const img=new Image();
+  const url=URL.createObjectURL(file);
+  img.onload=()=>{
+    URL.revokeObjectURL(url);
+    const MAX=800;
+    let w=img.width,h=img.height;
+    if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+    const canvas=document.createElement('canvas');
+    canvas.width=w;canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.82);
     document.getElementById('own-card-url').value='';
     document.getElementById('own-card-details').style.display='block';
     document.getElementById('own-card-preview').innerHTML=
       `<img src="${dataUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
     const btn=document.getElementById('own-card-fetch-btn');
-    btn.textContent='Save Card';
-    btn.onclick=()=>saveManualCard(dataUrl);
+    btn.textContent='Save Card';btn.onclick=()=>saveManualCard(dataUrl);
     document.getElementById('add-own-modal').classList.remove('hidden');
   };
-  reader.readAsDataURL(file);
+  img.onerror=()=>{URL.revokeObjectURL(url);showToast('Could not read image',false);};
+  img.src=url;
 }
 
 function applyOwnCard(card){
@@ -2334,6 +2482,13 @@ function applyOwnCard(card){
   renderSetScreen();
 }
 // ════════════════════════════════════════════════════════
+document.getElementById('set-browser-search').addEventListener('input',e=>{
+  _setBrowserSearch=e.target.value;renderSetBrowserList();
+});
+document.getElementById('set-cards-search').addEventListener('input',e=>{
+  const list=document.getElementById('set-cards-list');
+  if(list._cards)renderSetCardsList(list._cards,list._setId,list._setName);
+});
 document.getElementById('search-sets').addEventListener('input',e=>{
   setSearch=e.target.value;renderSetScreen();
 });
