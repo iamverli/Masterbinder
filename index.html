@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v14 · Kakuna 🟡</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v15 · Beedrill 🐝</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -636,6 +636,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="modal-btns">
       <button class="btn-secondary" onclick="closeAddOwnCard()">Cancel</button>
       <button class="btn-primary" id="own-card-fetch-btn" onclick="fetchOwnCard()">Fetch Card</button>
+      <button class="btn-primary hidden" id="own-card-save-btn" onclick="saveManualCard()" style="background:var(--green)">Save Card</button>
     </div>
   </div>
 </div>
@@ -2368,18 +2369,21 @@ function importCardFromSet(cardId,name,imgSmall,setName,number,rarity){
   closeSetBrowser();
 }
 // ════════════════════════════════════════════════════════
+let _pendingImageUrl=null;
+
 function openAddOwnCard(){
+  _pendingImageUrl=null;
   document.getElementById('own-card-url').value='';
   document.getElementById('own-card-details').style.display='none';
   document.getElementById('own-card-preview').innerHTML='';
   document.getElementById('own-card-name').value='';
   document.getElementById('own-card-set').value='';
-  const btn=document.getElementById('own-card-fetch-btn');
-  btn.textContent='Fetch Card';
-  btn.onclick=fetchOwnCard;
+  document.getElementById('own-card-fetch-btn').classList.remove('hidden');
+  document.getElementById('own-card-save-btn').classList.add('hidden');
   document.getElementById('add-own-modal').classList.remove('hidden');
 }
 function closeAddOwnCard(){
+  _pendingImageUrl=null;
   document.getElementById('add-own-modal').classList.add('hidden');
 }
 
@@ -2413,14 +2417,18 @@ async function fetchOwnCard(){
   }
 
   // ── Direct image URL or any other URL ──
+  _pendingImageUrl=url;
   document.getElementById('own-card-details').style.display='block';
   document.getElementById('own-card-preview').innerHTML=
     `<img src="${url}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block" onerror="this.style.display='none'">`;
-  btn.textContent='Save Card';
-  btn.onclick=()=>saveManualCard(url);
+  document.getElementById('own-card-fetch-btn').classList.add('hidden');
+  document.getElementById('own-card-save-btn').classList.remove('hidden');
+  btn.textContent='Fetch Card';
 }
 
-function saveManualCard(imgUrl){
+function saveManualCard(){
+  const imgUrl=_pendingImageUrl;
+  if(!imgUrl){showToast('No image to save',false);return;}
   const name=document.getElementById('own-card-name').value.trim()||_pickerPokeName;
   const setName=document.getElementById('own-card-set').value.trim()||'Custom';
   applyOwnCard({id:'custom_'+Date.now(),name,imgSmall:imgUrl,imgLarge:imgUrl,setName,number:'?',rarity:'Custom',prices:{}});
@@ -2430,7 +2438,6 @@ function saveManualCard(imgUrl){
 function handleCardImageUpload(e){
   const file=e.target.files[0];if(!file)return;
   e.target.value='';
-  // Compress image via canvas to avoid freeze on large files
   const img=new Image();
   const url=URL.createObjectURL(file);
   img.onload=()=>{
@@ -2441,13 +2448,13 @@ function handleCardImageUpload(e){
     const canvas=document.createElement('canvas');
     canvas.width=w;canvas.height=h;
     canvas.getContext('2d').drawImage(img,0,0,w,h);
-    const dataUrl=canvas.toDataURL('image/jpeg',0.82);
+    _pendingImageUrl=canvas.toDataURL('image/jpeg',0.82);
     document.getElementById('own-card-url').value='';
     document.getElementById('own-card-details').style.display='block';
     document.getElementById('own-card-preview').innerHTML=
-      `<img src="${dataUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
-    const btn=document.getElementById('own-card-fetch-btn');
-    btn.textContent='Save Card';btn.onclick=()=>saveManualCard(dataUrl);
+      `<img src="${_pendingImageUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
+    document.getElementById('own-card-fetch-btn').classList.add('hidden');
+    document.getElementById('own-card-save-btn').classList.remove('hidden');
     document.getElementById('add-own-modal').classList.remove('hidden');
   };
   img.onerror=()=>{URL.revokeObjectURL(url);showToast('Could not read image',false);};
