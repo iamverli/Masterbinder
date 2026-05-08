@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v13 · Weedle 🐝</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v14 · Kakuna 🟡</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -544,7 +544,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       </div>
     </div>
     <button class="card-popup-own-btn" id="popup-own-btn" onclick="toggleCardFromPopup()">✓ Mark as Owned</button>
-    <button class="card-popup-own-btn" id="popup-change-card-btn" onclick="" style="margin-top:8px;display:none;background:var(--surface2);color:var(--blue);border:1px solid var(--border2)">↺ Change Card</button>
+    <button class="card-popup-own-btn" id="popup-change-card-btn" style="margin-top:8px;display:none;background:var(--surface2);color:var(--blue);border:1px solid var(--border2)">↺ Change Card</button>
     <button class="card-popup-own-btn" id="popup-store-btn" onclick="openInStore()" style="margin-top:8px;background:var(--navy);color:var(--blue);border:1px solid var(--border2)">🛒 See Availability in Store</button>
   </div>
 </div>
@@ -694,7 +694,7 @@ async function loadAllSets(){
   const cacheAge='pb_all_sets_age';
   const ONE_DAY=86400000;
   const cached=localStorage.getItem(cacheKey);
-  const age=parseInt(localStorage.getItem(cacheAge)||'0');
+  const age=parseInt(localStorage.getItem(cacheAge)||"0",10);
   if(cached&&Date.now()-age<ONE_DAY){
     try{ALL_SETS=JSON.parse(cached);buildEras();return;}catch{}
   }
@@ -706,7 +706,7 @@ async function loadAllSets(){
     name:s.name,
     series:s.series||'Other',
     total:s.total||s.printedTotal||0,
-    year:s.releaseDate?parseInt(s.releaseDate.substring(0,4)):0,
+    year:s.releaseDate?parseInt(s.releaseDate.substring(0,4),10):0,
     symbol:s.images?.symbol||'',
     logo:s.images?.logo||''
   }));
@@ -763,7 +763,7 @@ function saveOwnedSet(user,setId,s){
 }
 function getCachedTotal(sid){
   const v=localStorage.getItem(totalKey(sid));
-  if(v)return parseInt(v);
+  if(v)return parseInt(v,10);
   const s=ALL_SETS.find(x=>x.id===sid);
   return s&&s.total>0?s.total:null;
 }
@@ -901,7 +901,9 @@ function showTrackerScreen(){
   document.getElementById('tracker-screen').classList.remove('hidden');
   const setData=ALL_SETS.find(s=>s.id===currentSet.id);
   const symHtml=setData?.symbol?`<img src="${setData.symbol}" style="height:18px;width:auto;object-fit:contain;margin-left:6px;opacity:.85" alt="">`:'' ;
-  document.getElementById('tracker-set-name').innerHTML=currentSet.name+symHtml;
+  const nameSpan=document.getElementById('tracker-set-name');
+  nameSpan.textContent=currentSet.name;
+  if(symHtml){const img=document.createElement('div');img.innerHTML=symHtml;nameSpan.appendChild(img.firstChild);}
   document.getElementById('mega-pill').classList.toggle('on',megaMode);
   document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
   const isSV=setData?.series==='Scarlet & Violet';
@@ -1154,7 +1156,7 @@ function cardNumSort(a,b){
   const parse=n=>{
     const m=String(n).match(/^([A-Za-z]*)(\d+)(.*)$/);
     if(!m)return{pre:String(n),num:0,suf:''};
-    return{pre:m[1],num:parseInt(m[2]),suf:m[3]};
+    return{pre:m[1],num:parseInt(m[2],10),suf:m[3]};
   };
   const pa=parse(a),pb=parse(b);
   // Numbers with no prefix come first, then prefixed (secret rares / special)
@@ -1278,28 +1280,15 @@ function updateTrackerStats(ownedCount,totalCount){
 }
 
 function getMastersetExtraCount(){
-  return currentCards.filter(c=>{
-    const r=(c.rarity||'').toLowerCase();
-    const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
-    const eligible=!noRH.some(x=>r.includes(x));
-    if(!eligible)return false;
-    let count=0;
-    if(mastersetOpts.rh)count++;
-    if(mastersetOpts.mb&&ALL_SETS.find(s=>s.id===currentSet.id)?.series==='Scarlet & Violet')count++;
-    if(mastersetOpts.ch)count++;
-    return count>0;
-  }).reduce((acc,c)=>{
-    const r=(c.rarity||'').toLowerCase();
-    const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
-    const eligible=!noRH.some(x=>r.includes(x));
-    if(!eligible)return acc;
-    const isSV=ALL_SETS.find(s=>s.id===currentSet.id)?.series==='Scarlet & Violet';
-    let count=0;
-    if(mastersetOpts.rh)count++;
-    if(mastersetOpts.mb&&isSV)count++;
-    if(mastersetOpts.ch)count++;
-    return acc+count;
-  },0);
+  const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
+  const isSV=ALL_SETS.find(s=>s.id===currentSet?.id)?.series==='Scarlet & Violet';
+  let variantsPerCard=0;
+  if(mastersetOpts.rh)variantsPerCard++;
+  if(mastersetOpts.mb&&isSV)variantsPerCard++;
+  if(mastersetOpts.ch)variantsPerCard++;
+  if(variantsPerCard===0)return 0;
+  const eligible=currentCards.filter(c=>!noRH.some(x=>(c.rarity||'').toLowerCase().includes(x)));
+  return eligible.length*variantsPerCard;
 }
 
 function setTrackerFilter(f){
@@ -1334,7 +1323,8 @@ function renderTracker(){
       if(trackerFilter==='missing'&&io)return false;
       return true;
     });
-    if(!filtered.length)return;
+    if(!filtered.length&&!megaMode)return;
+    // In mega mode, variants might exist even if filtered base is empty — check after expansion
     anyVisible=true;
 
     const gOwned=filtered.filter(c=>owned.has(c.id)).length;
@@ -1688,7 +1678,7 @@ function closeDexPicker(e){
 
 function formatNumber(n){
   if(!n||n==='?')return '#?';
-  const num=parseInt(n);
+  const num=parseInt(n,10);
   if(!isNaN(num)&&String(num)===String(n))return '#'+String(num).padStart(3,'0');
   return n; // special numbers like TG01, GG01, SV01 etc
 }
@@ -1814,7 +1804,8 @@ function updatePopupOwnBtn(){
 
 function toggleCardFromPopup(){
   if(!popupCardId)return;
-  const card=currentCards.find(c=>c.id===popupCardId);
+  const baseId=popupCardId.replace(/_(rh|mb|ch)$/,'');
+  const card=currentCards.find(c=>c.id===baseId);
   const name=card?card.name:'Card';
   if(owned.has(popupCardId)){owned.delete(popupCardId);showToast('Removed '+name,false);}
   else{owned.add(popupCardId);showToast('Got '+name+'!',true);}
@@ -2508,7 +2499,7 @@ document.getElementById('picker-search').addEventListener('input',e=>{
     return;
   }
   // Debounce API search
-  _pickerSearchTimeout=setTimeout(()=>fetchPickerCardsFromScan(q),400);
+  _pickerSearchTimeout=setTimeout(()=>fetchPickerCards(q,_pickerLang),400);
 });
 document.getElementById('new-username').addEventListener('keydown',e=>{
   if(e.key==='Enter')createUser();
@@ -2532,7 +2523,7 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
   setupScrollTopFab();
 })();
 
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW registration failed:',e));
 </script>
 </body>
 </html>
