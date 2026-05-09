@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v15 · Beedrill 🐝</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v16 · Pidgey 🐦</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -2214,9 +2214,10 @@ window.addEventListener('popstate',e=>{
       document.getElementById('df-'+x).classList.toggle('active',x==='all');
     });
     showSetScreen();
-  } else if(screen==='sets'||screen==='login'||!screen){
+  } else if(screen==='sets'){
     logout();
   }
+  // Ignore null/undefined state — Android file picker fires popstate with null state
 });
 
 // ════════════════════════════════════════════════════════
