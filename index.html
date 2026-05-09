@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v16 · Pidgey 🐦</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v17 · Pidgeotto 🐦</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -624,7 +624,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <span style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">OR</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
-    <label class="btn-secondary" style="width:100%;margin-bottom:10px;display:block;text-align:center;cursor:pointer;padding:13px;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border2)" for="card-image-input">📁 Upload from Gallery</label>
+    <label class="btn-secondary" style="width:100%;margin-bottom:10px;display:block;text-align:center;cursor:pointer;padding:13px;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border2)" for="card-image-input" onclick="_filePickerOpen=true">📁 Upload from Gallery</label>
     <input type="file" id="card-image-input" accept="image/*" style="display:none" onchange="handleCardImageUpload(event)">
     <!-- Manual details (shown after image is set) -->
     <div id="own-card-details" style="display:none">
@@ -2202,6 +2202,8 @@ function pushState(screenName){
   history.pushState({screen:screenName},'','');
 }
 window.addEventListener('popstate',e=>{
+  // Block navigation while file picker is open on Android
+  if(_filePickerOpen){_filePickerOpen=false;return;}
   const screen=e.state?.screen;
   if(screen==='tracker'||screen==='dex'){
     if(_dirty)saveCurrentSet();
@@ -2371,6 +2373,7 @@ function importCardFromSet(cardId,name,imgSmall,setName,number,rarity){
 }
 // ════════════════════════════════════════════════════════
 let _pendingImageUrl=null;
+let _filePickerOpen=false;
 
 function openAddOwnCard(){
   _pendingImageUrl=null;
@@ -2437,6 +2440,7 @@ function saveManualCard(){
 }
 
 function handleCardImageUpload(e){
+  _filePickerOpen=false;
   const file=e.target.files[0];if(!file)return;
   e.target.value='';
   const img=new Image();
