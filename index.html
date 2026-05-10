@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v17 · Pidgeotto 🐦</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v18 · Pidgeot 🦅</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -576,17 +576,10 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     </div>
     <input class="picker-search" id="picker-search" type="search" placeholder="Search for a card..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
-    <div style="display:flex;gap:6px;margin-top:8px">
-      <div class="scanner-btn" style="flex:1" onclick="openAddOwnCard()">
-        <div class="scanner-btn-circle">＋</div>
-        <div class="scanner-btn-label">Add your own</div>
-        <div class="scanner-btn-sub">URL or image</div>
-      </div>
-      <div class="scanner-btn" style="flex:1" onclick="openSetBrowser()">
-        <div class="scanner-btn-circle">📦</div>
-        <div class="scanner-btn-label">Browse Sets</div>
-        <div class="scanner-btn-sub">Import from any set</div>
-      </div>
+    <div class="scanner-btn" onclick="openAddOwnCard()">
+      <div class="scanner-btn-circle">＋</div>
+      <div class="scanner-btn-label">Add your own card</div>
+      <div class="scanner-btn-sub">Paste URL or upload image</div>
     </div>
   </div>
 </div>
@@ -1509,16 +1502,17 @@ async function openDexCardPicker(e,dexNum,pokeName){
   _pickerPokeName=pokeName;
   _pickerLang='en';
   document.getElementById('dex-picker-title').textContent=pokeName;
-  document.getElementById('dex-picker-sub').textContent='SELECT YOUR VERSION';
   document.getElementById('picker-search').value='';
   setPickerLangUI('en');
+  // Show picker immediately with spinner
+  document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 8px"></div>Loading cards...</div>';
   document.getElementById('dex-picker-bg').classList.add('show');
   await fetchPickerCards(pokeName,'en');
 }
 
 async function fetchPickerCards(pokeName,lang){
-  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 Japanese',cn:'🇨🇳 Chinese'};
-  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · TAGGING AS ${langLabels[lang]||'EN'}`;
+  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 JP version',cn:'🇨🇳 CN version'};
+  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · MARKING AS ${langLabels[lang]||'EN'}`;
   document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
   try{
     // Normalize name for TCG API search
@@ -1581,8 +1575,8 @@ function setPickerLang(lang){
 
 function setPickerLangUI(lang){
   ['en','jp','cn'].forEach(l=>document.getElementById('lang-'+l).classList.toggle('active',l===lang));
-  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 Japanese',cn:'🇨🇳 Chinese'};
-  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · TAGGING AS ${langLabels[lang]}`;
+  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 JP version',cn:'🇨🇳 CN version'};
+  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · MARKING AS ${langLabels[lang]}`;
 }
 function selectDexCard(dexNum,cardId,imgSmall,name,setName){
   dexSelectedCards[dexNum]={id:cardId,name,imgSmall,setName,lang:_pickerLang||'en'};
@@ -2090,7 +2084,9 @@ async function exportData(){
   if(!Object.keys(users).length){showToast('No trainer data to export',false);return;}
   const data={version:2,exported:new Date().toISOString(),users:{}};
   Object.keys(users).forEach(name=>{
-    data.users[name]={profile:users[name],sets:{},dex:[...getDexOwned(name)],megaModes:{},megaOpts:{}};
+    data.users[name]={profile:users[name],sets:{},dex:[...getDexOwned(name)],dexCards:{},megaModes:{},megaOpts:{}};
+    // dex selected cards
+    try{data.users[name].dexCards=JSON.parse(localStorage.getItem(dexCardKey(name))||'{}');}catch{}
     Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_s_`)).forEach(k=>{
       const sid=k.replace(`pb_u_${name}_s_`,'');
       try{data.users[name].sets[sid]=JSON.parse(localStorage.getItem(k)||'[]');}catch{}
@@ -2145,6 +2141,7 @@ function handleImportFile(e){
         existing[name]=ud.profile||{created:Date.now()};
         if(ud.sets)Object.entries(ud.sets).forEach(([sid,cards])=>{localStorage.setItem(ownedKey(name,sid),JSON.stringify(cards));});
         if(ud.dex)localStorage.setItem(dexKey(name),JSON.stringify(ud.dex));
+        if(ud.dexCards)localStorage.setItem(dexCardKey(name),JSON.stringify(ud.dexCards));
         if(ud.megaModes)Object.entries(ud.megaModes).forEach(([sid,v])=>{localStorage.setItem(megaKey(name,sid),v);});
         if(ud.megaOpts)Object.entries(ud.megaOpts).forEach(([sid,v])=>{localStorage.setItem(megaOptsKey(name,sid),v);});
         imported++;
@@ -2393,9 +2390,9 @@ function closeAddOwnCard(){
 
 async function fetchOwnCard(){
   const url=document.getElementById('own-card-url').value.trim();
-  if(!url){document.getElementById('card-image-input').click();return;}
+  if(!url){showToast('Please paste a URL or use Upload',false);return;}
   const btn=document.getElementById('own-card-fetch-btn');
-  btn.textContent='Loading...';
+  btn.textContent='Loading...';btn.disabled=true;
 
   // ── pokemontcg.io image URL ──
   const tcgMatch=url.match(/images\.pokemontcg\.io\/([^/]+)\/(\d+)/);
@@ -2406,6 +2403,7 @@ async function fetchOwnCard(){
       const data=await resp.json();
       if(data.data&&data.data.length>0){
         const c=data.data[0];
+        btn.textContent='Fetch Card';btn.disabled=false;
         applyOwnCard({
           id:c.id,name:c.name,
           imgSmall:c.images?.small||url,
@@ -2414,20 +2412,29 @@ async function fetchOwnCard(){
           number:c.number,rarity:c.rarity||'',
           prices:{normal:c.tcgplayer?.prices?.normal?.market||null,holofoil:c.tcgplayer?.prices?.holofoil?.market||null}
         });
-        btn.textContent='Fetch Card';
         closeAddOwnCard();return;
       }
-    }catch{}
+    }catch(err){
+      btn.textContent='Fetch Card';btn.disabled=false;
+      showToast('Could not fetch card data',false);return;
+    }
+    btn.textContent='Fetch Card';btn.disabled=false;
+    showToast('Card not found in database',false);return;
   }
 
-  // ── Direct image URL or any other URL ──
+  // ── Direct image URL (.png/.jpg/.webp) ──
+  const isImg=/\.(png|jpg|jpeg|webp|gif)(\?.*)?$/i.test(url);
+  if(!isImg&&!url.startsWith('http')){
+    btn.textContent='Fetch Card';btn.disabled=false;
+    showToast('Please paste a valid image URL',false);return;
+  }
   _pendingImageUrl=url;
   document.getElementById('own-card-details').style.display='block';
   document.getElementById('own-card-preview').innerHTML=
-    `<img src="${url}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block" onerror="this.style.display='none'">`;
+    `<img src="${url}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block" onerror="this.style.display='none';document.getElementById('own-card-preview').innerHTML='<div style=\\'color:var(--red);font-size:11px;text-align:center\\'>Could not load image</div>'">`;
+  btn.textContent='Fetch Card';btn.disabled=false;
   document.getElementById('own-card-fetch-btn').classList.add('hidden');
   document.getElementById('own-card-save-btn').classList.remove('hidden');
-  btn.textContent='Fetch Card';
 }
 
 function saveManualCard(){
@@ -2467,7 +2474,7 @@ function handleCardImageUpload(e){
 }
 
 function applyOwnCard(card){
-  if(_pickerDexNum===null&&_pickerDexNum!==0)return;
+  if(_pickerDexNum==null){showToast('No Pokémon selected — try again',false);return;}
   dexSelectedCards[_pickerDexNum]={
     id:card.id,name:card.name,imgSmall:card.imgSmall,
     imgLarge:card.imgLarge||card.imgSmall,
