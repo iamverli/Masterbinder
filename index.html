@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v19 · Rattata 🐭</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v20 · Raticate 🐀</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -1551,7 +1551,7 @@ function renderPickerCards(){
     const priceData=c.tcgplayer?.prices||{};
     const price=priceData.normal?.market||priceData.holofoil?.market||null;
     const priceStr=price?`<span style="color:var(--green);font-size:9px;font-family:'Space Mono',monospace">$${Number(price).toFixed(2)}</span>`:'';
-    return`<div class="dex-picker-card${isSel?' selected':''}" onclick="selectDexCardByIndex(${idx})">
+    return`<div class="dex-picker-card${isSel?' selected':''}" data-idx="${idx}">
       <img src="${img}" alt="" loading="lazy">
       <div class="dex-picker-card-info">
         <div class="dex-picker-card-name">${c.name}</div>
@@ -1562,11 +1562,22 @@ function renderPickerCards(){
     </div>`;
   }).join('');
   if(!html)html=`<div class="dex-picker-loading">${_pickerCards.length?'No cards match your search':'No cards found'}</div>`;
-  if(selected)html+=`<button class="dex-picker-none" onclick="clearDexCard(${_pickerDexNum})">✕ Remove card selection</button>`;
-  document.getElementById('dex-picker-list').innerHTML=html;
+  if(selected)html+=`<button class="dex-picker-none" data-action="clear">✕ Remove card selection</button>`;
+  const list=document.getElementById('dex-picker-list');
+  list.innerHTML=html;
+  // Use event delegation — reliable on Android Chrome
+  list.onclick=ev=>{
+    const card=ev.target.closest('[data-idx]');
+    const clearBtn=ev.target.closest('[data-action="clear"]');
+    if(clearBtn){clearDexCard(_pickerDexNum);return;}
+    if(!card)return;
+    ev.stopPropagation();
+    selectDexCardByIndex(parseInt(card.dataset.idx,10));
+  };
 }
 
 function selectDexCardByIndex(idx){
+  if(_pickerDexNum==null){showToast('No Pokémon selected',false);return;}
   const c=_pickerCards[idx];
   if(!c)return;
   const imgSmall=c.images?.small||'';
