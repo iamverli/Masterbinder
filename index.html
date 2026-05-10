@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v18 · Pidgeot 🦅</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v19 · Rattata 🐭</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -610,15 +610,19 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 <div class="modal-bg hidden" id="add-own-modal">
   <div class="modal">
     <div class="modal-title">Add your own card</div>
-    <div class="modal-sub">Paste a card image URL or upload from your gallery</div>
+    <div class="modal-sub">Paste a card image URL, upload or take a photo</div>
     <input class="modal-input" id="own-card-url" type="url" placeholder="Paste image or card URL..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       <div style="flex:1;height:1px;background:var(--border)"></div>
       <span style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">OR</span>
       <div style="flex:1;height:1px;background:var(--border)"></div>
     </div>
-    <label class="btn-secondary" style="width:100%;margin-bottom:10px;display:block;text-align:center;cursor:pointer;padding:13px;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;border:1px solid var(--border2)" for="card-image-input" onclick="_filePickerOpen=true">📁 Upload from Gallery</label>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <label style="flex:1;display:block;text-align:center;cursor:pointer;padding:11px 0;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;border:1px solid var(--border2)" for="card-image-input" onclick="_filePickerOpen=true">📁 Gallery</label>
+      <label style="flex:1;display:block;text-align:center;cursor:pointer;padding:11px 0;border-radius:var(--radius-sm);background:var(--surface2);color:var(--text2);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;border:1px solid var(--border2)" for="card-camera-capture" onclick="_filePickerOpen=true">📷 Camera</label>
+    </div>
     <input type="file" id="card-image-input" accept="image/*" style="display:none" onchange="handleCardImageUpload(event)">
+    <input type="file" id="card-camera-capture" accept="image/*" capture="environment" style="display:none" onchange="handleCardImageUpload(event)">
     <!-- Manual details (shown after image is set) -->
     <div id="own-card-details" style="display:none">
       <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Card details</div>
@@ -1541,16 +1545,13 @@ async function fetchPickerCards(pokeName,lang){
 function renderPickerCards(){
   const filtered=_pickerCards;
   const selected=dexSelectedCards[_pickerDexNum];
-  let html=filtered.map(c=>{
+  let html=filtered.map((c,idx)=>{
     const isSel=selected&&selected.id===c.id;
     const img=c.images?.small||'';
-    const sname=(c.set?.name||'').replace(/'/g,"\\'");
-    const cname=c.name.replace(/'/g,"\\'");
-    const cimg=img.replace(/'/g,"\\'");
     const priceData=c.tcgplayer?.prices||{};
     const price=priceData.normal?.market||priceData.holofoil?.market||null;
     const priceStr=price?`<span style="color:var(--green);font-size:9px;font-family:'Space Mono',monospace">$${Number(price).toFixed(2)}</span>`:'';
-    return`<div class="dex-picker-card${isSel?' selected':''}" onclick="selectDexCard(${_pickerDexNum},'${c.id}','${cimg}','${cname}','${sname}')">
+    return`<div class="dex-picker-card${isSel?' selected':''}" onclick="selectDexCardByIndex(${idx})">
       <img src="${img}" alt="" loading="lazy">
       <div class="dex-picker-card-info">
         <div class="dex-picker-card-name">${c.name}</div>
@@ -1560,11 +1561,32 @@ function renderPickerCards(){
       ${isSel?'<span style="color:var(--accent);font-size:16px;flex-shrink:0">✓</span>':''}
     </div>`;
   }).join('');
-  if(!html)html=`<div class="dex-picker-loading">${_pickerCards.length?'No cards match your search':'No cards found in this language'}</div>`;
+  if(!html)html=`<div class="dex-picker-loading">${_pickerCards.length?'No cards match your search':'No cards found'}</div>`;
   if(selected)html+=`<button class="dex-picker-none" onclick="clearDexCard(${_pickerDexNum})">✕ Remove card selection</button>`;
   document.getElementById('dex-picker-list').innerHTML=html;
 }
 
+function selectDexCardByIndex(idx){
+  const c=_pickerCards[idx];
+  if(!c)return;
+  const imgSmall=c.images?.small||'';
+  const imgLarge=c.images?.large||imgSmall;
+  dexSelectedCards[_pickerDexNum]={
+    id:c.id,name:c.name,imgSmall,imgLarge,
+    setName:c.set?.name||'',number:c.number,
+    rarity:c.rarity||'',
+    prices:{normal:c.tcgplayer?.prices?.normal?.market||null,holofoil:c.tcgplayer?.prices?.holofoil?.market||null},
+    lang:_pickerLang||'en'
+  };
+  saveDexSelectedCards(currentUser);
+  dexOwned.add(_pickerDexNum);
+  saveDexOwned(currentUser,dexOwned);
+  showToast('Got '+c.name+'! · Saved',true);
+  updateDexStats();
+  closeDexPicker();
+  renderDex();
+  renderSetScreen();
+}
 function setPickerLang(lang){
   _pickerLang=lang;
   setPickerLangUI(lang);
@@ -1577,17 +1599,6 @@ function setPickerLangUI(lang){
   ['en','jp','cn'].forEach(l=>document.getElementById('lang-'+l).classList.toggle('active',l===lang));
   const langLabels={en:'🇬🇧 English',jp:'🇯🇵 JP version',cn:'🇨🇳 CN version'};
   document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · MARKING AS ${langLabels[lang]}`;
-}
-function selectDexCard(dexNum,cardId,imgSmall,name,setName){
-  dexSelectedCards[dexNum]={id:cardId,name,imgSmall,setName,lang:_pickerLang||'en'};
-  saveDexSelectedCards(currentUser);
-  dexOwned.add(dexNum);
-  saveDexOwned(currentUser,dexOwned);
-  showToast('Got '+name+'! · Saved',true);
-  updateDexStats();
-  closeDexPicker();
-  renderDex();
-  renderSetScreen();
 }
 function clearDexCard(dexNum){
   delete dexSelectedCards[dexNum];
