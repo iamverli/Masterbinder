@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v20 · Raticate 🐀</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v21 · Spearow 🐦</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -2444,16 +2444,17 @@ async function fetchOwnCard(){
     showToast('Card not found in database',false);return;
   }
 
-  // ── Direct image URL (.png/.jpg/.webp) ──
+  // ── Direct image URL — store the URL, not base64 ──
   const isImg=/\.(png|jpg|jpeg|webp|gif)(\?.*)?$/i.test(url);
   if(!isImg&&!url.startsWith('http')){
     btn.textContent='Fetch Card';btn.disabled=false;
     showToast('Please paste a valid image URL',false);return;
   }
+  // Just store the URL directly — no conversion needed, saves localStorage space
   _pendingImageUrl=url;
   document.getElementById('own-card-details').style.display='block';
   document.getElementById('own-card-preview').innerHTML=
-    `<img src="${url}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block" onerror="this.style.display='none';document.getElementById('own-card-preview').innerHTML='<div style=\\'color:var(--red);font-size:11px;text-align:center\\'>Could not load image</div>'">`;
+    `<img src="${url}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block" onerror="this.style.display='none';document.getElementById('own-card-preview').innerHTML='<div style=\\'color:var(--red);font-size:11px;text-align:center\\'>Could not load image — check the URL</div>'">`;
   btn.textContent='Fetch Card';btn.disabled=false;
   document.getElementById('own-card-fetch-btn').classList.add('hidden');
   document.getElementById('own-card-save-btn').classList.remove('hidden');
@@ -2476,13 +2477,13 @@ function handleCardImageUpload(e){
   const url=URL.createObjectURL(file);
   img.onload=()=>{
     URL.revokeObjectURL(url);
-    const MAX=800;
+    const MAX=400;
     let w=img.width,h=img.height;
     if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
     const canvas=document.createElement('canvas');
     canvas.width=w;canvas.height=h;
     canvas.getContext('2d').drawImage(img,0,0,w,h);
-    _pendingImageUrl=canvas.toDataURL('image/jpeg',0.82);
+    _pendingImageUrl=canvas.toDataURL('image/jpeg',0.60);
     document.getElementById('own-card-url').value='';
     document.getElementById('own-card-details').style.display='block';
     document.getElementById('own-card-preview').innerHTML=
@@ -2555,6 +2556,12 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();});
 
 (async function boot(){
+  // Clean old card cache keys from localStorage to free space
+  try{
+    Object.keys(localStorage)
+      .filter(k=>k.match(/^pb_cards_v[123]_/)||k===('pb_ms_tot_undefined'))
+      .forEach(k=>localStorage.removeItem(k));
+  }catch{}
   try{
     const cached=localStorage.getItem('pb_all_sets_v2');
     if(cached){ALL_SETS=JSON.parse(cached);buildEras();}
@@ -2562,6 +2569,12 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
   history.replaceState({screen:'login'},'','');
   renderLoginScreen();
   setupScrollTopFab();
+  // Warn if localStorage is getting full (over 3.5MB)
+  try{
+    let total=0;
+    for(const k in localStorage)if(Object.prototype.hasOwnProperty.call(localStorage,k))total+=localStorage[k].length*2;
+    if(total>3500000)console.warn(`localStorage usage: ${(total/1024/1024).toFixed(1)}MB — getting full`);
+  }catch{}
 })();
 
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW registration failed:',e));
