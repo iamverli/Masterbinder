@@ -404,7 +404,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v21 · Spearow 🐦</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v22 · Fearow 🦅</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -741,7 +741,90 @@ let _dirty=false,toastT=null;
 let _popupCards=[];
 
 // ════════════════════════════════════════════════════════
-// STORAGE
+// INDEXEDDB — replaces localStorage for all user data
+// ════════════════════════════════════════════════════════
+const IDB_NAME='masterbinder',IDB_VER=1,IDB_STORE='userdata';
+let _idb=null;
+
+function openIDB(){
+  if(_idb)return Promise.resolve(_idb);
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(IDB_NAME,IDB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(IDB_STORE))db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess=e=>{_idb=e.target.result;res(_idb);};
+    req.onerror=e=>rej(e.target.error);
+  });
+}
+async function idbGet(key){
+  const db=await openIDB();
+  return new Promise((res,rej)=>{
+    const req=db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(key);
+    req.onsuccess=e=>res(e.target.result??null);
+    req.onerror=e=>rej(e.target.error);
+  });
+}
+async function idbSet(key,value){
+  const db=await openIDB();
+  return new Promise((res,rej)=>{
+    const req=db.transaction(IDB_STORE,'readwrite').objectStore(IDB_STORE).put(value,key);
+    req.onsuccess=()=>res();req.onerror=e=>rej(e.target.error);
+  });
+}
+async function idbDelete(key){
+  const db=await openIDB();
+  return new Promise((res,rej)=>{
+    const req=db.transaction(IDB_STORE,'readwrite').objectStore(IDB_STORE).delete(key);
+    req.onsuccess=()=>res();req.onerror=e=>rej(e.target.error);
+  });
+}
+async function idbKeys(prefix){
+  const db=await openIDB();
+  return new Promise((res,rej)=>{
+    const req=db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).getAllKeys();
+    req.onsuccess=e=>res(e.target.result.filter(k=>!prefix||k.startsWith(prefix)));
+    req.onerror=e=>rej(e.target.error);
+  });
+}
+
+// ── Memory cache — loaded on login, cleared on logout ──
+let _uCache={};
+
+function _cGet(key){return _uCache[key]??null;}
+function _cSet(key,value){
+  _uCache[key]=value;
+  idbSet(key,value).catch(e=>console.warn('IDB write failed:',key,e));
+}
+function _cDel(key){
+  delete _uCache[key];
+  idbDelete(key).catch(e=>console.warn('IDB delete failed:',key,e));
+}
+function _cKeys(prefix){return Object.keys(_uCache).filter(k=>!prefix||k.startsWith(prefix));}
+
+async function loadUserCache(user){
+  const keys=await idbKeys(`pb_u_${user}_`);
+  _uCache={};
+  await Promise.all(keys.map(async k=>{_uCache[k]=await idbGet(k);}));
+}
+function clearUserCache(){_uCache={};}
+
+// ── One-time migration: localStorage → IDB ──
+async function migrateToIDB(){
+  if(localStorage.getItem('pb_idb_migrated'))return;
+  const toMigrate=Object.keys(localStorage).filter(k=>k.startsWith('pb_u_'));
+  for(const k of toMigrate){
+    try{
+      const val=localStorage.getItem(k);
+      if(val){await idbSet(k,val);localStorage.removeItem(k);}
+    }catch{}
+  }
+  localStorage.setItem('pb_idb_migrated','1');
+}
+
+// ════════════════════════════════════════════════════════
+// STORAGE HELPERS
 // ════════════════════════════════════════════════════════
 const getUsers=()=>JSON.parse(localStorage.getItem('pb_users')||'{}');
 const saveUsers=u=>localStorage.setItem('pb_users',JSON.stringify(u));
@@ -750,14 +833,18 @@ const eraColKey=u=>`pb_u_${u}_era_col`;
 const totalKey=sid=>`pb_ms_tot_${sid}`;
 const megaKey=(u,sid)=>`pb_u_${u}_mega_${sid}`;
 const megaOptsKey=(u,sid)=>`pb_u_${u}_megaopts_${sid}`;
+const dexKey=u=>`pb_u_${u}_dex`;
+const dexCardKey=u=>`pb_u_${u}_dex_cards`;
 
 function getOwnedSet(user,setId){
-  try{return new Set(JSON.parse(localStorage.getItem(ownedKey(user,setId))||'[]'));}
-  catch{return new Set();}
+  const v=_cGet(ownedKey(user,setId));
+  try{return new Set(JSON.parse(v||'[]'));}catch{return new Set();}
 }
 function saveOwnedSet(user,setId,s){
-  try{localStorage.setItem(ownedKey(user,setId),JSON.stringify([...s]));}
-  catch(e){showToast('Save failed – storage full?',false);}
+  _cSet(ownedKey(user,setId),JSON.stringify([...s]));
+  // Update summary count for login screen
+  const count=_cKeys(`pb_u_${user}_s_`).filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
+  localStorage.setItem(`pb_u_${user}_setcount`,String(count));
 }
 function getCachedTotal(sid){
   const v=localStorage.getItem(totalKey(sid));
@@ -803,10 +890,16 @@ function renderLoginScreen(){
   if(sub)sub.textContent='Tap your trainer to continue';
   if(newBtn)newBtn.textContent='+ Add new trainer';
   grid.innerHTML=keys.map(name=>{
-    const allSetKeys=Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_s_`));
-    const setsStarted=allSetKeys.filter(k=>{
-      try{return JSON.parse(localStorage.getItem(k)||'[]').length>0;}catch{return false;}
-    }).length;
+    // Count started sets from IDB cache (if this is the logged-in user) or from a stored count
+    const countKey=`pb_u_${name}_s_`;
+    let setsStarted=0;
+    // Use cache if this user is loaded, otherwise read from a stored summary
+    if(name===currentUser){
+      setsStarted=_cKeys(countKey).filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
+    } else {
+      // Try reading stored summary count from localStorage
+      setsStarted=parseInt(localStorage.getItem(`pb_u_${name}_setcount`)||'0',10);
+    }
     const av=name.substring(0,2).toUpperCase();
     return `<div class="user-card" onclick="loginAs('${name}')">
       <div onclick="deleteUser(event,'${name}')" class="user-del">✕</div>
@@ -839,7 +932,8 @@ function deleteUser(e,name){
   e.stopPropagation();
   if(!confirm(`Delete trainer "${name}"? All data will be lost.`))return;
   const users=getUsers();delete users[name];saveUsers(users);
-  Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_`)).forEach(k=>localStorage.removeItem(k));
+  // Delete from IDB
+  idbKeys(`pb_u_${name}_`).then(keys=>keys.forEach(k=>idbDelete(k)));
   if(localStorage.getItem('pb_session')===name)localStorage.removeItem('pb_session');
   renderLoginScreen();
 }
@@ -851,10 +945,11 @@ async function loginAs(name){
   if(currentUser&&_dirty)saveCurrentSet();
   currentUser=name;_dirty=false;
   localStorage.setItem('pb_session',name);
-  eraCollapsed=new Set(JSON.parse(localStorage.getItem(eraColKey(name))||'[]'));
+  await loadUserCache(name);
+  const ecRaw=_cGet(eraColKey(name));
+  eraCollapsed=new Set(JSON.parse(ecRaw||'[]'));
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('save-fab').classList.add('hidden');
-  // Push login → sets history
   history.replaceState({screen:'login'},'','');
   pushState('sets');
   showSetScreen();
@@ -871,6 +966,7 @@ function logout(){
   if(currentUser&&_dirty)saveCurrentSet();
   currentUser=null;currentSet=null;_dirty=false;
   localStorage.removeItem('pb_session');
+  clearUserCache();
   owned=new Set();currentCards=[];
   trackerFilter='all';trackerSearch='';setSearch='';showEraList=false;
   document.getElementById('save-fab').classList.add('hidden');
@@ -1101,7 +1197,7 @@ function toggleEraList(){
 }
 function toggleEra(eraId){
   if(eraCollapsed.has(eraId))eraCollapsed.delete(eraId);else eraCollapsed.add(eraId);
-  localStorage.setItem(eraColKey(currentUser),JSON.stringify([...eraCollapsed]));
+  _cSet(eraColKey(currentUser),JSON.stringify([...eraCollapsed]));
   renderSetScreen();
 }
 
@@ -1115,8 +1211,8 @@ async function selectSet(eraId,setId,setName){
   _dirty=false;
   trackerFilter='all';trackerSearch='';
   trackerGroupCollapsed=new Set();
-  megaMode=localStorage.getItem(megaKey(currentUser,setId))==='1';
-  try{mastersetOpts=JSON.parse(localStorage.getItem(megaOptsKey(currentUser,setId))||'null')||{rh:true,mb:true,ch:false};}
+  megaMode=_cGet(megaKey(currentUser,setId))==='1';
+  try{mastersetOpts=JSON.parse(_cGet(megaOptsKey(currentUser,setId))||'null')||{rh:true,mb:true,ch:false};}
   catch{mastersetOpts={rh:true,mb:true,ch:false};}
 
   showTrackerScreen();
@@ -1488,11 +1584,10 @@ function openInStore(){
 // ════════════════════════════════════════════════════════
 // DEX CARD PICKER
 // ════════════════════════════════════════════════════════
-const dexCardKey=u=>`pb_u_${u}_dex_cards`;
 let dexSelectedCards={};
 let dexPickerNum=null;
-function loadDexSelectedCards(user){try{dexSelectedCards=JSON.parse(localStorage.getItem(dexCardKey(user))||'{}');}catch{dexSelectedCards={};}}
-function saveDexSelectedCards(user){localStorage.setItem(dexCardKey(user),JSON.stringify(dexSelectedCards));}
+function loadDexSelectedCards(user){try{dexSelectedCards=JSON.parse(_cGet(dexCardKey(user))||'{}');}catch{dexSelectedCards={};}}
+function saveDexSelectedCards(user){_cSet(dexCardKey(user),JSON.stringify(dexSelectedCards));}
 
 let _pickerLang='en';
 let _pickerCards=[];
@@ -1857,14 +1952,12 @@ function getSpriteUrl(cardName){
 // ════════════════════════════════════════════════════════
 // POKÉDEX STORAGE
 // ════════════════════════════════════════════════════════
-const dexKey=u=>`pb_u_${u}_dex`;
 function getDexOwned(u){
-  try{return new Set(JSON.parse(localStorage.getItem(dexKey(u))||'[]'));}
+  try{return new Set(JSON.parse(_cGet(dexKey(u))||'[]'));}
   catch{return new Set();}
 }
 function saveDexOwned(u,s){
-  try{localStorage.setItem(dexKey(u),JSON.stringify([...s]));}
-  catch{showToast('Save failed',false);}
+  _cSet(dexKey(u),JSON.stringify([...s]));
 }
 
 // ════════════════════════════════════════════════════════
@@ -2040,12 +2133,12 @@ function toggleDexPoke(num,name){
 // ════════════════════════════════════════════════════════
 function collapseAllEras(){
   ERAS.forEach(e=>eraCollapsed.add(e.id));
-  localStorage.setItem(eraColKey(currentUser),JSON.stringify([...eraCollapsed]));
+  _cSet(eraColKey(currentUser),JSON.stringify([...eraCollapsed]));
   renderSetScreen();
 }
 function expandAllEras(){
   eraCollapsed.clear();
-  localStorage.setItem(eraColKey(currentUser),JSON.stringify([]));
+  _cSet(eraColKey(currentUser),JSON.stringify([]));
   renderSetScreen();
 }
 function collapseAllGroups(){
@@ -2076,7 +2169,7 @@ function expandAllGens(){
 // ════════════════════════════════════════════════════════
 function toggleMegaMode(){
   megaMode=!megaMode;
-  localStorage.setItem(megaKey(currentUser,currentSet.id),megaMode?'1':'0');
+  _cSet(megaKey(currentUser,currentSet.id),megaMode?'1':'0');
   document.getElementById('mega-pill').classList.toggle('on',megaMode);
   document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
   updateTrackerStats(owned.size);
@@ -2086,7 +2179,7 @@ function toggleMegaMode(){
 function toggleSubopt(e,key){
   e.stopPropagation();
   mastersetOpts[key]=!mastersetOpts[key];
-  localStorage.setItem(megaOptsKey(currentUser,currentSet.id),JSON.stringify(mastersetOpts));
+  _cSet(megaOptsKey(currentUser,currentSet.id),JSON.stringify(mastersetOpts));
   syncSuboptPills();
   updateTrackerStats(owned.size);
   renderTracker();
@@ -2104,27 +2197,32 @@ function syncSuboptPills(){
 async function exportData(){
   const users=getUsers();
   if(!Object.keys(users).length){showToast('No trainer data to export',false);return;}
-  const data={version:2,exported:new Date().toISOString(),users:{}};
-  Object.keys(users).forEach(name=>{
-    data.users[name]={profile:users[name],sets:{},dex:[...getDexOwned(name)],dexCards:{},megaModes:{},megaOpts:{}};
-    // dex selected cards
-    try{data.users[name].dexCards=JSON.parse(localStorage.getItem(dexCardKey(name))||'{}');}catch{}
-    Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_s_`)).forEach(k=>{
-      const sid=k.replace(`pb_u_${name}_s_`,'');
-      try{data.users[name].sets[sid]=JSON.parse(localStorage.getItem(k)||'[]');}catch{}
-    });
-    Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_mega_`)).forEach(k=>{
-      const sid=k.replace(`pb_u_${name}_mega_`,'');
-      data.users[name].megaModes[sid]=localStorage.getItem(k);
-    });
-    Object.keys(localStorage).filter(k=>k.startsWith(`pb_u_${name}_megaopts_`)).forEach(k=>{
-      const sid=k.replace(`pb_u_${name}_megaopts_`,'');
-      data.users[name].megaOpts[sid]=localStorage.getItem(k);
-    });
-  });
+  const data={version:3,exported:new Date().toISOString(),users:{}};
+  for(const name of Object.keys(users)){
+    data.users[name]={profile:users[name],sets:{},dex:[],dexCards:{},megaModes:{},megaOpts:{}};
+    // Read all user data from IDB
+    const keys=await idbKeys(`pb_u_${name}_`);
+    for(const k of keys){
+      const v=await idbGet(k);
+      if(!v)continue;
+      if(k.startsWith(`pb_u_${name}_s_`)){
+        const sid=k.replace(`pb_u_${name}_s_`,'');
+        try{data.users[name].sets[sid]=JSON.parse(v);}catch{}
+      } else if(k===dexKey(name)){
+        try{data.users[name].dex=JSON.parse(v);}catch{}
+      } else if(k===dexCardKey(name)){
+        try{data.users[name].dexCards=JSON.parse(v);}catch{}
+      } else if(k.startsWith(`pb_u_${name}_mega_`)&&!k.includes('megaopts')){
+        const sid=k.replace(`pb_u_${name}_mega_`,'');
+        data.users[name].megaModes[sid]=v;
+      } else if(k.startsWith(`pb_u_${name}_megaopts_`)){
+        const sid=k.replace(`pb_u_${name}_megaopts_`,'');
+        data.users[name].megaOpts[sid]=v;
+      }
+    }
+  }
   const json=JSON.stringify(data,null,2);
   const blob=new Blob([json],{type:'application/json'});
-  // Use native Save dialog if available (modern browsers)
   if(window.showSaveFilePicker){
     try{
       const fh=await window.showSaveFilePicker({
@@ -2132,12 +2230,10 @@ async function exportData(){
         types:[{description:'JSON Backup',accept:{'application/json':['.json']}}]
       });
       const writable=await fh.createWritable();
-      await writable.write(blob);
-      await writable.close();
+      await writable.write(blob);await writable.close();
       showToast('Exported! ✓',true);return;
     }catch(e){if(e.name==='AbortError')return;}
   }
-  // Fallback
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download=`masterbinder-backup-${Date.now()}.json`;
@@ -2150,7 +2246,7 @@ function importData(){document.getElementById('import-file').click();}
 function handleImportFile(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>{
+  reader.onload=async ev=>{
     try{
       const data=JSON.parse(ev.target.result);
       if(!data.users)throw new Error('Invalid backup file');
@@ -2158,16 +2254,22 @@ function handleImportFile(e){
       if(!names.length){showToast('No trainers found in file',false);return;}
       const existing=getUsers();
       let imported=0;
-      names.forEach(name=>{
+      for(const name of names){
         const ud=data.users[name];
         existing[name]=ud.profile||{created:Date.now()};
-        if(ud.sets)Object.entries(ud.sets).forEach(([sid,cards])=>{localStorage.setItem(ownedKey(name,sid),JSON.stringify(cards));});
-        if(ud.dex)localStorage.setItem(dexKey(name),JSON.stringify(ud.dex));
-        if(ud.dexCards)localStorage.setItem(dexCardKey(name),JSON.stringify(ud.dexCards));
-        if(ud.megaModes)Object.entries(ud.megaModes).forEach(([sid,v])=>{localStorage.setItem(megaKey(name,sid),v);});
-        if(ud.megaOpts)Object.entries(ud.megaOpts).forEach(([sid,v])=>{localStorage.setItem(megaOptsKey(name,sid),v);});
+        if(ud.sets)for(const [sid,cards] of Object.entries(ud.sets)){
+          await idbSet(ownedKey(name,sid),JSON.stringify(cards));
+        }
+        if(ud.dex)await idbSet(dexKey(name),JSON.stringify(ud.dex));
+        if(ud.dexCards)await idbSet(dexCardKey(name),JSON.stringify(ud.dexCards));
+        if(ud.megaModes)for(const [sid,v] of Object.entries(ud.megaModes)){
+          await idbSet(megaKey(name,sid),v);
+        }
+        if(ud.megaOpts)for(const [sid,v] of Object.entries(ud.megaOpts)){
+          await idbSet(megaOptsKey(name,sid),v);
+        }
         imported++;
-      });
+      }
       saveUsers(existing);renderLoginScreen();
       showToast(`Imported ${imported} trainer${imported!==1?'s':''}! ✓`,true);
     }catch(err){showToast('Import failed: '+err.message,false);}
@@ -2556,10 +2658,13 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();});
 
 (async function boot(){
-  // Clean old card cache keys from localStorage to free space
+  // Init IndexedDB and migrate localStorage data on first run
+  try{await openIDB();await migrateToIDB();}
+  catch(e){console.warn('IDB init/migration failed:',e);}
+  // Clean old card cache keys
   try{
     Object.keys(localStorage)
-      .filter(k=>k.match(/^pb_cards_v[123]_/)||k===('pb_ms_tot_undefined'))
+      .filter(k=>k.match(/^pb_cards_v[123]_/)||k==='pb_ms_tot_undefined')
       .forEach(k=>localStorage.removeItem(k));
   }catch{}
   try{
@@ -2569,12 +2674,6 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
   history.replaceState({screen:'login'},'','');
   renderLoginScreen();
   setupScrollTopFab();
-  // Warn if localStorage is getting full (over 3.5MB)
-  try{
-    let total=0;
-    for(const k in localStorage)if(Object.prototype.hasOwnProperty.call(localStorage,k))total+=localStorage[k].length*2;
-    if(total>3500000)console.warn(`localStorage usage: ${(total/1024/1024).toFixed(1)}MB — getting full`);
-  }catch{}
 })();
 
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW registration failed:',e));
