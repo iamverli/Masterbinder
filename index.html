@@ -113,7 +113,9 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .tracker-title-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .back-btn{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);font-size:10px;font-family:'Space Mono',monospace;font-weight:700;padding:4px 8px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;white-space:nowrap}
 .back-btn:active{background:var(--surface2)}
-.tracker-set-name{font-size:11px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.tracker-set-name{flex:1;font-size:11px;font-weight:700;color:var(--accent);font-family:'Space Mono',monospace;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;display:flex;align-items:center;gap:4px}
+.share-set-btn{width:26px;height:26px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.share-set-btn:active{background:var(--surface);color:var(--accent)}
 
 /* ── Card grid — 2 col compact ── */
 .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
@@ -404,7 +406,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v22 · Fearow 🦅</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v23 · Ekans 🐍</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -438,6 +440,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="tracker-title-row">
       <button class="back-btn" onclick="backToSets()">&#8592; SETS</button>
       <span class="tracker-set-name" id="tracker-set-name"></span>
+      <button class="share-set-btn" onclick="shareSet()" title="Share set">📤</button>
     </div>
     <div class="stats-row">
       <div class="stat-box s-owned"><div class="val" id="t-owned">0</div><div class="lbl">Owned</div></div>
@@ -682,6 +685,7 @@ const ERA_META={
   'Sun & Moon':{badge:'S&M', name:'Sun & Moon'},
   'Sword & Shield':{badge:'SWSH',name:'Sword & Shield'},
   'Scarlet & Violet':{badge:'S&V',name:'Scarlet & Violet'},
+  'Mega Evolution':{badge:'MEG',name:'Mega Evolution'},
   'POP':       {badge:'POP', name:'POP Series'},
   'NP':        {badge:'PROMO',name:'Nintendo Promos'},
   'Other':     {badge:'OTHER',name:'Other / Promos'},
@@ -1000,7 +1004,7 @@ function showTrackerScreen(){
   if(symHtml){const img=document.createElement('div');img.innerHTML=symHtml;nameSpan.appendChild(img.firstChild);}
   document.getElementById('mega-pill').classList.toggle('on',megaMode);
   document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
-  const isSV=setData?.series==='Scarlet & Violet';
+  const isSV=['Scarlet & Violet','Mega Evolution'].includes(setData?.series)||setData?.series==='Mega Evolution';
   document.getElementById('subopt-masterball-row').style.display=isSV?'':'none';
   syncSuboptPills();
 }
@@ -1375,7 +1379,7 @@ function updateTrackerStats(ownedCount,totalCount){
 
 function getMastersetExtraCount(){
   const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
-  const isSV=ALL_SETS.find(s=>s.id===currentSet?.id)?.series==='Scarlet & Violet';
+  const isSV=['Scarlet & Violet','Mega Evolution'].includes(ALL_SETS.find(s=>s.id===currentSet?.id)?.series)||setData?.series==='Mega Evolution';
   let variantsPerCard=0;
   if(mastersetOpts.rh)variantsPerCard++;
   if(mastersetOpts.mb&&isSV)variantsPerCard++;
@@ -1440,7 +1444,7 @@ function renderTracker(){
     // In masterset mode, add variant cards based on sub-options
     let displayCards=[...filtered];
     if(megaMode){
-      const isSV=ALL_SETS.find(s=>s.id===currentSet.id)?.series==='Scarlet & Violet';
+      const isSV=['Scarlet & Violet','Mega Evolution'].includes(ALL_SETS.find(s=>s.id===currentSet.id)?.series)||setData?.series==='Mega Evolution';
       const expanded=[];
       filtered.forEach(card=>{
         expanded.push(card);
@@ -1757,7 +1761,7 @@ function openDexPopup(e,dexNum,pokeName){
   const changeBtn=document.getElementById('popup-change-card-btn');
   if(changeBtn){changeBtn.style.display='block';changeBtn.onclick=()=>{closeCardPopup();openDexCardPicker({stopPropagation:()=>{}},dexNum,pokeName);};}
 
-  // Store button — search by Pokémon name only
+  // Store button — always visible in dex, search by Pokémon name
   const storeBtn=document.getElementById('popup-store-btn');
   if(storeBtn){
     storeBtn.style.display='block';
@@ -1889,9 +1893,12 @@ function openCardPopup(e,cardIdx,cardId){
   setPrice('popup-price-low',lowPrice);
   setPrice('popup-price-high',highPrice);
 
-  // Show store button only when not owned
+  // Show store button only when not owned (set tracker context)
   const storeBtn=document.getElementById('popup-store-btn');
-  if(storeBtn)storeBtn.style.display=owned.has(popupCardId)?'none':'block';
+  if(storeBtn){
+    storeBtn.style.display=owned.has(popupCardId)?'none':'block';
+    storeBtn.onclick=openInStore;
+  }
 
   // Reset own button to set tracker context
   const ownBtn=document.getElementById('popup-own-btn');
@@ -2317,7 +2324,57 @@ function setupScrollTopFab(){
 }
 
 // ════════════════════════════════════════════════════════
-// BACK GESTURE / HISTORY
+// SHARE SET
+// ════════════════════════════════════════════════════════
+async function shareSet(){
+  if(!currentSet||!currentUser)return;
+  const ownedArr=[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch'));
+  const payload={
+    v:1,
+    user:currentUser,
+    setId:currentSet.id,
+    setName:currentSet.name,
+    owned:ownedArr,
+    shared:Date.now()
+  };
+  const encoded=btoa(JSON.stringify(payload)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const url=`${location.origin}${location.pathname}?setshare=${encoded}`;
+  const text=`Here's my ${currentSet.name} progress in MasterBinder!`;
+  if(navigator.share){
+    try{await navigator.share({title:'MasterBinder — '+currentSet.name,text,url});return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  // Fallback: copy to clipboard
+  try{
+    await navigator.clipboard.writeText(url);
+    showToast('Link copied! ✓',true);
+  }catch{
+    showToast('Share not available — try from browser',false);
+  }
+}
+
+// Check for shared set data in URL on boot
+function checkShareImport(){
+  const params=new URLSearchParams(location.search);
+  const raw=params.get('setshare');
+  if(!raw)return;
+  try{
+    const json=atob(raw.replace(/-/g,'+').replace(/_/g,'/'));
+    const data=JSON.parse(json);
+    if(!data.setId||!data.owned)return;
+    // Clean URL
+    history.replaceState({},'',location.pathname);
+    // Show import prompt
+    const msg=`Import ${data.user || 'shared'}'s ${data.setName} progress? (${data.owned.length} cards owned)`;
+    if(!confirm(msg))return;
+    const users=getUsers();
+    const importName=(data.user||'Shared')+'_import';
+    users[importName]=users[importName]||{created:Date.now()};
+    saveUsers(users);
+    idbSet(ownedKey(importName,data.setId),JSON.stringify(data.owned))
+      .then(()=>showToast(`Imported as trainer "${importName}" ✓`,true));
+  }catch(e){console.warn('Share import failed:',e);}
+}
 // ════════════════════════════════════════════════════════
 function pushState(screenName){
   history.pushState({screen:screenName},'','');
@@ -2672,6 +2729,7 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
     if(cached){ALL_SETS=JSON.parse(cached);buildEras();}
   }catch{}
   history.replaceState({screen:'login'},'','');
+  checkShareImport();
   renderLoginScreen();
   setupScrollTopFab();
 })();
