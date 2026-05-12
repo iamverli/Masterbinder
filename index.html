@@ -404,7 +404,9 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
   <div class="io-row">
     <button class="io-btn export-btn" onclick="exportData()">⬆ Export</button>
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
-    <button class="io-btn" onclick="manualCleanup()" style="background:rgba(217,79,58,.12);color:var(--red);border-color:rgba(217,79,58,.3)">🗑 Clear Cache</button>
+  </div>
+  <div style="display:flex;justify-content:flex-start;margin-bottom:16px">
+    <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:var(--radius-sm);color:var(--red);font-family:'Exo 2',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;cursor:pointer;opacity:.7;transition:all .2s">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
   <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v25 · Pikachu ⚡</div>
@@ -607,6 +609,22 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="dex-picker-sub">TAP A CARD TO ADD TO YOUR POKÉDEX</div>
     <input class="picker-search" id="set-cards-search" type="search" placeholder="Search cards..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="set-cards-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ CROP MODAL ═══════════════════════════════════ -->
+<div class="card-popup-bg" id="crop-modal-bg" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.92)">
+  <div style="position:relative;width:100%;max-width:480px;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden">
+    <canvas id="crop-canvas" style="max-width:100%;max-height:70vh;touch-action:none"></canvas>
+    <div id="crop-frame" style="position:absolute;border:2px solid var(--accent);box-shadow:0 0 0 9999px rgba(0,0,0,.55);pointer-events:none;border-radius:4px"></div>
+  </div>
+  <div style="padding:16px 20px;width:100%;max-width:480px;display:flex;gap:10px">
+    <button class="btn-secondary" style="flex:1" onclick="closeCropModal()">Cancel</button>
+    <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+      <input type="range" id="crop-size" min="20" max="100" value="70" style="width:100%;accent-color:var(--accent)" oninput="updateCropFrame()">
+      <div style="font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);text-align:center">Resize</div>
+    </div>
+    <button class="btn-primary" style="flex:1" onclick="confirmCrop()">✓ Use</button>
   </div>
 </div>
 
@@ -858,9 +876,10 @@ async function cleanupLocalStorage(){
   return kbFreed;
 }
 
-async function manualCleanup(){
+async function manualCleanup(e){
+  const btn=document.getElementById('clear-cache-btn');
+  if(btn){btn.textContent='🗑 Cleaning...';btn.style.opacity='1';}
   const kb=await cleanupLocalStorage();
-  // Show actual localStorage size after cleanup
   let lsSize=0;
   for(const k in localStorage){
     if(Object.prototype.hasOwnProperty.call(localStorage,k)){
@@ -868,10 +887,20 @@ async function manualCleanup(){
     }
   }
   const lsKb=Math.round(lsSize/1024);
-  showToast(`Done! localStorage: ${lsKb}KB / 5120KB ✓`,true);
-  // Flash the button green
-  const btn=event?.target;
-  if(btn){btn.style.background='rgba(62,207,170,.25)';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(()=>{btn.style.background='';btn.style.color='';btn.style.borderColor='';},2000);}
+  showToast(`localStorage: ${lsKb}KB / 5120KB ✓`,true);
+  if(btn){
+    btn.textContent='✓ Done';
+    btn.style.background='rgba(62,207,170,.15)';
+    btn.style.borderColor='var(--green)';
+    btn.style.color='var(--green)';
+    setTimeout(()=>{
+      btn.textContent='🗑 Clear Cache';
+      btn.style.background='none';
+      btn.style.borderColor='rgba(217,79,58,.3)';
+      btn.style.color='var(--red)';
+      btn.style.opacity='.7';
+    },2500);
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -2600,6 +2629,96 @@ function importCardFromSet(cardId,name,imgSmall,setName,number,rarity){
 let _pendingImageUrl=null;
 let _filePickerOpen=false;
 
+// ════════════════════════════════════════════════════════
+// CARD PHOTO CROP
+// ════════════════════════════════════════════════════════
+let _cropImg=null,_cropX=50,_cropY=50,_cropSize=70,_cropDrag=null;
+const CARD_RATIO=63/88;
+
+function openCropModal(imgSrc){
+  const img=new Image();
+  img.onload=()=>{
+    _cropImg=img;_cropX=50;_cropY=50;_cropSize=70;
+    document.getElementById('crop-size').value=70;
+    document.getElementById('crop-modal-bg').classList.add('show');
+    setTimeout(()=>{drawCropCanvas();},50);
+    const canvas=document.getElementById('crop-canvas');
+    canvas.ontouchstart=cropTouchStart;
+    canvas.ontouchmove=cropTouchMove;
+    canvas.ontouchend=()=>{_cropDrag=null;};
+  };
+  img.src=imgSrc;
+}
+function closeCropModal(){
+  document.getElementById('crop-modal-bg').classList.remove('show');
+  _cropImg=null;
+}
+function drawCropCanvas(){
+  const canvas=document.getElementById('crop-canvas');
+  if(!_cropImg)return;
+  const maxW=Math.min(window.innerWidth-32,448);
+  const maxH=Math.round(window.innerHeight*0.6);
+  const scale=Math.min(maxW/_cropImg.naturalWidth,maxH/_cropImg.naturalHeight,1);
+  canvas.width=Math.round(_cropImg.naturalWidth*scale);
+  canvas.height=Math.round(_cropImg.naturalHeight*scale);
+  canvas.getContext('2d').drawImage(_cropImg,0,0,canvas.width,canvas.height);
+  updateCropFrame();
+}
+function updateCropFrame(){
+  _cropSize=parseInt(document.getElementById('crop-size').value,10);
+  const canvas=document.getElementById('crop-canvas');
+  const frame=document.getElementById('crop-frame');
+  if(!canvas.width)return;
+  const rect=canvas.getBoundingClientRect();
+  const boxH=Math.round(rect.height*_cropSize/100);
+  const boxW=Math.round(boxH*CARD_RATIO);
+  const cx=Math.max(boxW/2,Math.min(rect.width-boxW/2,rect.width*_cropX/100));
+  const cy=Math.max(boxH/2,Math.min(rect.height-boxH/2,rect.height*_cropY/100));
+  frame.style.cssText=`position:fixed;border:2px solid var(--accent);box-shadow:0 0 0 9999px rgba(0,0,0,.55);pointer-events:none;border-radius:4px;width:${boxW}px;height:${boxH}px;left:${rect.left+cx-boxW/2}px;top:${rect.top+cy-boxH/2}px`;
+}
+function cropTouchStart(e){
+  e.preventDefault();
+  const t=e.touches[0];
+  _cropDrag={sx:t.clientX,sy:t.clientY,cx:_cropX,cy:_cropY};
+}
+function cropTouchMove(e){
+  e.preventDefault();
+  if(!_cropDrag)return;
+  const t=e.touches[0];
+  const canvas=document.getElementById('crop-canvas');
+  const rect=canvas.getBoundingClientRect();
+  _cropX=Math.max(0,Math.min(100,_cropDrag.cx+(t.clientX-_cropDrag.sx)/rect.width*100));
+  _cropY=Math.max(0,Math.min(100,_cropDrag.cy+(t.clientY-_cropDrag.sy)/rect.height*100));
+  updateCropFrame();
+}
+function confirmCrop(){
+  const canvas=document.getElementById('crop-canvas');
+  const frame=document.getElementById('crop-frame');
+  if(!_cropImg||!canvas.width)return;
+  const canvasRect=canvas.getBoundingClientRect();
+  const frameRect=frame.getBoundingClientRect();
+  const scaleX=canvas.width/canvasRect.width;
+  const scaleY=canvas.height/canvasRect.height;
+  const sx=Math.round((frameRect.left-canvasRect.left)*scaleX);
+  const sy=Math.round((frameRect.top-canvasRect.top)*scaleY);
+  const sw=Math.round(frameRect.width*scaleX);
+  const sh=Math.round(frameRect.height*scaleY);
+  const out=document.createElement('canvas');
+  out.width=sw;out.height=sh;
+  out.getContext('2d').drawImage(canvas,sx,sy,sw,sh,0,0,sw,sh);
+  _pendingImageUrl=out.toDataURL('image/jpeg',0.75);
+  closeCropModal();
+  document.getElementById('own-card-details').style.display='block';
+  document.getElementById('own-card-preview').innerHTML=
+    `<img src="${_pendingImageUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
+  document.getElementById('own-card-fetch-btn').classList.add('hidden');
+  document.getElementById('own-card-save-btn').classList.remove('hidden');
+  document.getElementById('add-own-modal').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════════
+// ADD YOUR OWN CARD
+// ════════════════════════════════════════════════════════
 function openAddOwnCard(){
   _pendingImageUrl=null;
   document.getElementById('own-card-url').value='';
@@ -2679,27 +2798,9 @@ function handleCardImageUpload(e){
   _filePickerOpen=false;
   const file=e.target.files[0];if(!file)return;
   e.target.value='';
-  const img=new Image();
   const url=URL.createObjectURL(file);
-  img.onload=()=>{
-    URL.revokeObjectURL(url);
-    const MAX=400;
-    let w=img.width,h=img.height;
-    if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
-    const canvas=document.createElement('canvas');
-    canvas.width=w;canvas.height=h;
-    canvas.getContext('2d').drawImage(img,0,0,w,h);
-    _pendingImageUrl=canvas.toDataURL('image/jpeg',0.60);
-    document.getElementById('own-card-url').value='';
-    document.getElementById('own-card-details').style.display='block';
-    document.getElementById('own-card-preview').innerHTML=
-      `<img src="${_pendingImageUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
-    document.getElementById('own-card-fetch-btn').classList.add('hidden');
-    document.getElementById('own-card-save-btn').classList.remove('hidden');
-    document.getElementById('add-own-modal').classList.remove('hidden');
-  };
-  img.onerror=()=>{URL.revokeObjectURL(url);showToast('Could not read image',false);};
-  img.src=url;
+  // Open crop modal for camera photos, skip crop for gallery (optional)
+  openCropModal(url);
 }
 
 function applyOwnCard(card){
@@ -2763,7 +2864,7 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
 
 (async function boot(){
   // Init IndexedDB and migrate localStorage data on first run
-  try{await openIDB();await migrateToIDB();await cleanupLocalStorage();}
+  try{await openIDB();await migrateToIDB();}
   catch(e){console.warn('IDB init/migration failed:',e);}
   // Clean old card cache keys
   try{
