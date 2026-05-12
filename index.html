@@ -404,9 +404,10 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
   <div class="io-row">
     <button class="io-btn export-btn" onclick="exportData()">⬆ Export</button>
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
+    <button class="io-btn" onclick="manualCleanup()" style="background:rgba(217,79,58,.12);color:var(--red);border-color:rgba(217,79,58,.3)">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v23 · Ekans 🐍</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v24 · Arbok 🐍</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -814,17 +815,52 @@ async function loadUserCache(user){
 }
 function clearUserCache(){_uCache={};}
 
-// ── One-time migration: localStorage → IDB ──
+// ── Migration + cleanup: remove ALL pb_u_* from localStorage ──
 async function migrateToIDB(){
-  if(localStorage.getItem('pb_idb_migrated'))return;
+  // Always run cleanup — move any remaining pb_u_* keys to IDB and delete from localStorage
   const toMigrate=Object.keys(localStorage).filter(k=>k.startsWith('pb_u_'));
   for(const k of toMigrate){
     try{
       const val=localStorage.getItem(k);
-      if(val){await idbSet(k,val);localStorage.removeItem(k);}
+      if(val){
+        // Only write to IDB if not already there
+        const existing=await idbGet(k);
+        if(!existing)await idbSet(k,val);
+        localStorage.removeItem(k);
+      }
     }catch{}
   }
   localStorage.setItem('pb_idb_migrated','1');
+}
+
+async function cleanupLocalStorage(){
+  let freed=0;
+  // Remove all pb_u_* from localStorage (should be in IDB)
+  Object.keys(localStorage).filter(k=>k.startsWith('pb_u_')).forEach(k=>{
+    freed+=localStorage.getItem(k).length*2;
+    localStorage.removeItem(k);
+  });
+  // Remove old card caches
+  Object.keys(localStorage).filter(k=>k.match(/^pb_cards_v[0-9]+_/)).forEach(k=>{
+    freed+=localStorage.getItem(k).length*2;
+    localStorage.removeItem(k);
+  });
+  // Remove stale total caches for sets that no longer exist
+  const validSetIds=new Set(ALL_SETS.map(s=>s.id));
+  Object.keys(localStorage).filter(k=>k.startsWith('pb_ms_tot_')).forEach(k=>{
+    const sid=k.replace('pb_ms_tot_','');
+    if(validSetIds.size>0&&!validSetIds.has(sid)){
+      freed+=localStorage.getItem(k).length*2;
+      localStorage.removeItem(k);
+    }
+  });
+  const kbFreed=Math.round(freed/1024);
+  return kbFreed;
+}
+
+async function manualCleanup(){
+  const kb=await cleanupLocalStorage();
+  showToast(kb>0?`Cleaned up ~${kb}KB ✓`:'Storage already clean ✓',true);
 }
 
 // ════════════════════════════════════════════════════════
@@ -2716,7 +2752,7 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
 
 (async function boot(){
   // Init IndexedDB and migrate localStorage data on first run
-  try{await openIDB();await migrateToIDB();}
+  try{await openIDB();await migrateToIDB();await cleanupLocalStorage();}
   catch(e){console.warn('IDB init/migration failed:',e);}
   // Clean old card cache keys
   try{
