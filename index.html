@@ -407,7 +407,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button class="io-btn" onclick="manualCleanup()" style="background:rgba(217,79,58,.12);color:var(--red);border-color:rgba(217,79,58,.3)">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v24 · Arbok 🐍</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v25 · Pikachu ⚡</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -860,7 +860,18 @@ async function cleanupLocalStorage(){
 
 async function manualCleanup(){
   const kb=await cleanupLocalStorage();
-  showToast(kb>0?`Cleaned up ~${kb}KB ✓`:'Storage already clean ✓',true);
+  // Show actual localStorage size after cleanup
+  let lsSize=0;
+  for(const k in localStorage){
+    if(Object.prototype.hasOwnProperty.call(localStorage,k)){
+      lsSize+=(localStorage[k].length+k.length)*2;
+    }
+  }
+  const lsKb=Math.round(lsSize/1024);
+  showToast(`Done! localStorage: ${lsKb}KB / 5120KB ✓`,true);
+  // Flash the button green
+  const btn=event?.target;
+  if(btn){btn.style.background='rgba(62,207,170,.25)';btn.style.color='var(--green)';btn.style.borderColor='var(--green)';setTimeout(()=>{btn.style.background='';btn.style.color='';btn.style.borderColor='';},2000);}
 }
 
 // ════════════════════════════════════════════════════════
