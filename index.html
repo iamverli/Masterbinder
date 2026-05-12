@@ -404,12 +404,13 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
   <div class="io-row">
     <button class="io-btn export-btn" onclick="exportData()">⬆ Export</button>
     <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
+    <button class="io-btn" onclick="shareCollection()" style="border-color:var(--blue);color:var(--blue)">🔗 Share</button>
   </div>
-  <div style="display:flex;justify-content:flex-start;margin-bottom:16px">
-    <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:var(--radius-sm);color:var(--red);font-family:'Exo 2',sans-serif;font-size:11px;font-weight:600;padding:6px 12px;cursor:pointer;opacity:.7;transition:all .2s">🗑 Clear Cache</button>
+  <div style="display:flex;justify-content:flex-start;margin-bottom:16px;padding:0 2px">
+    <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:20px;color:var(--red);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;opacity:.6;transition:all .2s;white-space:nowrap;width:auto">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v25 · Pikachu ⚡</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v27 · Sandshrew 🏜️</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -468,18 +469,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <div class="toggle-pill" id="mega-pill"><div class="toggle-dot"></div></div>
     </div>
     <div class="masterset-subopts" id="masterset-subopts">
-      <div class="subopt-row">
-        <div class="subopt-label">Reverse Holo <small>Poké Ball pattern</small></div>
-        <div class="subopt-pill on" id="sub-rh" onclick="toggleSubopt(event,'rh')"><div class="subopt-dot"></div></div>
-      </div>
-      <div class="subopt-row" id="subopt-masterball-row">
-        <div class="subopt-label">Reverse Holo <small>Master Ball pattern · S&V only</small></div>
-        <div class="subopt-pill on" id="sub-mb" onclick="toggleSubopt(event,'mb')"><div class="subopt-dot"></div></div>
-      </div>
-      <div class="subopt-row">
-        <div class="subopt-label">Cosmos Holo <small>WOTC / older sets</small></div>
-        <div class="subopt-pill" id="sub-ch" onclick="toggleSubopt(event,'ch')"><div class="subopt-dot"></div></div>
-      </div>
+      <!-- Populated dynamically based on set variants -->
     </div>
     <input class="search-input" type="search" id="search-tracker" placeholder="Search card name or number..." autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
@@ -582,6 +572,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     </div>
     <input class="picker-search" id="picker-search" type="search" placeholder="Search for a card..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
+    <button id="picker-store-btn" onclick="openPickerStoreLink()" style="width:100%;margin-top:6px;padding:10px;background:var(--navy);color:var(--blue);border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:center">🛒 See Availability in Store</button>
     <div class="scanner-btn" onclick="openAddOwnCard()">
       <div class="scanner-btn-circle">＋</div>
       <div class="scanner-btn-label">Add your own card</div>
@@ -833,22 +824,21 @@ async function loadUserCache(user){
 }
 function clearUserCache(){_uCache={};}
 
-// ── Migration + cleanup: remove ALL pb_u_* from localStorage ──
+// ── Migration: localStorage → IDB (runs once) ──
 async function migrateToIDB(){
-  // Always run cleanup — move any remaining pb_u_* keys to IDB and delete from localStorage
+  if(localStorage.getItem('pb_idb_migrated_v2'))return;
   const toMigrate=Object.keys(localStorage).filter(k=>k.startsWith('pb_u_'));
   for(const k of toMigrate){
     try{
       const val=localStorage.getItem(k);
       if(val){
-        // Only write to IDB if not already there
         const existing=await idbGet(k);
         if(!existing)await idbSet(k,val);
         localStorage.removeItem(k);
       }
     }catch{}
   }
-  localStorage.setItem('pb_idb_migrated','1');
+  localStorage.setItem('pb_idb_migrated_v2','1');
 }
 
 async function cleanupLocalStorage(){
@@ -1070,6 +1060,65 @@ function showSetScreen(){
   document.getElementById('search-sets').value=setSearch;
   renderSetScreen();
 }
+// ════════════════════════════════════════════════════════
+// MASTERSET VARIANT CONFIG
+// ════════════════════════════════════════════════════════
+// Variants: rh = Reverse Holo, mb = Master Ball, ch = Cosmos Holo
+const MASTERSET_CONFIG={
+  // Series defaults
+  _series:{
+    'Base':                null,      // No reverse holos
+    'Gym':                 null,
+    'Neo':                 null,
+    'E-Card':              [{key:'rh',label:'Reverse Holo',sub:''}],
+    'EX':                  [{key:'rh',label:'Reverse Holo',sub:''}],
+    'Diamond & Pearl':     [{key:'rh',label:'Reverse Holo',sub:''}],
+    'Platinum':            [{key:'rh',label:'Reverse Holo',sub:''}],
+    'HeartGold & SoulSilver':[{key:'rh',label:'Reverse Holo',sub:''}],
+    'Black & White':       [{key:'rh',label:'Reverse Holo',sub:''}],
+    'XY':                  [{key:'rh',label:'Reverse Holo',sub:''}],
+    'Sun & Moon':          [{key:'rh',label:'Reverse Holo',sub:'type symbol pattern'}],
+    'Sword & Shield':      [{key:'rh',label:'Reverse Holo',sub:'tile pattern'}],
+    'Scarlet & Violet':    [{key:'rh',label:'Reverse Holo',sub:'Poké Ball tile pattern'}],
+    'Mega Evolution':      [{key:'rh',label:'Reverse Holo',sub:'plain pattern'}],
+  },
+  // Set-specific overrides (set ID)
+  _sets:{
+    'sv8pt5':[  // Prismatic Evolutions
+      {key:'rh',label:'Reverse Holo',sub:'standard pattern'},
+      {key:'rh2',label:'Reverse Holo',sub:'Poké Ball pattern'},
+      {key:'mb',label:'Reverse Holo',sub:'Master Ball pattern'},
+    ],
+    'sv9':[     // Black Bolt & White Flare
+      {key:'rh',label:'Reverse Holo',sub:'Poké Ball pattern'},
+      {key:'mb',label:'Reverse Holo',sub:'Master Ball pattern'},
+    ],
+  }
+};
+
+function getSetVariants(setId,series){
+  if(MASTERSET_CONFIG._sets[setId])return MASTERSET_CONFIG._sets[setId];
+  return MASTERSET_CONFIG._series[series]||null; // null = no reverse holos
+}
+
+function renderMastersetSubopts(setId,series){
+  const variants=getSetVariants(setId,series);
+  const subopts=document.getElementById('masterset-subopts');
+  const toggleRow=document.querySelector('.mega-toggle-row');
+  if(!variants||variants.length===0){
+    // No variants for this set — hide toggle entirely
+    if(toggleRow)toggleRow.style.display='none';
+    subopts.innerHTML='';
+    return;
+  }
+  if(toggleRow)toggleRow.style.display='';
+  subopts.innerHTML=variants.map(v=>`
+    <div class="subopt-row">
+      <div class="subopt-label">${v.label}${v.sub?`<small>${v.sub}</small>`:''}
+      </div>
+      <div class="subopt-pill${mastersetOpts[v.key]!==false?' on':''}" id="sub-${v.key}" onclick="toggleSubopt(event,'${v.key}')"><div class="subopt-dot"></div></div>
+    </div>`).join('');
+}
 function showTrackerScreen(){
   document.getElementById('set-screen').classList.add('hidden');
   document.getElementById('tracker-screen').classList.remove('hidden');
@@ -1080,9 +1129,7 @@ function showTrackerScreen(){
   if(symHtml){const img=document.createElement('div');img.innerHTML=symHtml;nameSpan.appendChild(img.firstChild);}
   document.getElementById('mega-pill').classList.toggle('on',megaMode);
   document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
-  const isSV=['Scarlet & Violet','Mega Evolution'].includes(setData?.series)||setData?.series==='Mega Evolution';
-  document.getElementById('subopt-masterball-row').style.display=isSV?'':'none';
-  syncSuboptPills();
+  renderMastersetSubopts(currentSet.id,setData?.series||'');
 }
 
 // ════════════════════════════════════════════════════════
@@ -1455,14 +1502,13 @@ function updateTrackerStats(ownedCount,totalCount){
 
 function getMastersetExtraCount(){
   const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
-  const isSV=['Scarlet & Violet','Mega Evolution'].includes(ALL_SETS.find(s=>s.id===currentSet?.id)?.series)||setData?.series==='Mega Evolution';
-  let variantsPerCard=0;
-  if(mastersetOpts.rh)variantsPerCard++;
-  if(mastersetOpts.mb&&isSV)variantsPerCard++;
-  if(mastersetOpts.ch)variantsPerCard++;
-  if(variantsPerCard===0)return 0;
+  const setData=ALL_SETS.find(s=>s.id===currentSet?.id);
+  const variants=getSetVariants(currentSet?.id,setData?.series||'');
+  if(!variants||variants.length===0)return 0;
+  const activeCount=variants.filter(v=>mastersetOpts[v.key]!==false).length;
+  if(activeCount===0)return 0;
   const eligible=currentCards.filter(c=>!noRH.some(x=>(c.rarity||'').toLowerCase().includes(x)));
-  return eligible.length*variantsPerCard;
+  return eligible.length*activeCount;
 }
 
 function setTrackerFilter(f){
@@ -1520,17 +1566,21 @@ function renderTracker(){
     // In masterset mode, add variant cards based on sub-options
     let displayCards=[...filtered];
     if(megaMode){
-      const isSV=['Scarlet & Violet','Mega Evolution'].includes(ALL_SETS.find(s=>s.id===currentSet.id)?.series)||setData?.series==='Mega Evolution';
+      const setData2=ALL_SETS.find(s=>s.id===currentSet.id);
+      const variants=getSetVariants(currentSet.id,setData2?.series||'');
       const expanded=[];
       filtered.forEach(card=>{
         expanded.push(card);
+        if(!variants||variants.length===0)return;
         const r=(card.rarity||'').toLowerCase();
         const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
         const eligible=!noRH.some(x=>r.includes(x));
         if(eligible){
-          if(mastersetOpts.rh)expanded.push({...card,id:card.id+'_rh',_variant:'RH',rarity:'Reverse Holo'});
-          if(mastersetOpts.mb&&isSV)expanded.push({...card,id:card.id+'_mb',_variant:'MB',rarity:'Master Ball RH'});
-          if(mastersetOpts.ch)expanded.push({...card,id:card.id+'_ch',_variant:'CH',rarity:'Cosmos Holo'});
+          variants.forEach(v=>{
+            if(mastersetOpts[v.key]!==false){
+              expanded.push({...card,id:card.id+'_'+v.key,_variant:v.key.toUpperCase(),rarity:v.label+(v.sub?` (${v.sub})`:'' )});
+            }
+          });
         }
       });
       displayCards=expanded.filter(card=>{
@@ -1620,7 +1670,7 @@ const WELCOME_SLIDES=[
   {icon:'💾',title:'Your Data is Safe',body:'Everything saves automatically. Use Export on the login screen to back up your data anytime. Tap ? to see this guide again.'},
 ];
 let welcomeSlide=0;
-const welcomedKey=u=>`pb_u_${u}_welcomed`;
+const welcomedKey=u=>`pb_welcomed_${u}`;
 function showWelcomeIfNeeded(user){if(!localStorage.getItem(welcomedKey(user)))showWelcome();}
 function showWelcome(){welcomeSlide=0;renderWelcomeSlide();document.getElementById('welcome-bg').classList.add('show');}
 function renderWelcomeSlide(){
@@ -1860,6 +1910,11 @@ function toggleDexFromPopup(dexNum,name){
   ownBtn.textContent=isOwned?'✕ Remove from Pokédex':'✓ Mark as Owned';
   renderDex();
   renderSetScreen();
+}
+function openPickerStoreLink(){
+  const name=_pickerPokeName||'';
+  if(!name)return;
+  openUrl(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(name)}`);
 }
 function closeDexPicker(e){
   if(!e||e.target===document.getElementById('dex-picker-bg')||e.target.classList.contains('dex-picker-close')){
@@ -2402,6 +2457,33 @@ function setupScrollTopFab(){
 // ════════════════════════════════════════════════════════
 // SHARE SET
 // ════════════════════════════════════════════════════════
+async function shareCollection(){
+  const users=getUsers();
+  const names=Object.keys(users);
+  if(!names.length){showToast('No trainer data to share',false);return;}
+  // Build compact share payload — only set ownership data (no images)
+  const payload={v:1,trainers:{}};
+  for(const name of names){
+    payload.trainers[name]={sets:{}};
+    const keys=await idbKeys(`pb_u_${name}_s_`);
+    for(const k of keys){
+      const v=await idbGet(k);
+      if(v){const sid=k.replace(`pb_u_${name}_s_`,'');
+        try{const arr=JSON.parse(v);if(arr.length)payload.trainers[name].sets[sid]=arr;}catch{}
+      }
+    }
+    const dexVal=await idbGet(dexKey(name));
+    if(dexVal)try{payload.trainers[name].dex=JSON.parse(dexVal);}catch{}
+  }
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const url=`${location.origin}${location.pathname}?share=${encoded}`;
+  if(navigator.share){
+    try{await navigator.share({title:'MasterBinder Collection',text:'Check out my Pokémon TCG collection!',url});return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  try{await navigator.clipboard.writeText(url);showToast('Link copied! ✓',true);}
+  catch{showToast('Share not available',false);}
+}
 async function shareSet(){
   if(!currentSet||!currentUser)return;
   const ownedArr=[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch'));
@@ -2432,24 +2514,45 @@ async function shareSet(){
 // Check for shared set data in URL on boot
 function checkShareImport(){
   const params=new URLSearchParams(location.search);
-  const raw=params.get('setshare');
-  if(!raw)return;
-  try{
-    const json=atob(raw.replace(/-/g,'+').replace(/_/g,'/'));
-    const data=JSON.parse(json);
-    if(!data.setId||!data.owned)return;
-    // Clean URL
-    history.replaceState({},'',location.pathname);
-    // Show import prompt
-    const msg=`Import ${data.user || 'shared'}'s ${data.setName} progress? (${data.owned.length} cards owned)`;
-    if(!confirm(msg))return;
-    const users=getUsers();
-    const importName=(data.user||'Shared')+'_import';
-    users[importName]=users[importName]||{created:Date.now()};
-    saveUsers(users);
-    idbSet(ownedKey(importName,data.setId),JSON.stringify(data.owned))
-      .then(()=>showToast(`Imported as trainer "${importName}" ✓`,true));
-  }catch(e){console.warn('Share import failed:',e);}
+  // Single set share
+  const rawSet=params.get('setshare');
+  if(rawSet){
+    try{
+      const data=JSON.parse(atob(rawSet.replace(/-/g,'+').replace(/_/g,'/')));
+      if(!data.setId||!data.owned)return;
+      history.replaceState({},'',location.pathname);
+      if(!confirm(`Import ${data.user||'shared'}'s ${data.setName} progress? (${data.owned.length} cards owned)`))return;
+      const users=getUsers();
+      const importName=(data.user||'Shared')+'_import';
+      users[importName]=users[importName]||{created:Date.now()};
+      saveUsers(users);
+      idbSet(ownedKey(importName,data.setId),JSON.stringify(data.owned))
+        .then(()=>{renderLoginScreen();showToast(`Imported as "${importName}" ✓`,true);});
+    }catch(e){console.warn('Set share import failed:',e);}
+    return;
+  }
+  // Full collection share
+  const rawCol=params.get('share');
+  if(rawCol){
+    try{
+      const data=JSON.parse(decodeURIComponent(escape(atob(rawCol.replace(/-/g,'+').replace(/_/g,'/')))));
+      if(!data.trainers)return;
+      history.replaceState({},'',location.pathname);
+      const names=Object.keys(data.trainers);
+      if(!confirm(`Import collection from ${names.join(', ')}?`))return;
+      const users=getUsers();
+      (async()=>{
+        for(const name of names){
+          const td=data.trainers[name];
+          users[name]=users[name]||{created:Date.now()};
+          if(td.sets)for(const[sid,arr]of Object.entries(td.sets))await idbSet(ownedKey(name,sid),JSON.stringify(arr));
+          if(td.dex)await idbSet(dexKey(name),JSON.stringify(td.dex));
+        }
+        saveUsers(users);renderLoginScreen();
+        showToast(`Imported ${names.length} trainer${names.length!==1?'s':''}! ✓`,true);
+      })();
+    }catch(e){console.warn('Collection share import failed:',e);}
+  }
 }
 // ════════════════════════════════════════════════════════
 function pushState(screenName){
