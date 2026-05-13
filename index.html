@@ -176,22 +176,24 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .card-item.var-rh{border-left-color:#818cf8;background:rgba(129,140,248,0.08)}
 .card-item.var-rh.owned{border-left-color:#818cf8;background:rgba(129,140,248,0.18)}
 .card-item.var-rh .card-num-badge{color:#818cf8}
+.card-item.var-rh2{border-left-color:#a78bfa;background:rgba(167,139,250,0.08)}
+.card-item.var-rh2.owned{border-left-color:#a78bfa;background:rgba(167,139,250,0.18)}
+.card-item.var-rh2 .card-num-badge{color:#a78bfa}
 .card-item.var-mb{border-left-color:var(--purple);background:rgba(192,132,252,0.08)}
 .card-item.var-mb.owned{border-left-color:var(--purple);background:rgba(192,132,252,0.18)}
 .card-item.var-mb .card-num-badge{color:var(--purple)}
 .card-item.var-ch{border-left-color:#fb923c;background:rgba(251,146,60,0.08)}
 .card-item.var-ch.owned{border-left-color:#fb923c;background:rgba(251,146,60,0.18)}
 .card-item.var-ch .card-num-badge{color:#fb923c}
-
-/* ── Dex tile with card art ── */
-.dex-item.has-card{flex-direction:row;align-items:center;gap:7px;padding:5px 8px 5px 5px;min-height:58px;justify-content:flex-start}
-.dex-item.has-card .dex-card-thumb{width:34px;height:48px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border2);box-shadow:0 1px 6px rgba(0,0,0,.4)}
-.dex-item.has-card .dex-card-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.dex-item.has-card .card-num-badge{font-size:8px}
-.dex-item.has-card .card-name{font-size:11px;font-weight:700;text-align:left}
-.dex-item.has-card .dex-set-label{font-size:8px;color:var(--text3);font-family:'Space Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dex-item .dex-three-dot{position:absolute;top:4px;right:4px;background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;letter-spacing:-1px;padding:2px;line-height:1;transition:color .12s}
-.dex-item .dex-three-dot:active{color:var(--accent)}
+.card-item.var-trainer_rh{border-left-color:var(--blue);background:rgba(122,179,212,0.08)}
+.card-item.var-trainer_rh.owned{border-left-color:var(--blue);background:rgba(122,179,212,0.18)}
+.card-item.var-trainer_rh .card-num-badge{color:var(--blue)}
+.card-item.var-energy_rh{border-left-color:var(--green);background:rgba(62,207,170,0.08)}
+.card-item.var-energy_rh.owned{border-left-color:var(--green);background:rgba(62,207,170,0.18)}
+.card-item.var-energy_rh .card-num-badge{color:var(--green)}
+.card-item.var-ball_rh{border-left-color:var(--accent);background:rgba(245,185,34,0.08)}
+.card-item.var-ball_rh.owned{border-left-color:var(--accent);background:rgba(245,185,34,0.18)}
+.card-item.var-ball_rh .card-num-badge{color:var(--accent)}
 
 /* ── Dex card picker popup ── */
 .dex-picker-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -410,7 +412,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:20px;color:var(--red);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;opacity:.6;transition:all .2s;white-space:nowrap;width:auto">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v27 · Sandshrew 🏜️</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v28 · Sandslash 🏜️</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -604,7 +606,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 </div>
 
 <!-- ══════════════════════ CROP MODAL ═══════════════════════════════════ -->
-<div class="card-popup-bg" id="crop-modal-bg" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.92)">
+<div class="card-popup-bg" id="crop-modal-bg" style="flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.92)">
   <div style="position:relative;width:100%;max-width:480px;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden">
     <canvas id="crop-canvas" style="max-width:100%;max-height:70vh;touch-action:none"></canvas>
     <div id="crop-frame" style="position:absolute;border:2px solid var(--accent);box-shadow:0 0 0 9999px rgba(0,0,0,.55);pointer-events:none;border-radius:4px"></div>
@@ -749,7 +751,7 @@ let currentUser=null,currentSet=null,currentCards=[],owned=new Set();
 let eraCollapsed=new Set(),trackerFilter='all',trackerSearch='',setSearch='';
 let trackerGroupCollapsed=new Set();
 let megaMode=false;
-let mastersetOpts={rh:true,mb:true,ch:false};
+let mastersetOpts={rh:true,mb:true,ch:false,rh2:true,trainer_rh:true,energy_rh:true,ball_rh:true};
 let showEraList=false;
 let _dirty=false,toastT=null;
 let _popupCards=[];
@@ -1080,7 +1082,11 @@ const MASTERSET_CONFIG={
     'Sun & Moon':          [{key:'rh',label:'Reverse Holo',sub:'type symbol pattern'}],
     'Sword & Shield':      [{key:'rh',label:'Reverse Holo',sub:'tile pattern'}],
     'Scarlet & Violet':    [{key:'rh',label:'Reverse Holo',sub:'Poké Ball tile pattern'}],
-    'Mega Evolution':      [{key:'rh',label:'Reverse Holo',sub:'plain pattern'}],
+    'Mega Evolution':      [
+      {key:'trainer_rh',label:'Trainer Reverse Holo',sub:'Trainer cards only',supertype:'Trainer'},
+      {key:'energy_rh',label:'Energy Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
+      {key:'ball_rh',label:'Ball Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
+    ],
   },
   // Set-specific overrides (set ID)
   _sets:{
@@ -1112,12 +1118,15 @@ function renderMastersetSubopts(setId,series){
     return;
   }
   if(toggleRow)toggleRow.style.display='';
-  subopts.innerHTML=variants.map(v=>`
+  subopts.innerHTML=variants.map(v=>{
+    // Default new keys to true if not yet in opts
+    if(mastersetOpts[v.key]===undefined)mastersetOpts[v.key]=true;
+    return`
     <div class="subopt-row">
       <div class="subopt-label">${v.label}${v.sub?`<small>${v.sub}</small>`:''}
       </div>
       <div class="subopt-pill${mastersetOpts[v.key]!==false?' on':''}" id="sub-${v.key}" onclick="toggleSubopt(event,'${v.key}')"><div class="subopt-dot"></div></div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 function showTrackerScreen(){
   document.getElementById('set-screen').classList.add('hidden');
@@ -1340,7 +1349,7 @@ async function selectSet(eraId,setId,setName){
   trackerGroupCollapsed=new Set();
   megaMode=_cGet(megaKey(currentUser,setId))==='1';
   try{mastersetOpts=JSON.parse(_cGet(megaOptsKey(currentUser,setId))||'null')||{rh:true,mb:true,ch:false};}
-  catch{mastersetOpts={rh:true,mb:true,ch:false};}
+  catch{mastersetOpts={rh:true,mb:true,ch:false,rh2:true,trainer_rh:true,energy_rh:true,ball_rh:true};}
 
   showTrackerScreen();
   pushState('tracker');
@@ -1501,14 +1510,21 @@ function updateTrackerStats(ownedCount,totalCount){
 }
 
 function getMastersetExtraCount(){
-  const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
+  const noRH=['rare holo','rare ultra','ultra rare','double rare','full art','secret','hyper','rainbow','illustration','special illustration','tera','mega attack','mega hyper','ex'];
   const setData=ALL_SETS.find(s=>s.id===currentSet?.id);
   const variants=getSetVariants(currentSet?.id,setData?.series||'');
   if(!variants||variants.length===0)return 0;
-  const activeCount=variants.filter(v=>mastersetOpts[v.key]!==false).length;
-  if(activeCount===0)return 0;
-  const eligible=currentCards.filter(c=>!noRH.some(x=>(c.rarity||'').toLowerCase().includes(x)));
-  return eligible.length*activeCount;
+  let total=0;
+  currentCards.forEach(card=>{
+    const r=(card.rarity||'').toLowerCase();
+    if(noRH.some(x=>r.includes(x)))return;
+    variants.forEach(v=>{
+      if(mastersetOpts[v.key]===false)return;
+      const stOk=!v.supertype||(v.supertype.startsWith('!')?card.supertype!==v.supertype.slice(1):card.supertype===v.supertype);
+      if(stOk)total++;
+    });
+  });
+  return total;
 }
 
 function setTrackerFilter(f){
@@ -1563,32 +1579,35 @@ function renderTracker(){
       </div>
       <div class="card-grid${open?'':' collapsed'}">`;
 
-    // In masterset mode, add variant cards based on sub-options
+    // In masterset mode, expand variants from ALL group cards then filter
     let displayCards=[...filtered];
     if(megaMode){
       const setData2=ALL_SETS.find(s=>s.id===currentSet.id);
       const variants=getSetVariants(currentSet.id,setData2?.series||'');
-      const expanded=[];
-      filtered.forEach(card=>{
-        expanded.push(card);
-        if(!variants||variants.length===0)return;
-        const r=(card.rarity||'').toLowerCase();
-        const noRH=['rare holo','rare ultra','ultra rare','full art','secret','hyper','rainbow','illustration','special illustration','tera'];
-        const eligible=!noRH.some(x=>r.includes(x));
-        if(eligible){
-          variants.forEach(v=>{
-            if(mastersetOpts[v.key]!==false){
-              expanded.push({...card,id:card.id+'_'+v.key,_variant:v.key.toUpperCase(),rarity:v.label+(v.sub?` (${v.sub})`:'' )});
-            }
-          });
-        }
-      });
-      displayCards=expanded.filter(card=>{
-        const io=owned.has(card.id);
-        if(trackerFilter==='owned'&&!io)return false;
-        if(trackerFilter==='missing'&&io)return false;
-        return true;
-      });
+      if(variants&&variants.length>0){
+        const expanded=[];
+        gCards.forEach(card=>{
+          expanded.push(card);
+          const r=(card.rarity||'').toLowerCase();
+          const noRH=['rare holo','rare ultra','ultra rare','double rare','full art','secret','hyper','rainbow','illustration','special illustration','tera','mega attack','mega hyper','ex'];
+          const eligible=!noRH.some(x=>r.includes(x));
+          if(eligible){
+            variants.forEach(v=>{
+              const stOk=!v.supertype||(v.supertype.startsWith('!')?card.supertype!==v.supertype.slice(1):card.supertype===v.supertype);
+              if(mastersetOpts[v.key]!==false&&stOk){
+                expanded.push({...card,id:card.id+'_'+v.key,_variant:v.key,rarity:v.label+(v.sub?' ('+v.sub+')':'')});
+              }
+            });
+          }
+        });
+        displayCards=expanded.filter(card=>{
+          const io=owned.has(card.id);
+          if(trackerFilter==='owned'&&!io)return false;
+          if(trackerFilter==='missing'&&io)return false;
+          if(q){const m=card.name.toLowerCase().includes(q)||(card.number||'').toLowerCase().includes(q);if(!m)return false;}
+          return true;
+        });
+      }
     }
 
     displayCards.forEach(card=>{
@@ -1600,7 +1619,7 @@ function renderTracker(){
       const sname=card.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       const dispNum=formatNumber(card.number);
       const variantLabel=card._variant?` ◈${card._variant}`:'';
-      const variantClass=card._variant==='RH'?' var-rh':card._variant==='MB'?' var-mb':card._variant==='CH'?' var-ch':'';
+      const variantClass=card._variant?` var-${card._variant.toLowerCase().replace(/\s+/g,'_')}`:'';
 
       const thumbHtml=card.imgSmall
         ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy">`
@@ -1668,6 +1687,7 @@ const WELCOME_SLIDES=[
   {icon:'🃏',title:'Set Tracker',body:'Tap "+ Start a New Set" to open any set. Tap a card to mark owned. Use ··· for card details and market prices.'},
   {icon:'⭐',title:'Masterset Mode',body:'Enable Masterset Mode to also track Reverse Holos, Master Ball variants, and Cosmos Holos — each with their own progress bar.'},
   {icon:'💾',title:'Your Data is Safe',body:'Everything saves automatically. Use Export on the login screen to back up your data anytime. Tap ? to see this guide again.'},
+  {icon:'🛠️',title:'A Passion Project',body:'MasterBinder is built with love for the Pokémon TCG community. It\'s always improving — you may encounter the occasional bug, and we appreciate your patience as we fix them. Thank you for being part of the journey! 🎴'},
 ];
 let welcomeSlide=0;
 const welcomedKey=u=>`pb_welcomed_${u}`;
@@ -2323,9 +2343,10 @@ function toggleSubopt(e,key){
   renderTracker();
 }
 function syncSuboptPills(){
-  ['rh','mb','ch'].forEach(k=>{
-    const pill=document.getElementById('sub-'+k);
-    if(pill)pill.classList.toggle('on',!!mastersetOpts[k]);
+  // Iterate over currently rendered subopt pills (dynamic IDs)
+  document.querySelectorAll('#masterset-subopts .subopt-pill').forEach(pill=>{
+    const key=pill.id?.replace('sub-','');
+    if(key)pill.classList.toggle('on',mastersetOpts[key]!==false);
   });
 }
 
@@ -2636,6 +2657,7 @@ function normalizeTCGName(name){
 // SET BROWSER (Import from Sets)
 // ════════════════════════════════════════════════════════
 let _setBrowserSearch='';
+let _setCardsCurrent=null,_setCardsId=null,_setCardsName=null;
 
 function openSetBrowser(){
   _setBrowserSearch='';
@@ -2708,10 +2730,7 @@ function renderSetCardsList(cards,setId,setName){
       </div>
     </div>`;
   }).join('');
-  // Store cards for search
-  document.getElementById('set-cards-list')._cards=cards;
-  document.getElementById('set-cards-list')._setId=setId;
-  document.getElementById('set-cards-list')._setName=setName;
+  _setCardsCurrent=cards;_setCardsId=setId;_setCardsName=setName;
 }
 
 function closeSetCards(e){
@@ -2929,8 +2948,7 @@ document.getElementById('set-browser-search').addEventListener('input',e=>{
   _setBrowserSearch=e.target.value;renderSetBrowserList();
 });
 document.getElementById('set-cards-search').addEventListener('input',e=>{
-  const list=document.getElementById('set-cards-list');
-  if(list._cards)renderSetCardsList(list._cards,list._setId,list._setName);
+  if(_setCardsCurrent)renderSetCardsList(_setCardsCurrent,_setCardsId,_setCardsName);
 });
 document.getElementById('search-sets').addEventListener('input',e=>{
   setSearch=e.target.value;renderSetScreen();
@@ -2980,9 +2998,10 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
     if(cached){ALL_SETS=JSON.parse(cached);buildEras();}
   }catch{}
   history.replaceState({screen:'login'},'','');
-  checkShareImport();
   renderLoginScreen();
   setupScrollTopFab();
+  // Defer share import check so login screen renders first
+  setTimeout(checkShareImport,300);
 })();
 
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW registration failed:',e));
