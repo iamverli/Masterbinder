@@ -412,7 +412,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:20px;color:var(--red);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;opacity:.6;transition:all .2s;white-space:nowrap;width:auto">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v28 · Sandslash 🏜️</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v30 · Nidorina 💜</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -761,18 +761,21 @@ let _popupCards=[];
 // ════════════════════════════════════════════════════════
 const IDB_NAME='masterbinder',IDB_VER=1,IDB_STORE='userdata';
 let _idb=null;
+let _idbPending=null;
 
 function openIDB(){
   if(_idb)return Promise.resolve(_idb);
-  return new Promise((res,rej)=>{
+  if(_idbPending)return _idbPending;
+  _idbPending=new Promise((res,rej)=>{
     const req=indexedDB.open(IDB_NAME,IDB_VER);
     req.onupgradeneeded=e=>{
       const db=e.target.result;
       if(!db.objectStoreNames.contains(IDB_STORE))db.createObjectStore(IDB_STORE);
     };
-    req.onsuccess=e=>{_idb=e.target.result;res(_idb);};
-    req.onerror=e=>rej(e.target.error);
+    req.onsuccess=e=>{_idb=e.target.result;_idbPending=null;res(_idb);};
+    req.onerror=e=>{_idbPending=null;rej(e.target.error);};
   });
+  return _idbPending;
 }
 async function idbGet(key){
   const db=await openIDB();
@@ -847,7 +850,8 @@ async function cleanupLocalStorage(){
   let freed=0;
   // Remove all pb_u_* from localStorage (should be in IDB)
   Object.keys(localStorage).filter(k=>k.startsWith('pb_u_')).forEach(k=>{
-    freed+=localStorage.getItem(k).length*2;
+    const v=localStorage.getItem(k);
+    if(v)freed+=v.length*2;
     localStorage.removeItem(k);
   });
   // Remove old card caches
@@ -995,19 +999,21 @@ function createUser(){
   const name=document.getElementById('new-username').value.trim();
   if(!name){document.getElementById('new-username').focus();return;}
   if(name.length<2){alert('Name must be at least 2 characters');return;}
+  if(name.length>20){alert('Name must be 20 characters or less');return;}
   const users=getUsers();
   if(users[name]){alert('That name is already taken!');return;}
   users[name]={created:Date.now()};
   saveUsers(users);closeCreateModal();loginAs(name);
 }
-function deleteUser(e,name){
+async function deleteUser(e,name){
   e.stopPropagation();
   if(!confirm(`Delete trainer "${name}"? All data will be lost.`))return;
   const users=getUsers();delete users[name];saveUsers(users);
-  // Delete from IDB
-  idbKeys(`pb_u_${name}_`).then(keys=>keys.forEach(k=>idbDelete(k)));
   if(localStorage.getItem('pb_session')===name)localStorage.removeItem('pb_session');
   renderLoginScreen();
+  // Delete IDB data in background — after UI update so it feels instant
+  try{const keys=await idbKeys(`pb_u_${name}_`);await Promise.all(keys.map(k=>idbDelete(k)));}
+  catch(e){console.warn('IDB delete failed for',name,e);}
 }
 
 // ════════════════════════════════════════════════════════
@@ -1019,7 +1025,8 @@ async function loginAs(name){
   localStorage.setItem('pb_session',name);
   await loadUserCache(name);
   const ecRaw=_cGet(eraColKey(name));
-  eraCollapsed=new Set(JSON.parse(ecRaw||'[]'));
+  try{eraCollapsed=new Set(JSON.parse(ecRaw||'[]'));}
+  catch{eraCollapsed=new Set();}
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('save-fab').classList.add('hidden');
   history.replaceState({screen:'login'},'','');
@@ -1090,6 +1097,11 @@ const MASTERSET_CONFIG={
   },
   // Set-specific overrides (set ID)
   _sets:{
+    'me2pt5':[  // Ascended Heroes
+      {key:'trainer_rh',label:'Trainer Reverse Holo',sub:'Trainer cards only',supertype:'Trainer'},
+      {key:'energy_rh',label:'Energy Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
+      {key:'ball_rh',label:'Ball Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
+    ],
     'sv8pt5':[  // Prismatic Evolutions
       {key:'rh',label:'Reverse Holo',sub:'standard pattern'},
       {key:'rh2',label:'Reverse Holo',sub:'Poké Ball pattern'},
@@ -1118,15 +1130,16 @@ function renderMastersetSubopts(setId,series){
     return;
   }
   if(toggleRow)toggleRow.style.display='';
+  let optsChanged=false;
   subopts.innerHTML=variants.map(v=>{
-    // Default new keys to true if not yet in opts
-    if(mastersetOpts[v.key]===undefined)mastersetOpts[v.key]=true;
+    if(mastersetOpts[v.key]===undefined){mastersetOpts[v.key]=true;optsChanged=true;}
     return`
     <div class="subopt-row">
       <div class="subopt-label">${v.label}${v.sub?`<small>${v.sub}</small>`:''}
       </div>
       <div class="subopt-pill${mastersetOpts[v.key]!==false?' on':''}" id="sub-${v.key}" onclick="toggleSubopt(event,'${v.key}')"><div class="subopt-dot"></div></div>
     </div>`;}).join('');
+  if(optsChanged&&currentUser&&currentSet)_cSet(megaOptsKey(currentUser,currentSet.id),JSON.stringify(mastersetOpts));
 }
 function showTrackerScreen(){
   document.getElementById('set-screen').classList.add('hidden');
@@ -1405,10 +1418,11 @@ async function fetchCards(setId){
   const cached=sessionStorage.getItem(cacheKey);
   if(cached){try{return JSON.parse(cached);}catch{}}
 
-  const cardsMap=new Map(); // keyed by id to prevent duplicates
+  const cardsMap=new Map();
   let page=1,totalCount=Infinity;
+  const MAX_PAGES=20; // safety guard — 20×250 = 5000 cards max
 
-  while(cardsMap.size<totalCount){
+  while(cardsMap.size<totalCount&&page<=MAX_PAGES){
     const resp=await fetch(
       `https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&orderBy=number&page=${page}&pageSize=250`,
       {cache:'default'}
@@ -1416,7 +1430,7 @@ async function fetchCards(setId){
     if(!resp.ok)throw new Error(`HTTP ${resp.status}`);
     const data=await resp.json();
     if(!data.data||data.data.length===0)break;
-    totalCount=data.totalCount||data.data.length;
+    totalCount=data.totalCount>0?data.totalCount:data.data.length;
     data.data.forEach(c=>{
       if(!cardsMap.has(c.id)){
         cardsMap.set(c.id,{
@@ -1476,12 +1490,13 @@ async function fetchCards(setId){
 // ════════════════════════════════════════════════════════
 function updateTrackerStats(ownedCount,totalCount){
   const baseTotal=totalCount??currentCards.length;
-  const baseOwned=[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch')).length;
+  const baseCardIds=new Set(currentCards.map(c=>c.id));
+  const baseOwned=[...owned].filter(id=>baseCardIds.has(id)).length;
+  const msOwned=owned.size-baseOwned;
   const basePct=baseTotal>0?Math.min(100,Math.round(baseOwned/baseTotal*100)):0;
 
   if(megaMode&&currentCards.length>0){
     const msExtra=getMastersetExtraCount();
-    const msOwned=[...owned].filter(id=>id.endsWith('_rh')||id.endsWith('_mb')||id.endsWith('_ch')).length;
     const msPct=msExtra>0?Math.min(100,Math.round(msOwned/msExtra*100)):0;
     const totalOwned=baseOwned+msOwned;
     const totalCards=baseTotal+msExtra;
@@ -1564,7 +1579,9 @@ function renderTracker(){
     anyVisible=true;
 
     const gOwned=filtered.filter(c=>owned.has(c.id)).length;
-    const gPct=filtered.length>0?Math.round(gOwned/filtered.length*100):0;
+    const gTotal=filtered.length;
+    const gPct=gTotal>0?Math.round(gOwned/gTotal*100):0;
+    const gCountLabel=megaMode?`${gOwned}/${gTotal} base`:`${gOwned}/${gTotal}`;
     const open=!trackerGroupCollapsed.has(gName);
     const gLabel=gName==='Pokémon'?'&#9670; POKÉMON':gName==='Trainer'?'&#9650; TRAINER':gName==='Energy'?'&#11042; ENERGY':'&#9632; OTHER';
 
@@ -1572,7 +1589,7 @@ function renderTracker(){
       <div class="section-header${open?' open':''}" onclick="toggleTrackerGroup('${gName}')">
         <div class="section-left"><span class="section-badge">${gLabel}</span></div>
         <div class="section-right">
-          <span class="section-count">${gOwned}/${filtered.length}</span>
+          <span class="section-count">${gCountLabel}</span>
           <div class="mini-bar"><div class="mini-fill" style="width:${gPct}%"></div></div>
           <span class="chevron">&#9660;</span>
         </div>
@@ -1582,6 +1599,7 @@ function renderTracker(){
     // In masterset mode, expand variants from ALL group cards then filter
     let displayCards=[...filtered];
     if(megaMode){
+      const gCards=groups[gName]||[];  // all cards in this group (unfiltered)
       const setData2=ALL_SETS.find(s=>s.id===currentSet.id);
       const variants=getSetVariants(currentSet.id,setData2?.series||'');
       if(variants&&variants.length>0){
@@ -1635,7 +1653,7 @@ function renderTracker(){
         prices:card.prices||{}
       });
 
-      html+=`<div class="card-item${io?' owned':''}${variantClass}" onclick="toggleCard('${card.id}','${sname}')">
+      html+=`<div class="card-item${io?' owned':''}${variantClass}" data-card-id="${card.id.replace(/"/g,'&quot;')}">
         ${thumbHtml}
         <div class="card-info">
           <span class="card-num-badge">${dispNum}${variantLabel}</span>
@@ -1643,7 +1661,7 @@ function renderTracker(){
           <div class="rarity-badge" style="color:${rc};border-color:${rc}3a">${rs}</div>
         </div>
         <div class="card-right-col">
-          <button class="three-dot-btn" onclick="openCardPopup(event,${cardIdx},'${card.id}')">···</button>
+          <button class="three-dot-btn" data-popup-idx="${cardIdx}">···</button>
         </div>
       </div>`;
     });
@@ -1654,6 +1672,23 @@ function renderTracker(){
   if(!anyVisible)html='<div class="empty">No cards found</div>';
   area.innerHTML=html;
   area.scrollTop=scrollPos;
+  // Event delegation — handles both toggle and popup safely (no inline eval)
+  area.onclick=ev=>{
+    const popupBtn=ev.target.closest('[data-popup-idx]');
+    if(popupBtn){
+      ev.stopPropagation();
+      const idx=parseInt(popupBtn.dataset.popupIdx,10);
+      const cardItem=popupBtn.closest('[data-card-id]');
+      if(cardItem)openCardPopup(ev,idx,cardItem.dataset.cardId);
+      return;
+    }
+    const cardItem=ev.target.closest('[data-card-id]');
+    if(cardItem){
+      const cardId=cardItem.dataset.cardId;
+      const card=_popupCards.find(c=>c.id===cardId);
+      toggleCard(cardId,card?.name||cardId);
+    }
+  };
 }
 
 function toggleCard(cardId,cardName){
@@ -1770,14 +1805,15 @@ async function fetchPickerCards(pokeName,lang){
     const queryStr=isExact?`name:"${baseName}"`:encodeURIComponent(`name:${baseName}`);
     const allCards=[];
     let page=1,totalCount=Infinity;
-    while(allCards.length<totalCount){
+    const MAX_PAGES=10; // cap at 2500 cards for any Pokémon name
+    while(allCards.length<totalCount&&page<=MAX_PAGES){
       const url=isExact
         ?`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:"${baseName}"`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`
         :`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:${baseName}`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`;
       const resp=await fetch(url);
       const data=await resp.json();
       if(!data.data||data.data.length===0)break;
-      totalCount=data.totalCount||data.data.length;
+      totalCount=data.totalCount>0?data.totalCount:data.data.length;
       allCards.push(...data.data.filter(c=>c.supertype==='Pokémon'));
       if(allCards.length>=totalCount)break;
       page++;
@@ -2330,7 +2366,11 @@ function toggleMegaMode(){
   _cSet(megaKey(currentUser,currentSet.id),megaMode?'1':'0');
   document.getElementById('mega-pill').classList.toggle('on',megaMode);
   document.getElementById('masterset-subopts').classList.toggle('visible',megaMode);
+  const setData=ALL_SETS.find(s=>s.id===currentSet.id);
+  renderMastersetSubopts(currentSet.id,setData?.series||'');
   updateTrackerStats(owned.size);
+  // Reset scroll to top so sticky topbar doesn't ghost over cards
+  document.getElementById('tracker-scroll-area').scrollTop=0;
   renderTracker();
   showToast(megaMode?'Masterset Mode ON ◆':'Masterset Mode OFF',megaMode);
 }
@@ -2429,7 +2469,10 @@ function handleImportFile(e){
         }
         imported++;
       }
-      saveUsers(existing);renderLoginScreen();
+      saveUsers(existing);
+      // Reload cache if current user's data was updated
+      if(currentUser&&names.includes(currentUser))await loadUserCache(currentUser);
+      renderLoginScreen();
       showToast(`Imported ${imported} trainer${imported!==1?'s':''}! ✓`,true);
     }catch(err){showToast('Import failed: '+err.message,false);}
     e.target.value='';
@@ -2507,7 +2550,8 @@ async function shareCollection(){
 }
 async function shareSet(){
   if(!currentSet||!currentUser)return;
-  const ownedArr=[...owned].filter(id=>!id.endsWith('_rh')&&!id.endsWith('_mb')&&!id.endsWith('_ch'));
+  const baseCardIds=new Set(currentCards.map(c=>c.id));
+  const ownedArr=[...owned].filter(id=>baseCardIds.has(id));
   const payload={
     v:1,
     user:currentUser,
@@ -2516,7 +2560,7 @@ async function shareSet(){
     owned:ownedArr,
     shared:Date.now()
   };
-  const encoded=btoa(JSON.stringify(payload)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
   const url=`${location.origin}${location.pathname}?setshare=${encoded}`;
   const text=`Here's my ${currentSet.name} progress in MasterBinder!`;
   if(navigator.share){
