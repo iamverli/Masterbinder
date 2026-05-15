@@ -173,28 +173,44 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .card-popup-own-btn.unmark{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
 
 /* ── Masterset variant colors ── */
-.card-item.var-rh{border-left-color:#818cf8;background:rgba(129,140,248,0.08)}
-.card-item.var-rh.owned{border-left-color:#818cf8;background:rgba(129,140,248,0.18)}
+.card-item.var-rh{border-left-color:#818cf8;background:rgba(129,140,248,0.12)}
 .card-item.var-rh .card-num-badge{color:#818cf8}
-.card-item.var-rh2{border-left-color:#a78bfa;background:rgba(167,139,250,0.08)}
-.card-item.var-rh2.owned{border-left-color:#a78bfa;background:rgba(167,139,250,0.18)}
-.card-item.var-rh2 .card-num-badge{color:#a78bfa}
-.card-item.var-mb{border-left-color:var(--purple);background:rgba(192,132,252,0.08)}
-.card-item.var-mb.owned{border-left-color:var(--purple);background:rgba(192,132,252,0.18)}
-.card-item.var-mb .card-num-badge{color:var(--purple)}
-.card-item.var-ch{border-left-color:#fb923c;background:rgba(251,146,60,0.08)}
-.card-item.var-ch.owned{border-left-color:#fb923c;background:rgba(251,146,60,0.18)}
+.card-item.var-rh2{border-left-color:#22d3ee;background:rgba(34,211,238,0.12)}
+.card-item.var-rh2 .card-num-badge{color:#22d3ee}
+.card-item.var-mb{border-left-color:#f59e0b;background:rgba(245,158,11,0.12)}
+.card-item.var-mb .card-num-badge{color:#f59e0b}
+.card-item.var-ch{border-left-color:#fb923c;background:rgba(251,146,60,0.12)}
 .card-item.var-ch .card-num-badge{color:#fb923c}
-.card-item.var-trainer_rh{border-left-color:var(--blue);background:rgba(122,179,212,0.08)}
-.card-item.var-trainer_rh.owned{border-left-color:var(--blue);background:rgba(122,179,212,0.18)}
-.card-item.var-trainer_rh .card-num-badge{color:var(--blue)}
-.card-item.var-energy_rh{border-left-color:var(--green);background:rgba(62,207,170,0.08)}
-.card-item.var-energy_rh.owned{border-left-color:var(--green);background:rgba(62,207,170,0.18)}
-.card-item.var-energy_rh .card-num-badge{color:var(--green)}
-.card-item.var-ball_rh{border-left-color:var(--accent);background:rgba(245,185,34,0.08)}
-.card-item.var-ball_rh.owned{border-left-color:var(--accent);background:rgba(245,185,34,0.18)}
-.card-item.var-ball_rh .card-num-badge{color:var(--accent)}
+.card-item.var-trainer_rh{border-left-color:#38bdf8;background:rgba(56,189,248,0.12)}
+.card-item.var-trainer_rh .card-num-badge{color:#38bdf8}
+.card-item.var-energy_rh{border-left-color:#34d399;background:rgba(52,211,153,0.12)}
+.card-item.var-energy_rh .card-num-badge{color:#34d399}
+.card-item.var-ball_rh{border-left-color:#fb7185;background:rgba(251,113,133,0.12)}
+.card-item.var-ball_rh .card-num-badge{color:#fb7185}
+/* ── Variant thumbnail shimmer ── */
+.card-thumb-wrap{position:relative;overflow:hidden;flex-shrink:0}
+.card-thumb-wrap .card-thumb,.card-thumb-wrap .card-thumb-placeholder{width:100%;height:100%}
+.card-item[class*="var-"] .card-thumb-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);background-size:200% 100%;animation:varShimmer 2.4s ease-in-out infinite;pointer-events:none}
+@keyframes varShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.card-variant-badge{position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,.65);border-radius:3px;font-size:7px;font-family:'Space Mono',monospace;font-weight:700;padding:1px 3px;line-height:1.4;letter-spacing:.03em;pointer-events:none}
 
+/* ── Trainer slide-in menu ── */
+.trainer-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199998;opacity:0;pointer-events:none;transition:opacity .2s}
+.trainer-menu-overlay.show{opacity:1;pointer-events:all}
+.trainer-menu{position:fixed;top:0;right:0;bottom:0;width:min(300px,85vw);background:var(--surface);border-left:1px solid var(--border);z-index:199999;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;overflow-y:auto}
+.trainer-menu-overlay.show .trainer-menu{transform:translateX(0)}
+.trainer-menu-header{padding:48px 20px 20px;display:flex;align-items:center;gap:14px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.trainer-menu-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#000;flex-shrink:0}
+.trainer-menu-name{font-size:16px;font-weight:700;color:var(--text);font-family:'Exo 2',sans-serif}
+.trainer-menu-sub{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px}
+.trainer-menu-stats{display:flex;padding:16px 20px;border-bottom:1px solid var(--border)}
+.tm-stat{flex:1;text-align:center}
+.tm-stat-val{font-size:20px;font-weight:700;color:var(--accent);font-family:'Exo 2',sans-serif}
+.tm-stat-lbl{font-size:9px;color:var(--text3);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.trainer-menu-btn{width:100%;padding:16px 20px;background:none;border:none;color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;text-align:left;cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:10px}
+.trainer-menu-btn:active{background:var(--surface2)}
+.trainer-menu-btn-danger{color:var(--red)}
+.trainer-menu-version{margin-top:auto;padding:16px 20px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);border-top:1px solid var(--border)}
 /* ── Dex card picker popup ── */
 .dex-picker-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .dex-picker-bg.show{opacity:1;pointer-events:all}
@@ -209,6 +225,10 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .picker-lang-tabs{display:flex;gap:4px;margin-bottom:10px}
 .picker-lang-btn{flex:1;padding:7px 0;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.06em;transition:background .12s,color .12s,border-color .12s}
 .picker-lang-btn.active{background:rgba(245,185,34,.15);border-color:rgba(245,185,34,.4);color:var(--accent)}
+.lang-dropdown{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden}
+.lang-dropdown.hidden{display:none}
+.lang-opt{padding:10px 14px;font-size:13px;font-family:'Exo 2',sans-serif;color:var(--text2);cursor:pointer;transition:background .12s}
+.lang-opt:active{background:var(--surface)}
 /* Camera scanner button */
 .scanner-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;padding:20px;background:var(--surface2);border:2px dashed var(--border2);border-radius:var(--radius);cursor:pointer;margin-top:10px;transition:border-color .15s,background .15s}
 .scanner-btn:active{border-color:var(--accent);background:rgba(245,185,34,.06)}
@@ -412,18 +432,15 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:20px;color:var(--red);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;opacity:.6;transition:all .2s;white-space:nowrap;width:auto">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v30 · Nidorina 💜</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v31 · Nidoqueen 💜</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
     <div class="topbar-user" style="position:relative">
-      <div class="topbar-user-info">
+      <div class="topbar-user-info" onclick="openTrainerMenu()" style="cursor:pointer;user-select:none">
         <div class="topbar-avatar" id="set-topbar-avatar"></div>
         <span class="topbar-username" id="set-topbar-username"></span>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <button class="help-btn" onclick="showWelcome()" title="How to use">?</button>
-        <button class="logout-btn" onclick="logout()">Switch</button>
+        <span style="font-size:10px;color:var(--text3);margin-left:4px">▾</span>
       </div>
     </div>
     <div class="topbar-title">&#9670; Masterset · TCG Tracker</div>
@@ -571,15 +588,33 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <button class="picker-lang-btn active" id="lang-en" onclick="setPickerLang('en')">🇬🇧 EN</button>
       <button class="picker-lang-btn" id="lang-jp" onclick="setPickerLang('jp')">🇯🇵 JP</button>
       <button class="picker-lang-btn" id="lang-cn" onclick="setPickerLang('cn')">🇨🇳 CN</button>
+      <button class="picker-lang-btn" id="lang-more" onclick="toggleLangDropdown()">🌍 ···</button>
+    </div>
+    <div class="lang-dropdown hidden" id="lang-dropdown">
+      <div class="lang-opt" onclick="setPickerLang('fr')">🇫🇷 French</div>
+      <div class="lang-opt" onclick="setPickerLang('de')">🇩🇪 German</div>
+      <div class="lang-opt" onclick="setPickerLang('it')">🇮🇹 Italian</div>
+      <div class="lang-opt" onclick="setPickerLang('es')">🇪🇸 Spanish</div>
+      <div class="lang-opt" onclick="setPickerLang('pt')">🇵🇹 Portuguese</div>
+      <div class="lang-opt" onclick="setPickerLang('ko')">🇰🇷 Korean</div>
+      <div class="lang-opt" onclick="setPickerLang('zh-hant')">🇹🇼 Traditional Chinese</div>
     </div>
     <input class="picker-search" id="picker-search" type="search" placeholder="Search for a card..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="dex-picker-list"></div>
     <button id="picker-store-btn" onclick="openPickerStoreLink()" style="width:100%;margin-top:6px;padding:10px;background:var(--navy);color:var(--blue);border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-align:center">🛒 See Availability in Store</button>
-    <div class="scanner-btn" onclick="openAddOwnCard()">
-      <div class="scanner-btn-circle">＋</div>
-      <div class="scanner-btn-label">Add your own card</div>
-      <div class="scanner-btn-sub">Paste URL or upload image</div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <div class="scanner-btn" style="flex:1" onclick="openAddOwnCard()">
+        <div class="scanner-btn-circle">＋</div>
+        <div class="scanner-btn-label">Add your own</div>
+        <div class="scanner-btn-sub">URL or image</div>
+      </div>
+      <label class="scanner-btn" style="flex:1;cursor:pointer" for="picker-camera-input" onclick="_filePickerOpen=true">
+        <div class="scanner-btn-circle">📷</div>
+        <div class="scanner-btn-label">Take a photo</div>
+        <div class="scanner-btn-sub">Snap & crop</div>
+      </label>
     </div>
+    <input type="file" id="picker-camera-input" accept="image/*" capture="environment" style="display:none" onchange="handlePickerCamera(event)">
   </div>
 </div>
 
@@ -602,6 +637,29 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="dex-picker-sub">TAP A CARD TO ADD TO YOUR POKÉDEX</div>
     <input class="picker-search" id="set-cards-search" type="search" placeholder="Search cards..." autocomplete="off" autocorrect="off" spellcheck="false">
     <div class="dex-picker-list" id="set-cards-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ TRAINER MENU ══════════════════════════════════ -->
+<div class="trainer-menu-overlay" id="trainer-menu-overlay" onclick="closeTrainerMenu()">
+  <div class="trainer-menu" id="trainer-menu" onclick="event.stopPropagation()">
+    <div class="trainer-menu-header">
+      <div class="trainer-menu-avatar" id="tm-avatar"></div>
+      <div>
+        <div class="trainer-menu-name" id="tm-name"></div>
+        <div class="trainer-menu-sub" id="tm-sub"></div>
+      </div>
+    </div>
+    <div class="trainer-menu-stats">
+      <div class="tm-stat"><div class="tm-stat-val" id="tm-sets">—</div><div class="tm-stat-lbl">Sets</div></div>
+      <div class="tm-stat"><div class="tm-stat-val" id="tm-dex">—</div><div class="tm-stat-lbl">Pokédex</div></div>
+      <div class="tm-stat"><div class="tm-stat-val" id="tm-complete">—</div><div class="tm-stat-lbl">Complete</div></div>
+    </div>
+    <div class="trainer-menu-divider"></div>
+    <button class="trainer-menu-btn" onclick="showWelcome();closeTrainerMenu()">❓ How to Use</button>
+    <button class="trainer-menu-btn" onclick="closeTrainerMenu();logout()">🔄 Switch Trainer</button>
+    <button class="trainer-menu-btn trainer-menu-btn-danger" onclick="closeTrainerMenu();logout()">🚪 Log Out</button>
+    <div class="trainer-menu-version" id="tm-version"></div>
   </div>
 </div>
 
@@ -1637,11 +1695,18 @@ function renderTracker(){
       const sname=card.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
       const dispNum=formatNumber(card.number);
       const variantLabel=card._variant?` ◈${card._variant}`:'';
-      const variantClass=card._variant?` var-${card._variant.toLowerCase().replace(/\s+/g,'_')}`:'';
+      const variantClass=io&&card._variant?` var-${card._variant.toLowerCase().replace(/\s+/g,'_')}`:'';
 
-      const thumbHtml=card.imgSmall
-        ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy">`
-        :`<div class="card-thumb-placeholder ${symClass}">${symIcon}</div>`;
+
+      const variantColor=card._variant?({'rh':'#818cf8','rh2':'#22d3ee','mb':'#f59e0b','ch':'#fb923c','trainer_rh':'#38bdf8','energy_rh':'#34d399','ball_rh':'#fb7185'}[card._variant]||'#818cf8'):'';
+      const variantBadge=io&&card._variant?`<div class="card-variant-badge" style="color:${variantColor}">◈${card._variant.toUpperCase().replace(/_/g,' ')}</div>`:'';
+
+      const thumbHtml=`<div class="card-thumb-wrap" style="width:34px;height:48px">
+        ${card.imgSmall
+          ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy" style="width:34px;height:48px;object-fit:cover;border-radius:3px">`
+          :`<div class="card-thumb-placeholder ${symClass}" style="width:34px;height:48px;display:flex;align-items:center;justify-content:center">${symIcon}</div>`}
+        ${variantBadge}
+      </div>`;
 
       // Store card data for popup by index to avoid encoding issues
       const cardIdx=_popupCards.length;
@@ -1790,22 +1855,41 @@ async function openDexCardPicker(e,dexNum,pokeName){
   setPickerLangUI('en');
   // Show picker immediately with spinner
   document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 8px"></div>Loading cards...</div>';
-  document.getElementById('dex-picker-bg').classList.add('show');
+  document.getElementById('dex-picker-bg').classList.add('show');pushOverlay(()=>closeDexPicker());
   await fetchPickerCards(pokeName,'en');
 }
 
 async function fetchPickerCards(pokeName,lang){
-  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 JP version',cn:'🇨🇳 CN version'};
-  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · MARKING AS ${langLabels[lang]||'EN'}`;
-  document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Loading cards...</div>';
+  if(!pokeName){return;}
+  setPickerLangUI(lang||'en');
+  document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading"><div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0 auto 8px"></div>Loading cards...</div>';
   try{
-    // Normalize name for TCG API search
+    const tcgdexLang=TCGDEX_LANGS[lang];
+    if(tcgdexLang){
+      // TCGdex for non-EN/JP/CN languages — real card art per language
+      const encoded=encodeURIComponent(normalizeTCGName(pokeName));
+      const resp=await fetch(`https://api.tcgdex.net/v2/${tcgdexLang}/cards?name=${encoded}`);
+      const data=await resp.json();
+      // Normalise TCGdex cards to same shape as pokemontcg.io
+      _pickerCards=(Array.isArray(data)?data:[]).filter(c=>c.image).map(c=>({
+        id:c.id,name:c.localId||c.id,number:c.localId||'?',
+        rarity:c.rarity||'',supertype:'Pokémon',
+        images:{small:`${c.image}/low.webp`,large:`${c.image}/high.webp`},
+        set:{name:c.set?.name||'',id:c.set?.id||''},
+        tcgplayer:null
+      }));
+      if(!_pickerCards.length){
+        document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">No ${LANG_LABELS[lang]||lang} cards found for ${pokeName}</div>`;
+        return;
+      }
+      renderPickerCards();return;
+    }
+    // pokemontcg.io for EN, JP tag, CN tag
     const baseName=normalizeTCGName(pokeName);
     const isExact=baseName!==pokeName.toLowerCase().trim();
-    const queryStr=isExact?`name:"${baseName}"`:encodeURIComponent(`name:${baseName}`);
     const allCards=[];
     let page=1,totalCount=Infinity;
-    const MAX_PAGES=10; // cap at 2500 cards for any Pokémon name
+    const MAX_PAGES=10;
     while(allCards.length<totalCount&&page<=MAX_PAGES){
       const url=isExact
         ?`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(`name:"${baseName}"`)}&orderBy=set.releaseDate&page=${page}&pageSize=250`
@@ -1820,7 +1904,7 @@ async function fetchPickerCards(pokeName,lang){
     }
     _pickerCards=allCards;
     renderPickerCards();
-  }catch{document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading">Failed to load. Check connection.</div>';}
+  }catch(err){document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">Failed to load. Check connection.</div>`;}
 }
 
 function renderPickerCards(){
@@ -1879,18 +1963,32 @@ function selectDexCardByIndex(idx){
   renderDex();
   renderSetScreen();
 }
+function toggleLangDropdown(){
+  const dd=document.getElementById('lang-dropdown');
+  dd.classList.toggle('hidden');
+}
+function closeLangDropdown(){
+  document.getElementById('lang-dropdown')?.classList.add('hidden');
+}
+
+// TCGdex language code mapping
+const TCGDEX_LANGS={fr:'fr',de:'de',it:'it',es:'es',pt:'pt',ko:'ko','zh-hant':'zh-Hant'};
+const LANG_LABELS={en:'🇬🇧 EN',jp:'🇯🇵 JP',cn:'🇨🇳 CN',fr:'🇫🇷 FR',de:'🇩🇪 DE',it:'🇮🇹 IT',es:'🇪🇸 ES',pt:'🇵🇹 PT',ko:'🇰🇷 KO','zh-hant':'🇹🇼 TW'};
 function setPickerLang(lang){
   _pickerLang=lang;
   setPickerLangUI(lang);
-  // No re-fetch — language is just a tag applied on selection
-  // Re-render to show which language will be tagged
-  renderPickerCards();
+  closeLangDropdown();
+  document.getElementById('picker-search').value='';
+  fetchPickerCards(_pickerPokeName,lang);
 }
 
 function setPickerLangUI(lang){
-  ['en','jp','cn'].forEach(l=>document.getElementById('lang-'+l).classList.toggle('active',l===lang));
-  const langLabels={en:'🇬🇧 English',jp:'🇯🇵 JP version',cn:'🇨🇳 CN version'};
-  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · MARKING AS ${langLabels[lang]}`;
+  ['en','jp','cn','more'].forEach(l=>{
+    const btn=document.getElementById('lang-'+l);
+    if(btn)btn.classList.toggle('active',l==='more'?!['en','jp','cn'].includes(lang):l===lang);
+  });
+  const label=LANG_LABELS[lang]||lang.toUpperCase();
+  document.getElementById('dex-picker-sub').textContent=`SELECT YOUR VERSION · MARKING AS ${label}`;
 }
 function clearDexCard(dexNum){
   delete dexSelectedCards[dexNum];
@@ -1950,7 +2048,7 @@ function openDexPopup(e,dexNum,pokeName){
     storeBtn.onclick=()=>openUrl(`https://www.bluemooncollectibles.com/en/shop?query=${encodeURIComponent(pokeName)}`);
   }
 
-  document.getElementById('card-popup-bg').classList.add('show');
+  document.getElementById('card-popup-bg').classList.add('show');pushOverlay(closeCardPopup);
 }
 
 let _dexPopupNum=null,_dexPopupPokeName=null;
@@ -2096,7 +2194,7 @@ function openCardPopup(e,cardIdx,cardId){
   // Own button state
   updatePopupOwnBtn();
 
-  document.getElementById('card-popup-bg').classList.add('show');
+  document.getElementById('card-popup-bg').classList.add('show');pushOverlay(closeCardPopup);
 }
 
 function updatePopupOwnBtn(){
@@ -2121,10 +2219,15 @@ function toggleCardFromPopup(){
   renderTracker();
 }
 
+function _removeFromOverlayStack(fn){
+  const idx=_overlayStack.lastIndexOf(fn);
+  if(idx>-1)_overlayStack.splice(idx,1);
+}
 function closeCardPopup(e){
   if(!e||e.target===document.getElementById('card-popup-bg')||e.target.classList.contains('card-popup-close')){
     document.getElementById('card-popup-bg').classList.remove('show');
     popupCardId=null;
+    _removeFromOverlayStack(closeCardPopup);
   }
 }
 // ════════════════════════════════════════════════════════
@@ -2620,13 +2723,80 @@ function checkShareImport(){
   }
 }
 // ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+// TRAINER SLIDE-IN MENU
+// ════════════════════════════════════════════════════════
+function openTrainerMenu(){
+  if(!currentUser)return;
+  // Populate stats
+  document.getElementById('tm-avatar').textContent=currentUser.substring(0,2).toUpperCase();
+  document.getElementById('tm-name').textContent=currentUser;
+  // Sets count
+  const setsStarted=_cKeys(`pb_u_${currentUser}_s_`).filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
+  const setsComplete=_cKeys(`pb_u_${currentUser}_s_`).filter(k=>{
+    try{
+      const owned=JSON.parse(_cGet(k)||'[]');
+      const sid=k.replace(`pb_u_${currentUser}_s_`,'');
+      const tot=getCachedTotal(sid);
+      return tot&&owned.length>=tot;
+    }catch{return false;}
+  }).length;
+  const dexOwned=getDexOwned(currentUser).size;
+  document.getElementById('tm-sets').textContent=setsStarted;
+  document.getElementById('tm-dex').textContent=`${dexOwned}/1025`;
+  document.getElementById('tm-complete').textContent=setsComplete;
+  const users=getUsers();
+  const created=users[currentUser]?.created;
+  document.getElementById('tm-sub').textContent=created?'Trainer since '+new Date(created).toLocaleDateString('en-GB',{month:'short',year:'numeric'}):'';
+  // App version from login screen
+  const verEl=document.querySelector('.login-screen div[style*="Space Mono"]');
+  document.getElementById('tm-version').textContent=verEl?.textContent||'';
+  document.getElementById('trainer-menu-overlay').classList.add('show');
+  pushOverlay(closeTrainerMenu);
+}
+function closeTrainerMenu(){
+  document.getElementById('trainer-menu-overlay').classList.remove('show');
+  _removeFromOverlayStack(closeTrainerMenu);
+}
+// ════════════════════════════════════════════════════════
+function initKeyboardAdjust(){
+  if(!window.visualViewport)return;
+  const adjust=()=>{
+    const vv=window.visualViewport;
+    const keyboardH=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+    document.querySelectorAll('.modal').forEach(m=>{
+      if(keyboardH>80){
+        const shift=Math.min(keyboardH*0.6,200);
+        m.style.transform=`translateY(-${shift}px)`;
+        m.style.maxHeight=`calc(90vh - ${keyboardH}px)`;
+        m.style.overflowY='auto';
+      } else {
+        m.style.transform='';
+        m.style.maxHeight='';
+        m.style.overflowY='';
+      }
+    });
+  };
+  window.visualViewport.addEventListener('resize',adjust,{passive:true});
+  window.visualViewport.addEventListener('scroll',adjust,{passive:true});
+}
+
 function pushState(screenName){
   history.pushState({screen:screenName},'','');
 }
+// Overlay stack — back gesture closes topmost overlay first
+const _overlayStack=[];
+function pushOverlay(closeFn){
+  _overlayStack.push(closeFn);
+  history.pushState({screen:'popup'},'','');
+}
+function popOverlay(){
+  if(_overlayStack.length){_overlayStack.pop()();}
+}
 window.addEventListener('popstate',e=>{
-  // Block navigation while file picker is open on Android
   if(_filePickerOpen){_filePickerOpen=false;return;}
   const screen=e.state?.screen;
+  if(screen==='popup'){popOverlay();return;}
   if(screen==='tracker'||screen==='dex'){
     if(_dirty)saveCurrentSet();
     _dirty=false;currentSet=null;currentCards=[];owned=new Set();
@@ -2641,7 +2811,6 @@ window.addEventListener('popstate',e=>{
   } else if(screen==='sets'){
     logout();
   }
-  // Ignore null/undefined state — Android file picker fires popstate with null state
 });
 
 // ════════════════════════════════════════════════════════
@@ -2799,6 +2968,7 @@ let _filePickerOpen=false;
 // CARD PHOTO CROP
 // ════════════════════════════════════════════════════════
 let _cropImg=null,_cropX=50,_cropY=50,_cropSize=70,_cropDrag=null;
+let _cropContext='add'; // 'add' = add own card flow, 'picker' = dex picker camera
 const CARD_RATIO=63/88;
 
 function openCropModal(imgSrc){
@@ -2806,7 +2976,7 @@ function openCropModal(imgSrc){
   img.onload=()=>{
     _cropImg=img;_cropX=50;_cropY=50;_cropSize=70;
     document.getElementById('crop-size').value=70;
-    document.getElementById('crop-modal-bg').classList.add('show');
+    document.getElementById('crop-modal-bg').classList.add('show');pushOverlay(closeCropModal);
     setTimeout(()=>{drawCropCanvas();},50);
     const canvas=document.getElementById('crop-canvas');
     canvas.ontouchstart=cropTouchStart;
@@ -2874,17 +3044,35 @@ function confirmCrop(){
   out.getContext('2d').drawImage(canvas,sx,sy,sw,sh,0,0,sw,sh);
   _pendingImageUrl=out.toDataURL('image/jpeg',0.75);
   closeCropModal();
+  if(_cropContext==='picker'){
+    // Save directly as dex card with cropped image
+    applyOwnCard({
+      id:'custom_'+Date.now(),
+      name:_pickerPokeName||'Custom',
+      imgSmall:_pendingImageUrl,imgLarge:_pendingImageUrl,
+      setName:'Custom Photo',number:'?',rarity:'Custom',prices:{}
+    });
+    return;
+  }
+  // add-own-card flow
   document.getElementById('own-card-details').style.display='block';
   document.getElementById('own-card-preview').innerHTML=
     `<img src="${_pendingImageUrl}" style="max-width:120px;max-height:168px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);margin:8px auto;display:block">`;
   document.getElementById('own-card-fetch-btn').classList.add('hidden');
   document.getElementById('own-card-save-btn').classList.remove('hidden');
-  document.getElementById('add-own-modal').classList.remove('hidden');
+  document.getElementById('add-own-modal').classList.remove('hidden');if(!_overlayStack.includes(closeAddOwnCard))pushOverlay(closeAddOwnCard);
 }
 
 // ════════════════════════════════════════════════════════
 // ADD YOUR OWN CARD
 // ════════════════════════════════════════════════════════
+function handlePickerCamera(e){
+  _filePickerOpen=false;
+  const file=e.target.files[0];if(!file)return;
+  e.target.value='';
+  _cropContext='picker';
+  openCropModal(URL.createObjectURL(file));
+}
 function openAddOwnCard(){
   _pendingImageUrl=null;
   document.getElementById('own-card-url').value='';
@@ -2894,7 +3082,7 @@ function openAddOwnCard(){
   document.getElementById('own-card-set').value='';
   document.getElementById('own-card-fetch-btn').classList.remove('hidden');
   document.getElementById('own-card-save-btn').classList.add('hidden');
-  document.getElementById('add-own-modal').classList.remove('hidden');
+  document.getElementById('add-own-modal').classList.remove('hidden');if(!_overlayStack.includes(closeAddOwnCard))pushOverlay(closeAddOwnCard);
 }
 function closeAddOwnCard(){
   _pendingImageUrl=null;
@@ -2966,6 +3154,7 @@ function handleCardImageUpload(e){
   e.target.value='';
   const url=URL.createObjectURL(file);
   // Open crop modal for camera photos, skip crop for gallery (optional)
+  _cropContext='add';
   openCropModal(url);
 }
 
@@ -3044,6 +3233,7 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
   history.replaceState({screen:'login'},'','');
   renderLoginScreen();
   setupScrollTopFab();
+  initKeyboardAdjust();
   // Defer share import check so login screen renders first
   setTimeout(checkShareImport,300);
 })();
