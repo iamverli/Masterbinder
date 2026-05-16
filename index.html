@@ -155,6 +155,9 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .card-popup-bg.show .card-popup{transform:translateY(0)}
 .card-popup-close{position:absolute;top:14px;right:16px;background:var(--surface2);border:none;border-radius:50%;width:28px;height:28px;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .card-popup-img{width:150px;height:210px;object-fit:contain;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:block;margin:0 auto 14px}
+.card-popup-img-wrap{position:relative;width:150px;height:210px;margin:0 auto 14px;border-radius:10px;overflow:hidden}
+.card-popup-img-wrap .card-popup-img{margin:0}
+.card-popup-img-wrap.shimmer::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.25) 50%,transparent 65%);background-size:200% 100%;animation:varShimmer 2s ease-in-out infinite;pointer-events:none;border-radius:10px}
 .card-popup-name{font-size:17px;font-weight:900;color:var(--text);text-align:center;margin-bottom:3px}
 .card-popup-set{font-size:10px;font-family:'Space Mono',monospace;color:var(--text3);text-align:center;margin-bottom:14px;letter-spacing:.06em;text-transform:uppercase}
 .card-popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
@@ -183,8 +186,8 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .card-item.var-ch .card-num-badge{color:#fb923c}
 .card-item.var-trainer_rh{border-left-color:#38bdf8;background:rgba(56,189,248,0.12)}
 .card-item.var-trainer_rh .card-num-badge{color:#38bdf8}
-.card-item.var-energy_rh{border-left-color:#34d399;background:rgba(52,211,153,0.12)}
-.card-item.var-energy_rh .card-num-badge{color:#34d399}
+.card-item.var-energy_rh{border-left-color:#c084fc;background:rgba(192,132,252,0.12)}
+.card-item.var-energy_rh .card-num-badge{color:#c084fc}
 .card-item.var-ball_rh{border-left-color:#fb7185;background:rgba(251,113,133,0.12)}
 .card-item.var-ball_rh .card-num-badge{color:#fb7185}
 /* ── Variant thumbnail shimmer ── */
@@ -197,7 +200,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 /* ── Trainer slide-in menu ── */
 .trainer-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199998;opacity:0;pointer-events:none;transition:opacity .2s}
 .trainer-menu-overlay.show{opacity:1;pointer-events:all}
-.trainer-menu{position:fixed;top:0;right:0;bottom:0;width:min(300px,85vw);background:var(--surface);border-left:1px solid var(--border);z-index:199999;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;overflow-y:auto}
+.trainer-menu{position:fixed;top:0;left:0;bottom:0;width:min(300px,85vw);background:var(--surface);border-right:1px solid var(--border);z-index:199999;transform:translateX(-100%);transition:transform .25s ease;display:flex;flex-direction:column;overflow-y:auto}
 .trainer-menu-overlay.show .trainer-menu{transform:translateX(0)}
 .trainer-menu-header{padding:48px 20px 20px;display:flex;align-items:center;gap:14px;background:var(--surface2);border-bottom:1px solid var(--border)}
 .trainer-menu-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#000;flex-shrink:0}
@@ -211,7 +214,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .trainer-menu-btn:active{background:var(--surface2)}
 .trainer-menu-btn-danger{color:var(--red)}
 .trainer-menu-version{margin-top:auto;padding:16px 20px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);border-top:1px solid var(--border)}
-/* ── Dex card picker popup ── */
+.card-thumb-wrap.dex-thumb-holo::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);background-size:200% 100%;animation:varShimmer 2.4s ease-in-out infinite;pointer-events:none;border-radius:3px}
 .dex-picker-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .dex-picker-bg.show{opacity:1;pointer-events:all}
 .dex-picker{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + var(--safe-bottom));width:100%;max-width:480px;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1,.56,1);max-height:85vh;display:flex;flex-direction:column;position:relative}
@@ -432,7 +435,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:20px;color:var(--red);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;opacity:.6;transition:all .2s;white-space:nowrap;width:auto">🗑 Clear Cache</button>
   </div>
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v31 · Nidoqueen 💜</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v33 · Nidorino 💙</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -539,7 +542,9 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 <div class="card-popup-bg" id="card-popup-bg" onclick="closeCardPopup(event)">
   <div class="card-popup" id="card-popup">
     <button class="card-popup-close" onclick="closeCardPopup()">✕</button>
-    <img class="card-popup-img" id="popup-img" src="" alt="">
+    <div class="card-popup-img-wrap" id="popup-img-wrap">
+      <img class="card-popup-img" id="popup-img" src="" alt="">
+    </div>
     <div class="card-popup-name" id="popup-name"></div>
     <div class="card-popup-set" id="popup-set"></div>
     <div class="card-popup-grid">
@@ -658,7 +663,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="trainer-menu-divider"></div>
     <button class="trainer-menu-btn" onclick="showWelcome();closeTrainerMenu()">❓ How to Use</button>
     <button class="trainer-menu-btn" onclick="closeTrainerMenu();logout()">🔄 Switch Trainer</button>
-    <button class="trainer-menu-btn trainer-menu-btn-danger" onclick="closeTrainerMenu();logout()">🚪 Log Out</button>
+    <button class="trainer-menu-btn trainer-menu-btn-danger" disabled style="opacity:.35;cursor:not-allowed" title="Coming soon — cloud sync required">🚪 Log Out <span style="font-size:10px;font-family:'Space Mono',monospace">(coming soon)</span></button>
     <div class="trainer-menu-version" id="tm-version"></div>
   </div>
 </div>
@@ -818,6 +823,7 @@ let _popupCards=[];
 // INDEXEDDB — replaces localStorage for all user data
 // ════════════════════════════════════════════════════════
 const IDB_NAME='masterbinder',IDB_VER=1,IDB_STORE='userdata';
+const APP_VERSION='v33 · Nidorino 💙';
 let _idb=null;
 let _idbPending=null;
 
@@ -1698,14 +1704,10 @@ function renderTracker(){
       const variantClass=io&&card._variant?` var-${card._variant.toLowerCase().replace(/\s+/g,'_')}`:'';
 
 
-      const variantColor=card._variant?({'rh':'#818cf8','rh2':'#22d3ee','mb':'#f59e0b','ch':'#fb923c','trainer_rh':'#38bdf8','energy_rh':'#34d399','ball_rh':'#fb7185'}[card._variant]||'#818cf8'):'';
-      const variantBadge=io&&card._variant?`<div class="card-variant-badge" style="color:${variantColor}">◈${card._variant.toUpperCase().replace(/_/g,' ')}</div>`:'';
-
       const thumbHtml=`<div class="card-thumb-wrap" style="width:34px;height:48px">
         ${card.imgSmall
           ?`<img class="card-thumb" src="${card.imgSmall}" alt="" loading="lazy" style="width:34px;height:48px;object-fit:cover;border-radius:3px">`
           :`<div class="card-thumb-placeholder ${symClass}" style="width:34px;height:48px;display:flex;align-items:center;justify-content:center">${symIcon}</div>`}
-        ${variantBadge}
       </div>`;
 
       // Store card data for popup by index to avoid encoding issues
@@ -1855,7 +1857,9 @@ async function openDexCardPicker(e,dexNum,pokeName){
   setPickerLangUI('en');
   // Show picker immediately with spinner
   document.getElementById('dex-picker-list').innerHTML='<div class="dex-picker-loading"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0 auto 8px"></div>Loading cards...</div>';
-  document.getElementById('dex-picker-bg').classList.add('show');pushOverlay(()=>closeDexPicker());
+  const alreadyOpen=document.getElementById('dex-picker-bg').classList.contains('show');
+  document.getElementById('dex-picker-bg').classList.add('show');
+  if(!alreadyOpen)pushOverlay(()=>closeDexPicker());
   await fetchPickerCards(pokeName,'en');
 }
 
@@ -1872,12 +1876,18 @@ async function fetchPickerCards(pokeName,lang){
       const data=await resp.json();
       // Normalise TCGdex cards to same shape as pokemontcg.io
       _pickerCards=(Array.isArray(data)?data:[]).filter(c=>c.image).map(c=>({
-        id:c.id,name:c.localId||c.id,number:c.localId||'?',
-        rarity:c.rarity||'',supertype:'Pokémon',
-        images:{small:`${c.image}/low.webp`,large:`${c.image}/high.webp`},
+        id:c.id||`tcgdex-${c.localId}`,
+        name:c.name||c.localId||c.id||'Unknown',
+        number:c.localId||c.id||'?',
+        rarity:c.rarity||'',
+        supertype:'Pokémon',
+        images:{
+          small:c.image?`${c.image}/low.webp`:'',
+          large:c.image?`${c.image}/high.webp`:''
+        },
         set:{name:c.set?.name||'',id:c.set?.id||''},
         tcgplayer:null
-      }));
+      })).filter(c=>c.images.small);
       if(!_pickerCards.length){
         document.getElementById('dex-picker-list').innerHTML=`<div class="dex-picker-loading">No ${LANG_LABELS[lang]||lang} cards found for ${pokeName}</div>`;
         return;
@@ -1972,7 +1982,7 @@ function closeLangDropdown(){
 }
 
 // TCGdex language code mapping
-const TCGDEX_LANGS={fr:'fr',de:'de',it:'it',es:'es',pt:'pt',ko:'ko','zh-hant':'zh-Hant'};
+const TCGDEX_LANGS={jp:'ja',cn:'zh-Hans',fr:'fr',de:'de',it:'it',es:'es',pt:'pt',ko:'ko','zh-hant':'zh-Hant'};
 const LANG_LABELS={en:'🇬🇧 EN',jp:'🇯🇵 JP',cn:'🇨🇳 CN',fr:'🇫🇷 FR',de:'🇩🇪 DE',it:'🇮🇹 IT',es:'🇪🇸 ES',pt:'🇵🇹 PT',ko:'🇰🇷 KO','zh-hant':'🇹🇼 TW'};
 function setPickerLang(lang){
   _pickerLang=lang;
@@ -2008,6 +2018,9 @@ function openDexPopup(e,dexNum,pokeName){
 
   document.getElementById('popup-img').src=card.imgLarge||card.imgSmall||'';
   document.getElementById('popup-img').alt=card.name;
+  // Shimmer for holo/reverse holo cards
+  const isHolo=/holo|reverse holo|shimmer|prism|rainbow|gold rare|secret rare/i.test(card.rarity||'')||popupCardId.includes('_rh')||popupCardId.includes('_mb')||popupCardId.includes('_ch');
+  document.getElementById('popup-img-wrap').classList.toggle('shimmer',isHolo);
   document.getElementById('popup-name').textContent=card.name;
   document.getElementById('popup-set').textContent=`${card.setName||''} · #${card.number||''}`;
   document.getElementById('popup-rarity').textContent=card.rarity||'—';
@@ -2219,15 +2232,21 @@ function toggleCardFromPopup(){
   renderTracker();
 }
 
-function _removeFromOverlayStack(fn){
+function _syncPopupHistory(fn){
   const idx=_overlayStack.lastIndexOf(fn);
-  if(idx>-1)_overlayStack.splice(idx,1);
+  if(idx>-1){
+    _overlayStack.splice(idx,1);
+    _poppingPopup=true;
+    history.back();
+    // Safety: reset flag if popstate doesn't fire within 500ms
+    setTimeout(()=>{_poppingPopup=false;},500);
+  }
 }
 function closeCardPopup(e){
   if(!e||e.target===document.getElementById('card-popup-bg')||e.target.classList.contains('card-popup-close')){
     document.getElementById('card-popup-bg').classList.remove('show');
     popupCardId=null;
-    _removeFromOverlayStack(closeCardPopup);
+    _syncPopupHistory(closeCardPopup);
   }
 }
 // ════════════════════════════════════════════════════════
@@ -2381,9 +2400,13 @@ function renderDex(){
       if(selectedCard){
         const langBadge=selectedCard.lang&&selectedCard.lang!=='en'
           ?`<span style="font-size:7px;font-family:'Space Mono',monospace;background:rgba(245,185,34,.15);color:var(--accent);border:1px solid rgba(245,185,34,.3);border-radius:3px;padding:1px 4px">${selectedCard.lang.toUpperCase()}</span>`:'';
+        const isHolo=/holo|reverse holo|shimmer|prism|rainbow|gold rare|secret rare/i.test(selectedCard.rarity||'');
+        const thumbClass=isHolo?' dex-thumb-holo':'';
         // Card art tile
         html+=`<div class="dex-item${io?' owned':''}" onclick="toggleDexPoke(${n},'${sname}')">
-          <img class="dex-card-thumb" src="${selectedCard.imgSmall}" alt="" loading="lazy">
+          <div class="card-thumb-wrap${thumbClass}" style="width:34px;height:48px;flex-shrink:0">
+            <img class="dex-card-thumb" src="${selectedCard.imgSmall}" alt="" loading="lazy" style="width:34px;height:48px;object-fit:cover;border-radius:3px">
+          </div>
           <div class="dex-item-info">
             <span class="dex-item-num">${numStr}</span>
             <span class="dex-item-name">${name}</span>
@@ -2731,14 +2754,15 @@ function openTrainerMenu(){
   // Populate stats
   document.getElementById('tm-avatar').textContent=currentUser.substring(0,2).toUpperCase();
   document.getElementById('tm-name').textContent=currentUser;
-  // Sets count
-  const setsStarted=_cKeys(`pb_u_${currentUser}_s_`).filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
-  const setsComplete=_cKeys(`pb_u_${currentUser}_s_`).filter(k=>{
+  // Count sets efficiently using cached keys
+  const setKeys=_cKeys(`pb_u_${currentUser}_s_`);
+  const setsStarted=setKeys.filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
+  const setsComplete=setKeys.filter(k=>{
     try{
       const owned=JSON.parse(_cGet(k)||'[]');
       const sid=k.replace(`pb_u_${currentUser}_s_`,'');
       const tot=getCachedTotal(sid);
-      return tot&&owned.length>=tot;
+      return tot>0&&owned.filter(id=>!/_[a-z]/.test(id.slice(id.lastIndexOf('-')))).length>=tot;
     }catch{return false;}
   }).length;
   const dexOwned=getDexOwned(currentUser).size;
@@ -2747,16 +2771,15 @@ function openTrainerMenu(){
   document.getElementById('tm-complete').textContent=setsComplete;
   const users=getUsers();
   const created=users[currentUser]?.created;
-  document.getElementById('tm-sub').textContent=created?'Trainer since '+new Date(created).toLocaleDateString('en-GB',{month:'short',year:'numeric'}):'';
+  document.getElementById('tm-sub').textContent=created?'Trainer since '+new Date(created).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'';
   // App version from login screen
-  const verEl=document.querySelector('.login-screen div[style*="Space Mono"]');
-  document.getElementById('tm-version').textContent=verEl?.textContent||'';
+  document.getElementById('tm-version').textContent=APP_VERSION;
   document.getElementById('trainer-menu-overlay').classList.add('show');
   pushOverlay(closeTrainerMenu);
 }
 function closeTrainerMenu(){
   document.getElementById('trainer-menu-overlay').classList.remove('show');
-  _removeFromOverlayStack(closeTrainerMenu);
+  _syncPopupHistory(closeTrainerMenu);
 }
 // ════════════════════════════════════════════════════════
 function initKeyboardAdjust(){
@@ -2786,6 +2809,7 @@ function pushState(screenName){
 }
 // Overlay stack — back gesture closes topmost overlay first
 const _overlayStack=[];
+let _poppingPopup=false;
 function pushOverlay(closeFn){
   _overlayStack.push(closeFn);
   history.pushState({screen:'popup'},'','');
@@ -2795,6 +2819,7 @@ function popOverlay(){
 }
 window.addEventListener('popstate',e=>{
   if(_filePickerOpen){_filePickerOpen=false;return;}
+  if(_poppingPopup){_poppingPopup=false;return;}
   const screen=e.state?.screen;
   if(screen==='popup'){popOverlay();return;}
   if(screen==='tracker'||screen==='dex'){
