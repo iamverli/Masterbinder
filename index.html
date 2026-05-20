@@ -425,22 +425,9 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;line-height:1.6}
 .error-msg{text-align:center;padding:24px 20px;color:var(--red);font-size:13px;font-family:'Space Mono',monospace;line-height:1.6;background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:var(--radius);margin:12px 0}
 </style>
-<script type="module">
-import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,getDocs,enableIndexedDbPersistence}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const _fbConfig={apiKey:"AIzaSyAK-V3znKT0ZWV1Cio7aojLASC7F7IGaj8",authDomain:"masterbinder-7c1b1.firebaseapp.com",projectId:"masterbinder-7c1b1",storageBucket:"masterbinder-7c1b1.firebasestorage.app",messagingSenderId:"1093679980576",appId:"1:1093679980576:web:30f3728fe8a8e216139c45"};
-const _fbApp=initializeApp(_fbConfig);
-window._fbAuth=getAuth(_fbApp);
-window._fbDb=getFirestore(_fbApp);
-window._fbProvider=new GoogleAuthProvider();
-try{await enableIndexedDbPersistence(window._fbDb);}catch{}
-
-onAuthStateChanged(window._fbAuth,user=>{
-  window._fbOnAuthChanged(user);
-});
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <body>
 
 <!-- ════════════════════════════════ LOGIN ════════════════════════════════ -->
@@ -464,7 +451,7 @@ onAuthStateChanged(window._fbAuth,user=>{
   <div style="flex:1"></div>
   <img src="logo.png" alt="Blue Moon Collectibles" style="width:160px;object-fit:contain;margin-bottom:32px;mix-blend-mode:screen;opacity:.95">
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v34 · Nidoking 💙</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v35 · Clefairy 🌙</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -983,7 +970,7 @@ async function cleanupLocalStorage(){
 }
 
 async function manualCleanup(e){
-  const btn=document.getElementById('clear-cache-btn');
+  const btn=document.getElementById('tm-clear-cache')||document.getElementById('clear-cache-btn');
   if(btn){btn.textContent='🗑 Cleaning...';btn.style.opacity='1';}
   const kb=await cleanupLocalStorage();
   let lsSize=0;
@@ -1001,10 +988,7 @@ async function manualCleanup(e){
     btn.style.color='var(--green)';
     setTimeout(()=>{
       btn.textContent='🗑 Clear Cache';
-      btn.style.background='none';
-      btn.style.borderColor='rgba(217,79,58,.3)';
-      btn.style.color='var(--red)';
-      btn.style.opacity='.7';
+      btn.style.background='';btn.style.borderColor='';btn.style.color='';btn.style.opacity='.7';
     },2500);
   }
 }
@@ -1193,7 +1177,7 @@ function logout(){
   document.getElementById('tracker-screen').classList.add('hidden');
   document.getElementById('dex-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
-  if(window._fbAuth?.currentUser)window._fbAuth.signOut().catch(()=>{});
+  if(_fbAuth?.currentUser)_fbAuth.signOut().catch(()=>{});
   renderLoginScreen();
 }
 
@@ -2855,7 +2839,20 @@ function checkShareImport(){
 }
 // ════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════
-// ADD TO HOME SCREEN
+// FIREBASE INIT (compat SDK)
+// ════════════════════════════════════════════════════════
+let _fbAuth=null,_fbDb=null,_fbProvider=null;
+function initFirebase(){
+  try{
+    const cfg={apiKey:"AIzaSyAK-V3znKT0ZWV1Cio7aojLASC7F7IGaj8",authDomain:"masterbinder-7c1b1.firebaseapp.com",projectId:"masterbinder-7c1b1",storageBucket:"masterbinder-7c1b1.firebasestorage.app",messagingSenderId:"1093679980576",appId:"1:1093679980576:web:30f3728fe8a8e216139c45"};
+    if(!firebase.apps.length)firebase.initializeApp(cfg);
+    _fbAuth=firebase.auth();
+    _fbDb=firebase.firestore();
+    _fbProvider=new firebase.auth.GoogleAuthProvider();
+    _fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{});
+    _fbAuth.onAuthStateChanged(user=>{_fbOnAuthChanged(user);});
+  }catch(e){console.warn('Firebase init failed:',e);_fbReady=true;renderLoginScreen();}
+}
 // ════════════════════════════════════════════════════════
 let _installPrompt=null;
 const _isStandalone=()=>window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
@@ -2930,7 +2927,7 @@ let _fbReady=false;
 let _syncPending=false;
 
 // Called by Firebase module when auth state changes
-window._fbOnAuthChanged=async function(user){
+async function _fbOnAuthChanged(user){
   _fbUser=user;
   _fbUid=user?user.uid:null;
   _fbReady=true;
@@ -2944,23 +2941,25 @@ window._fbOnAuthChanged=async function(user){
 };
 
 async function fbSignIn(){
+  if(!_fbAuth){showToast('Auth not ready, try again',false);return;}
   const btn=document.getElementById('google-signin-btn');
   if(btn){btn.classList.add('loading');btn.textContent='Signing in...';}
   try{
-    const result=await window._fbAuth.signInWithPopup?
-      window._fbAuth.signInWithPopup(window._fbProvider):
-      (()=>{throw new Error('Auth not ready');})();
+    await _fbAuth.signInWithPopup(_fbProvider);
     // onAuthStateChanged will fire and handle the rest
   }catch(e){
     console.warn('Sign in failed:',e);
-    if(btn){btn.classList.remove('loading');btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>Sign in with Google`;}
-    if(e.code!=='auth/popup-closed-by-user')showToast('Sign in failed. Try again.',false);
+    if(btn){
+      btn.classList.remove('loading');
+      btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>Sign in with Google`;
+    }
+    if(e.code!=='auth/popup-closed-by-user')showToast('Sign in failed — try again',false);
   }
 }
 
 async function fbSignOut(){
   try{
-    if(window._fbAuth?.currentUser)await window._fbAuth.signOut();
+    if(_fbAuth?.currentUser)await _fbAuth.signOut();
   }catch(e){console.warn('Sign out error:',e);}
   logout();
 }
@@ -2969,7 +2968,7 @@ async function fbLoadUserData(user){
   const displayName=user.displayName||user.email?.split('@')[0]||'Trainer';
   // Check if Firestore has data for this user
   try{
-    const userDoc=await window._fbDb.collection('users').doc(user.uid).get();
+    const userDoc=await _fbDb.collection('users').doc(user.uid).get();
     if(userDoc.exists){
       // Cloud data found — load it
       await fbPullFromFirestore(user.uid,displayName);
@@ -3003,7 +3002,7 @@ async function fbLoadUserData(user){
 
 async function fbCreateCloudUser(uid,displayName){
   try{
-    await window._fbDb.collection('users').doc(uid).set({
+    await _fbDb.collection('users').doc(uid).set({
       displayName,
       createdAt:Date.now(),
       lastSync:Date.now()
@@ -3017,7 +3016,7 @@ async function fbCreateCloudUser(uid,displayName){
 async function fbPullFromFirestore(uid,displayName){
   try{
     // Pull main user doc (dex + dexCards)
-    const userDoc=await window._fbDb.collection('users').doc(uid).get();
+    const userDoc=await _fbDb.collection('users').doc(uid).get();
     const userData=userDoc.data()||{};
     const pulledName=userData.displayName||displayName;
 
@@ -3043,7 +3042,7 @@ async function fbPullFromFirestore(uid,displayName){
     }
 
     // Pull sets subcollection
-    const setsSnap=await window._fbDb.collection('users').doc(uid).collection('sets').get();
+    const setsSnap=await _fbDb.collection('users').doc(uid).collection('sets').get();
     setsSnap.forEach(async doc=>{
       const sid=doc.id;
       const setData=doc.data();
@@ -3079,7 +3078,7 @@ async function fbPullFromFirestore(uid,displayName){
 async function fbPushToFirestore(uid,userName){
   if(!uid||!_fbDb)return;
   try{
-    const db=window._fbDb;
+    const db=_fbDb;
     const batch=db.batch();
     const userRef=db.collection('users').doc(uid);
 
@@ -3104,9 +3103,9 @@ async function fbPushToFirestore(uid,userName){
 }
 
 async function fbSaveSet(setId,ownedArr,megaMode,megaOpts){
-  if(!_fbUid||!window._fbDb)return;
+  if(!_fbUid||!_fbDb)return;
   try{
-    await window._fbDb.collection('users').doc(_fbUid).collection('sets').doc(setId).set({
+    await _fbDb.collection('users').doc(_fbUid).collection('sets').doc(setId).set({
       owned:ownedArr,megaMode:megaMode||false,megaOpts:megaOpts||{},updatedAt:Date.now()
     },{merge:true});
     updateCloudBadge('synced');
@@ -3163,7 +3162,7 @@ async function showMigrationDialog(uid,displayName,localNames){
 async function migrateLocalToFirestore(uid,displayName,localNames){
   showToast('Uploading collection...',true);
   try{
-    const db=window._fbDb;
+    const db=_fbDb;
     // Use first local user's data as the cloud user
     const sourceName=localNames[0];
 
@@ -3730,6 +3729,7 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
   setupScrollTopFab();
   initKeyboardAdjust();
   setTimeout(checkShareImport,300);
+  initFirebase(); // Start Firebase auth (async — will call _fbOnAuthChanged when ready)
   // If Firebase doesn't resolve within 4s (blocked/offline), fall back to local session
   setTimeout(()=>{
     if(!_fbReady){
