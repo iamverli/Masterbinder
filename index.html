@@ -213,6 +213,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .trainer-menu-btn{width:100%;padding:16px 20px;background:none;border:none;color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;text-align:left;cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:10px}
 .trainer-menu-btn:active{background:var(--surface2)}
 .trainer-menu-btn-danger{color:var(--red)}
+.tm-section-label{padding:10px 20px 4px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;border-top:1px solid var(--border);margin-top:4px}
 .trainer-menu-version{margin-top:auto;padding:16px 20px;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);border-top:1px solid var(--border)}
 .card-thumb-wrap.dex-thumb-holo::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);background-size:200% 100%;animation:varShimmer 2.4s ease-in-out infinite;pointer-events:none;border-radius:3px}
 .dex-picker-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -385,6 +386,16 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .user-tap-hint{font-size:10px;color:var(--accent);font-family:'Space Mono',monospace;margin-top:6px;opacity:.7;letter-spacing:.04em}
 .user-del{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:rgba(255,107,107,.15);border:1px solid rgba(255,107,107,.3);color:var(--red);font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.6;transition:opacity .15s}
 .user-card:hover .user-del,.user-del:active{opacity:1}
+.google-signin-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:var(--radius-sm);padding:13px 20px;font-family:'Exo 2',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:box-shadow .15s,opacity .15s}
+.google-signin-btn:active{opacity:.85;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.google-signin-btn.loading{opacity:.6;pointer-events:none}
+.signin-or{display:flex;align-items:center;gap:10px;margin:12px 0;color:var(--text3);font-size:11px;font-family:'Space Mono',monospace}
+.signin-or::before,.signin-or::after{content:'';flex:1;height:1px;background:var(--border)}
+/* ── Cloud sync status badge ── */
+.cloud-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'Space Mono',monospace;padding:3px 8px;border-radius:20px;margin-left:6px}
+.cloud-badge.synced{background:rgba(62,207,170,.12);color:var(--green);border:1px solid rgba(62,207,170,.3)}
+.cloud-badge.offline{background:rgba(245,185,34,.12);color:var(--accent);border:1px solid rgba(245,185,34,.3)}
+.cloud-badge.error{background:rgba(217,79,58,.12);color:var(--red);border:1px solid rgba(217,79,58,.3)}
 .new-user-btn{width:100%;background:none;border:1.5px dashed var(--border2);border-radius:var(--radius);padding:16px;color:var(--text2);font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s}
 .new-user-btn:hover{border-color:var(--accent);color:var(--accent)}
 
@@ -414,28 +425,46 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
 .empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;line-height:1.6}
 .error-msg{text-align:center;padding:24px 20px;color:var(--red);font-size:13px;font-family:'Space Mono',monospace;line-height:1.6;background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:var(--radius);margin:12px 0}
 </style>
-</head>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,doc,getDoc,setDoc,updateDoc,collection,getDocs,enableIndexedDbPersistence}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const _fbConfig={apiKey:"AIzaSyAK-V3znKT0ZWV1Cio7aojLASC7F7IGaj8",authDomain:"masterbinder-7c1b1.firebaseapp.com",projectId:"masterbinder-7c1b1",storageBucket:"masterbinder-7c1b1.firebasestorage.app",messagingSenderId:"1093679980576",appId:"1:1093679980576:web:30f3728fe8a8e216139c45"};
+const _fbApp=initializeApp(_fbConfig);
+window._fbAuth=getAuth(_fbApp);
+window._fbDb=getFirestore(_fbApp);
+window._fbProvider=new GoogleAuthProvider();
+try{await enableIndexedDbPersistence(window._fbDb);}catch{}
+
+onAuthStateChanged(window._fbAuth,user=>{
+  window._fbOnAuthChanged(user);
+});
+</script>
 <body>
 
 <!-- ════════════════════════════════ LOGIN ════════════════════════════════ -->
 <div class="login-screen" id="login-screen">
   <div class="login-logo">&#9670; MasterBinder</div>
   <div class="login-title">Who's collecting?</div>
-  <div class="login-sub" id="login-sub">Select your trainer to continue</div>
+  <div class="login-sub" id="login-sub">Sign in to sync across devices</div>
+
+  <!-- Google Sign-In -->
+  <button class="google-signin-btn" id="google-signin-btn" onclick="fbSignIn()">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+    Sign in with Google
+  </button>
+  <div class="signin-or"><span>or continue locally</span></div>
+
   <div class="users-grid" id="users-grid"></div>
+  <div id="backup-reminder" style="display:none;background:rgba(245,185,34,.1);border:1px solid rgba(245,185,34,.3);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--accent);font-family:'Exo 2',sans-serif;cursor:pointer" onclick="exportData()">
+    💾 <span id="backup-reminder-text"></span> — tap to export now
+  </div>
   <button class="new-user-btn" id="new-user-btn" onclick="openCreateModal()">+ Create new trainer</button>
   <div style="flex:1"></div>
-  <img src="logo.png" alt="Blue Mccn Collectibles" style="width:160px;object-fit:contain;margin-bottom:32px;mix-blend-mode:screen;opacity:.95">
-  <div class="io-row">
-    <button class="io-btn export-btn" onclick="exportData()">⬆ Export</button>
-    <button class="io-btn import-btn" onclick="importData()">⬇ Import</button>
-    <button class="io-btn" onclick="shareCollection()" style="border-color:var(--blue);color:var(--blue)">🔗 Share</button>
-  </div>
-  <div style="display:flex;justify-content:flex-start;margin-bottom:16px;padding:0 2px">
-    <button id="clear-cache-btn" onclick="manualCleanup(event)" style="background:none;border:1px solid rgba(217,79,58,.3);border-radius:20px;color:var(--red);font-family:'Exo 2',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;cursor:pointer;opacity:.6;transition:all .2s;white-space:nowrap;width:auto">🗑 Clear Cache</button>
-  </div>
+  <img src="logo.png" alt="Blue Moon Collectibles" style="width:160px;object-fit:contain;margin-bottom:32px;mix-blend-mode:screen;opacity:.95">
   <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImportFile(event)">
-  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v33 · Nidorino 💙</div>
+  <div style="text-align:center;font-size:9px;font-family:'Space Mono',monospace;color:var(--text3);margin-top:10px;letter-spacing:.08em">v34 · Nidoking 💙</div>
 </div>
 <div class="screen hidden" id="set-screen">
   <div class="topbar">
@@ -443,6 +472,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <div class="topbar-user-info" onclick="openTrainerMenu()" style="cursor:pointer;user-select:none">
         <div class="topbar-avatar" id="set-topbar-avatar"></div>
         <span class="topbar-username" id="set-topbar-username"></span>
+        <span id="cloud-status-badge" class="cloud-badge synced" style="display:none">☁ Synced</span>
         <span style="font-size:10px;color:var(--text3);margin-left:4px">▾</span>
       </div>
     </div>
@@ -518,6 +548,7 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
     <div class="tracker-title-row">
       <button class="back-btn" onclick="backToSets()">&#8592; SETS</button>
       <span class="tracker-set-name" style="color:var(--accent)">&#9670; NATIONAL POKÉDEX</span>
+      <button class="share-set-btn" onclick="shareDex()" title="Share Pokédex">📤</button>
     </div>
     <div class="stats-row">
       <div class="stat-box s-owned"><div class="val" id="d-owned">0</div><div class="lbl">Owned</div></div>
@@ -660,10 +691,20 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;min-height
       <div class="tm-stat"><div class="tm-stat-val" id="tm-dex">—</div><div class="tm-stat-lbl">Pokédex</div></div>
       <div class="tm-stat"><div class="tm-stat-val" id="tm-complete">—</div><div class="tm-stat-lbl">Complete</div></div>
     </div>
-    <div class="trainer-menu-divider"></div>
+
+    <div class="tm-section-label">Collection</div>
+    <button class="trainer-menu-btn" onclick="exportData();closeTrainerMenu()">⬆ Export Backup</button>
+    <button class="trainer-menu-btn" onclick="importData();closeTrainerMenu()">⬇ Import Backup</button>
+    <button class="trainer-menu-btn" id="tm-clear-cache" onclick="manualCleanup();closeTrainerMenu()">🗑 Clear Cache</button>
+
+    <div class="tm-section-label">App</div>
     <button class="trainer-menu-btn" onclick="showWelcome();closeTrainerMenu()">❓ How to Use</button>
+    <button class="trainer-menu-btn" id="tm-install-btn" onclick="triggerInstallPrompt()" style="display:none">📲 Add to Home Screen</button>
+
+    <div class="tm-section-label">Account</div>
     <button class="trainer-menu-btn" onclick="closeTrainerMenu();logout()">🔄 Switch Trainer</button>
-    <button class="trainer-menu-btn trainer-menu-btn-danger" disabled style="opacity:.35;cursor:not-allowed" title="Coming soon — cloud sync required">🚪 Log Out <span style="font-size:10px;font-family:'Space Mono',monospace">(coming soon)</span></button>
+    <button class="trainer-menu-btn trainer-menu-btn-danger" onclick="closeTrainerMenu();logout()">🚪 Log Out</button>
+
     <div class="trainer-menu-version" id="tm-version"></div>
   </div>
 </div>
@@ -771,25 +812,30 @@ async function loadAllSets(){
   const cacheAge='pb_all_sets_age';
   const ONE_DAY=86400000;
   const cached=localStorage.getItem(cacheKey);
-  const age=parseInt(localStorage.getItem(cacheAge)||"0",10);
+  const age=parseInt(localStorage.getItem(cacheAge)||'0',10);
   if(cached&&Date.now()-age<ONE_DAY){
     try{ALL_SETS=JSON.parse(cached);buildEras();return;}catch{}
   }
-  const resp=await fetch('https://api.pokemontcg.io/v2/sets?orderBy=releaseDate&pageSize=250');
-  if(!resp.ok)throw new Error('HTTP '+resp.status);
-  const data=await resp.json();
-  ALL_SETS=data.data.map(s=>({
-    id:s.id,
-    name:s.name,
-    series:s.series||'Other',
-    total:s.total||s.printedTotal||0,
-    year:s.releaseDate?parseInt(s.releaseDate.substring(0,4),10):0,
-    symbol:s.images?.symbol||'',
-    logo:s.images?.logo||''
-  }));
-  localStorage.setItem(cacheKey,JSON.stringify(ALL_SETS));
-  localStorage.setItem(cacheAge,String(Date.now()));
-  buildEras();
+  try{
+    const resp=await fetch('https://api.pokemontcg.io/v2/sets?orderBy=releaseDate&pageSize=250');
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const data=await resp.json();
+    ALL_SETS=data.data.map(s=>({
+      id:s.id,name:s.name,series:s.series||'Other',
+      total:s.total||s.printedTotal||0,
+      year:s.releaseDate?parseInt(s.releaseDate.substring(0,4),10):0,
+      symbol:s.images?.symbol||'',logo:s.images?.logo||''
+    }));
+    localStorage.setItem(cacheKey,JSON.stringify(ALL_SETS));
+    localStorage.setItem(cacheAge,String(Date.now()));
+    buildEras();
+  }catch(err){
+    // Offline fallback — use stale cache if available
+    if(cached){
+      try{ALL_SETS=JSON.parse(cached);buildEras();showToast('⚡ Offline — using cached set list',true);return;}catch{}
+    }
+    throw err;
+  }
 }
 
 function buildEras(){
@@ -823,7 +869,7 @@ let _popupCards=[];
 // INDEXEDDB — replaces localStorage for all user data
 // ════════════════════════════════════════════════════════
 const IDB_NAME='masterbinder',IDB_VER=1,IDB_STORE='userdata';
-const APP_VERSION='v33 · Nidorino 💙';
+const APP_VERSION='v35 · Clefairy 🌙';
 let _idb=null;
 let _idbPending=null;
 
@@ -981,10 +1027,16 @@ function getOwnedSet(user,setId){
   try{return new Set(JSON.parse(v||'[]'));}catch{return new Set();}
 }
 function saveOwnedSet(user,setId,s){
-  _cSet(ownedKey(user,setId),JSON.stringify([...s]));
-  // Update summary count for login screen
+  const arr=[...s];
+  _cSet(ownedKey(user,setId),JSON.stringify(arr));
+  // Update summary count
   const count=_cKeys(`pb_u_${user}_s_`).filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
   localStorage.setItem(`pb_u_${user}_setcount`,String(count));
+  // Sync to Firestore in background
+  if(_fbUid){
+    const mo=mastersetOpts||{};
+    fbSaveSet(setId,arr,megaMode,mo).catch(()=>{});
+  }
 }
 function getCachedTotal(sid){
   const v=localStorage.getItem(totalKey(sid));
@@ -1019,6 +1071,23 @@ function manualSave(){
 // LOGIN SCREEN
 // ════════════════════════════════════════════════════════
 function renderLoginScreen(){
+  // Backup reminder
+  const lastExport=parseInt(localStorage.getItem('pb_last_export')||'0',10);
+  const daysSince=lastExport?Math.floor((Date.now()-lastExport)/(1000*60*60*24)):null;
+  const reminderEl=document.getElementById('backup-reminder');
+  const reminderText=document.getElementById('backup-reminder-text');
+  if(reminderEl&&reminderText){
+    const hasData=Object.keys(getUsers()).length>0;
+    if(hasData&&(daysSince===null||daysSince>=7)){
+      reminderEl.style.display='block';
+      reminderText.textContent=daysSince===null?'Never backed up':
+        daysSince===0?'Last backup today':
+        daysSince===1?'Last backup yesterday':
+        `Last backup ${daysSince} days ago`;
+    } else {
+      reminderEl.style.display='none';
+    }
+  }
   const users=getUsers(),grid=document.getElementById('users-grid'),keys=Object.keys(users);
   const sub=document.getElementById('login-sub'),newBtn=document.getElementById('new-user-btn');
   if(!keys.length){
@@ -1083,9 +1152,10 @@ async function deleteUser(e,name){
 // ════════════════════════════════════════════════════════
 // SESSION
 // ════════════════════════════════════════════════════════
-async function loginAs(name){
+async function loginAs(name,uid){
   if(currentUser&&_dirty)saveCurrentSet();
   currentUser=name;_dirty=false;
+  if(uid)_fbUid=uid;
   localStorage.setItem('pb_session',name);
   await loadUserCache(name);
   const ecRaw=_cGet(eraColKey(name));
@@ -1097,6 +1167,12 @@ async function loginAs(name){
   pushState('sets');
   showSetScreen();
   showWelcomeIfNeeded(name);
+  // Show cloud badge in topbar if signed in
+  if(_fbUid){
+    const badge=document.getElementById('cloud-status-badge');
+    if(badge)badge.style.display='inline-flex';
+    updateCloudBadge('synced');
+  }
   if(ALL_SETS.length===0){
     const area=document.getElementById('set-scroll-area');
     area.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:16px"><div class="spinner"></div><div class="loading-text">Loading sets...</div></div>';
@@ -1107,7 +1183,7 @@ async function loginAs(name){
 }
 function logout(){
   if(currentUser&&_dirty)saveCurrentSet();
-  currentUser=null;currentSet=null;_dirty=false;
+  currentUser=null;currentSet=null;_dirty=false;_fbUid=null;
   localStorage.removeItem('pb_session');
   clearUserCache();
   owned=new Set();currentCards=[];
@@ -1117,6 +1193,7 @@ function logout(){
   document.getElementById('tracker-screen').classList.add('hidden');
   document.getElementById('dex-screen').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
+  if(window._fbAuth?.currentUser)window._fbAuth.signOut().catch(()=>{});
   renderLoginScreen();
 }
 
@@ -1138,9 +1215,8 @@ function showSetScreen(){
 // ════════════════════════════════════════════════════════
 // Variants: rh = Reverse Holo, mb = Master Ball, ch = Cosmos Holo
 const MASTERSET_CONFIG={
-  // Series defaults
   _series:{
-    'Base':                null,      // No reverse holos
+    'Base':                null,
     'Gym':                 null,
     'Neo':                 null,
     'E-Card':              [{key:'rh',label:'Reverse Holo',sub:''}],
@@ -1153,26 +1229,27 @@ const MASTERSET_CONFIG={
     'Sun & Moon':          [{key:'rh',label:'Reverse Holo',sub:'type symbol pattern'}],
     'Sword & Shield':      [{key:'rh',label:'Reverse Holo',sub:'tile pattern'}],
     'Scarlet & Violet':    [{key:'rh',label:'Reverse Holo',sub:'Poké Ball tile pattern'}],
-    'Mega Evolution':      [
-      {key:'trainer_rh',label:'Trainer Reverse Holo',sub:'Trainer cards only',supertype:'Trainer'},
-      {key:'energy_rh',label:'Energy Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
-      {key:'ball_rh',label:'Ball Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
-    ],
+    'Mega Evolution':      [{key:'rh',label:'Reverse Holo',sub:''}], // standard RH only for all ME sets
   },
-  // Set-specific overrides (set ID)
   _sets:{
-    'me2pt5':[  // Ascended Heroes
+    'me2pt5':[  // Ascended Heroes — only ME set with 3-way split
       {key:'trainer_rh',label:'Trainer Reverse Holo',sub:'Trainer cards only',supertype:'Trainer'},
       {key:'energy_rh',label:'Energy Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
       {key:'ball_rh',label:'Ball Reverse Holo',sub:'Pokémon & Energy',supertype:'!Trainer'},
     ],
-    'sv8pt5':[  // Prismatic Evolutions
+    'sv8pt5':[  // Prismatic Evolutions — 3 RH types
       {key:'rh',label:'Reverse Holo',sub:'standard pattern'},
       {key:'rh2',label:'Reverse Holo',sub:'Poké Ball pattern'},
       {key:'mb',label:'Reverse Holo',sub:'Master Ball pattern'},
     ],
-    'sv9':[     // Black Bolt & White Flare
-      {key:'rh',label:'Reverse Holo',sub:'Poké Ball pattern'},
+    'sv9':[     // Black Bolt — 3 RH types
+      {key:'rh',label:'Reverse Holo',sub:'standard pattern'},
+      {key:'rh2',label:'Reverse Holo',sub:'Poké Ball pattern'},
+      {key:'mb',label:'Reverse Holo',sub:'Master Ball pattern'},
+    ],
+    'sv9pt5':[  // White Flare — same as Black Bolt
+      {key:'rh',label:'Reverse Holo',sub:'standard pattern'},
+      {key:'rh2',label:'Reverse Holo',sub:'Poké Ball pattern'},
       {key:'mb',label:'Reverse Holo',sub:'Master Ball pattern'},
     ],
   }
@@ -1194,6 +1271,10 @@ function renderMastersetSubopts(setId,series){
     return;
   }
   if(toggleRow)toggleRow.style.display='';
+  // Only show masterset toggle if user has tracked cards in this set or previously used it
+  const hasCards=owned&&owned.size>0;
+  const hasPreviouslyUsed=_cGet(megaKey(currentUser,setId))==='1';
+  if(toggleRow&&!hasCards&&!hasPreviouslyUsed)toggleRow.style.display='none';
   let optsChanged=false;
   subopts.innerHTML=variants.map(v=>{
     if(mastersetOpts[v.key]===undefined){mastersetOpts[v.key]=true;optsChanged=true;}
@@ -1481,8 +1562,7 @@ async function fetchCards(setId){
   const cacheKey=`pb_cards_v4_${setId}`;
   const cached=sessionStorage.getItem(cacheKey);
   if(cached){try{return JSON.parse(cached);}catch{}}
-
-  const cardsMap=new Map();
+  try{
   let page=1,totalCount=Infinity;
   const MAX_PAGES=20; // safety guard — 20×250 = 5000 cards max
 
@@ -1542,11 +1622,16 @@ async function fetchCards(setId){
   if(cards.length>0){
     cards.sort((a,b)=>cardNumSort(a.number,b.number));
     sessionStorage.setItem(cacheKey,JSON.stringify(cards));
-    // Clear old cache versions
     sessionStorage.removeItem(`pb_cards_v2_${setId}`);
     sessionStorage.removeItem(`pb_cards_v3_${setId}`);
   }
   return cards;
+  }catch(err){
+    // Offline fallback — try any stale session cache first
+    const stale=sessionStorage.getItem(cacheKey);
+    if(stale){try{showToast('⚡ Offline — showing cached cards',true);return JSON.parse(stale);}catch{}}
+    throw err; // Re-throw so caller can show error
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -1762,6 +1847,11 @@ function toggleCard(cardId,cardName){
   if(owned.has(cardId)){owned.delete(cardId);showToast('Removed '+cardName,false);}
   else{owned.add(cardId);showToast('Got '+cardName+'!',true);}
   markDirty();
+  // Reveal masterset toggle after first card tracked
+  if(owned.size===1){
+    const toggleRow=document.querySelector('.mega-toggle-row');
+    if(toggleRow)toggleRow.style.display='';
+  }
   updateTrackerStats(owned.size,currentCards.length);
   renderTracker();
 }
@@ -1839,7 +1929,10 @@ function openInStore(){
 let dexSelectedCards={};
 let dexPickerNum=null;
 function loadDexSelectedCards(user){try{dexSelectedCards=JSON.parse(_cGet(dexCardKey(user))||'{}');}catch{dexSelectedCards={};}}
-function saveDexSelectedCards(user){_cSet(dexCardKey(user),JSON.stringify(dexSelectedCards));}
+function saveDexSelectedCards(user){
+  _cSet(dexCardKey(user),JSON.stringify(dexSelectedCards));
+  if(_fbUid)fbPushToFirestore(_fbUid,user).catch(()=>{});
+}
 
 let _pickerLang='en';
 let _pickerCards=[];
@@ -2274,6 +2367,7 @@ function getDexOwned(u){
 }
 function saveDexOwned(u,s){
   _cSet(dexKey(u),JSON.stringify([...s]));
+  if(_fbUid)fbPushToFirestore(_fbUid,u).catch(()=>{});
 }
 
 // ════════════════════════════════════════════════════════
@@ -2556,7 +2650,7 @@ async function exportData(){
       });
       const writable=await fh.createWritable();
       await writable.write(blob);await writable.close();
-      showToast('Exported! ✓',true);return;
+      localStorage.setItem('pb_last_export',Date.now().toString());showToast('Exported! ✓',true);return;
     }catch(e){if(e.name==='AbortError')return;}
   }
   const url=URL.createObjectURL(blob);
@@ -2564,7 +2658,7 @@ async function exportData(){
   a.href=url;a.download=`masterbinder-backup-${Date.now()}.json`;
   document.body.appendChild(a);a.click();
   document.body.removeChild(a);URL.revokeObjectURL(url);
-  showToast('Exported! ✓',true);
+  localStorage.setItem('pb_last_export',Date.now().toString());showToast('Exported! ✓',true);
 }
 
 function importData(){document.getElementById('import-file').click();}
@@ -2674,6 +2768,20 @@ async function shareCollection(){
   try{await navigator.clipboard.writeText(url);showToast('Link copied! ✓',true);}
   catch{showToast('Share not available',false);}
 }
+async function shareDex(){
+  if(!currentUser)return;
+  const dexOwned=[...getDexOwned(currentUser)];
+  const payload={v:1,user:currentUser,dex:dexOwned,shared:Date.now()};
+  const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  const url=`${location.origin}${location.pathname}?dexshare=${encoded}`;
+  const text=`Check out my National Pokédex — ${dexOwned.length}/1025 Pokémon owned!`;
+  if(navigator.share){
+    try{await navigator.share({title:'MasterBinder — National Pokédex',text,url});return;}
+    catch(e){if(e.name==='AbortError')return;}
+  }
+  try{await navigator.clipboard.writeText(url);showToast('Pokédex link copied! ✓',true);}
+  catch{showToast('Share not available',false);}
+}
 async function shareSet(){
   if(!currentSet||!currentUser)return;
   const baseCardIds=new Set(currentCards.map(c=>c.id));
@@ -2747,14 +2855,382 @@ function checkShareImport(){
 }
 // ════════════════════════════════════════════════════════
 // ════════════════════════════════════════════════════════
-// TRAINER SLIDE-IN MENU
+// ADD TO HOME SCREEN
+// ════════════════════════════════════════════════════════
+let _installPrompt=null;
+const _isStandalone=()=>window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
+const _isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
+
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();_installPrompt=e;
+  if(!_isStandalone()&&!localStorage.getItem('pb_install_dismissed')){
+    const btn=document.getElementById('tm-install-btn');
+    if(btn)btn.style.display='flex';
+  }
+});
+
+async function triggerInstallPrompt(){
+  closeTrainerMenu();
+  if(_installPrompt){
+    _installPrompt.prompt();
+    const{outcome}=await _installPrompt.userChoice;
+    if(outcome==='accepted'){
+      localStorage.setItem('pb_install_dismissed','1');
+      const btn=document.getElementById('tm-install-btn');
+      if(btn)btn.style.display='none';
+      showToast('Added to home screen! ✓',true);
+    }
+    _installPrompt=null;
+  } else if(_isIOS()){
+    showIOSInstallGuide();
+  }
+}
+
+function showIOSInstallGuide(){
+  const overlay=document.createElement('div');
+  overlay.id='ios-install-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999999;display:flex;align-items:flex-end;justify-content:center';
+  overlay.innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:28px 24px 40px;width:100%;max-width:480px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;color:var(--text)">📲 Add to Home Screen</div>
+        <button onclick="document.getElementById('ios-install-overlay').remove();localStorage.setItem('pb_install_dismissed','1')" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">1</div>
+          <div style="font-size:14px;color:var(--text2)">Tap the <strong style="color:var(--text)">Share button</strong> <span style="font-size:18px">⬆</span> at the bottom of Safari</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">2</div>
+          <div style="font-size:14px;color:var(--text2)">Scroll down and tap <strong style="color:var(--text)">"Add to Home Screen"</strong></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">3</div>
+          <div style="font-size:14px;color:var(--text2)">Tap <strong style="color:var(--text)">"Add"</strong> in the top right corner</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;font-size:11px;color:var(--text3);text-align:center;font-family:'Space Mono',monospace">MasterBinder will appear on your home screen like a native app</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay){overlay.remove();localStorage.setItem('pb_install_dismissed','1');}});
+}
+
+// Show iOS install button if on iOS Safari and not installed
+if(_isIOS()&&!_isStandalone()&&!localStorage.getItem('pb_install_dismissed')){
+  window.addEventListener('DOMContentLoaded',()=>{const btn=document.getElementById('tm-install-btn');if(btn)btn.style.display='flex';});
+}
+
+// ════════════════════════════════════════════════════════
+// FIREBASE — AUTH + FIRESTORE CLOUD SYNC
+// ════════════════════════════════════════════════════════
+let _fbUser=null; // Firebase user object
+let _fbUid=null;  // uid for Firestore paths
+let _fbReady=false;
+let _syncPending=false;
+
+// Called by Firebase module when auth state changes
+window._fbOnAuthChanged=async function(user){
+  _fbUser=user;
+  _fbUid=user?user.uid:null;
+  _fbReady=true;
+  if(user){
+    // Auto sign-in — load from Firestore
+    await fbLoadUserData(user);
+  } else {
+    // Not signed in — show login screen normally
+    renderLoginScreen();
+  }
+};
+
+async function fbSignIn(){
+  const btn=document.getElementById('google-signin-btn');
+  if(btn){btn.classList.add('loading');btn.textContent='Signing in...';}
+  try{
+    const result=await window._fbAuth.signInWithPopup?
+      window._fbAuth.signInWithPopup(window._fbProvider):
+      (()=>{throw new Error('Auth not ready');})();
+    // onAuthStateChanged will fire and handle the rest
+  }catch(e){
+    console.warn('Sign in failed:',e);
+    if(btn){btn.classList.remove('loading');btn.innerHTML=`<svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>Sign in with Google`;}
+    if(e.code!=='auth/popup-closed-by-user')showToast('Sign in failed. Try again.',false);
+  }
+}
+
+async function fbSignOut(){
+  try{
+    if(window._fbAuth?.currentUser)await window._fbAuth.signOut();
+  }catch(e){console.warn('Sign out error:',e);}
+  logout();
+}
+
+async function fbLoadUserData(user){
+  const displayName=user.displayName||user.email?.split('@')[0]||'Trainer';
+  // Check if Firestore has data for this user
+  try{
+    const userDoc=await window._fbDb.collection('users').doc(user.uid).get();
+    if(userDoc.exists){
+      // Cloud data found — load it
+      await fbPullFromFirestore(user.uid,displayName);
+    } else {
+      // No cloud data — check for local data to migrate
+      const localUsers=getUsers();
+      const localNames=Object.keys(localUsers);
+      if(localNames.length>0){
+        await showMigrationDialog(user.uid,displayName,localNames);
+      } else {
+        // No local data either — fresh start
+        await fbCreateCloudUser(user.uid,displayName);
+        await loginAs(displayName,user.uid);
+      }
+    }
+  }catch(e){
+    console.warn('Firestore load error (offline?):', e);
+    // Offline — try to load from local IDB
+    const localUsers=getUsers();
+    if(localUsers[displayName]){
+      await loginAs(displayName,user.uid);
+    } else if(Object.keys(localUsers).length>0){
+      // Load first local user as fallback
+      await loginAs(Object.keys(localUsers)[0],user.uid);
+    } else {
+      await loginAs(displayName,user.uid);
+    }
+    showToast('⚡ Offline mode — changes saved locally',true);
+  }
+}
+
+async function fbCreateCloudUser(uid,displayName){
+  try{
+    await window._fbDb.collection('users').doc(uid).set({
+      displayName,
+      createdAt:Date.now(),
+      lastSync:Date.now()
+    });
+    const users=getUsers();
+    users[displayName]=users[displayName]||{created:Date.now(),uid};
+    saveUsers(users);
+  }catch(e){console.warn('Create cloud user failed:',e);}
+}
+
+async function fbPullFromFirestore(uid,displayName){
+  try{
+    // Pull main user doc (dex + dexCards)
+    const userDoc=await window._fbDb.collection('users').doc(uid).get();
+    const userData=userDoc.data()||{};
+    const pulledName=userData.displayName||displayName;
+
+    // Ensure local user entry exists
+    const users=getUsers();
+    users[pulledName]=users[pulledName]||{created:userData.createdAt||Date.now(),uid};
+    saveUsers(users);
+
+    // Load into IDB cache
+    _uCache={};
+    if(userData.dex){
+      await idbSet(`pb_u_${pulledName}_dex`,JSON.stringify(userData.dex));
+      _uCache[`pb_u_${pulledName}_dex`]=JSON.stringify(userData.dex);
+    }
+    if(userData.dexCards){
+      const dcStr=JSON.stringify(userData.dexCards);
+      await idbSet(`pb_u_${pulledName}_dex_cards`,dcStr);
+      _uCache[`pb_u_${pulledName}_dex_cards`]=dcStr;
+    }
+    if(userData.eraCollapsed){
+      await idbSet(`pb_u_${pulledName}_era_col`,JSON.stringify(userData.eraCollapsed));
+      _uCache[`pb_u_${pulledName}_era_col`]=JSON.stringify(userData.eraCollapsed);
+    }
+
+    // Pull sets subcollection
+    const setsSnap=await window._fbDb.collection('users').doc(uid).collection('sets').get();
+    setsSnap.forEach(async doc=>{
+      const sid=doc.id;
+      const setData=doc.data();
+      if(setData.owned){
+        const key=`pb_u_${pulledName}_s_${sid}`;
+        const val=JSON.stringify(setData.owned);
+        await idbSet(key,val);
+        _uCache[key]=val;
+      }
+      if(setData.megaMode!==undefined){
+        const mk=`pb_u_${pulledName}_mega_${sid}`;
+        await idbSet(mk,setData.megaMode?'1':'0');
+        _uCache[mk]=setData.megaMode?'1':'0';
+      }
+      if(setData.megaOpts){
+        const mok=`pb_u_${pulledName}_megaopts_${sid}`;
+        const val=JSON.stringify(setData.megaOpts);
+        await idbSet(mok,val);
+        _uCache[mok]=val;
+      }
+    });
+
+    await loginAs(pulledName,uid);
+    updateCloudBadge('synced');
+    showToast('☁ Collection synced ✓',true);
+  }catch(e){
+    console.warn('Pull from Firestore failed:',e);
+    showToast('Sync failed — using local data',false);
+    await loginAs(displayName,uid);
+  }
+}
+
+async function fbPushToFirestore(uid,userName){
+  if(!uid||!_fbDb)return;
+  try{
+    const db=window._fbDb;
+    const batch=db.batch();
+    const userRef=db.collection('users').doc(uid);
+
+    // Build user doc payload
+    const dexVal=_cGet(dexKey(userName));
+    const dexCardsVal=_cGet(dexCardKey(userName));
+    const eraColVal=_cGet(eraColKey(userName));
+    const userPayload={
+      displayName:userName,
+      lastSync:Date.now(),
+      dex:dexVal?JSON.parse(dexVal):[],
+      dexCards:dexCardsVal?JSON.parse(dexCardsVal):{},
+      eraCollapsed:eraColVal?JSON.parse(eraColVal):[]
+    };
+    batch.set(userRef,userPayload,{merge:true});
+    await batch.commit();
+    updateCloudBadge('synced');
+  }catch(e){
+    console.warn('Push to Firestore failed:',e);
+    updateCloudBadge('error');
+  }
+}
+
+async function fbSaveSet(setId,ownedArr,megaMode,megaOpts){
+  if(!_fbUid||!window._fbDb)return;
+  try{
+    await window._fbDb.collection('users').doc(_fbUid).collection('sets').doc(setId).set({
+      owned:ownedArr,megaMode:megaMode||false,megaOpts:megaOpts||{},updatedAt:Date.now()
+    },{merge:true});
+    updateCloudBadge('synced');
+  }catch(e){
+    console.warn('Firestore set save failed:',e);
+    updateCloudBadge('offline');
+  }
+}
+
+function updateCloudBadge(status){
+  const badge=document.getElementById('cloud-status-badge');
+  if(!badge)return;
+  badge.className='cloud-badge '+status;
+  badge.textContent=status==='synced'?'☁ Synced':status==='offline'?'⚡ Offline':'✕ Error';
+}
+
+// Migration dialog — shown when first signing into Google with existing local data
+async function showMigrationDialog(uid,displayName,localNames){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999999;display:flex;align-items:flex-end;justify-content:center';
+    overlay.innerHTML=`
+      <div style="background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:28px 20px 40px;width:100%;max-width:480px">
+        <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">☁ Upload your collection?</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.5">
+          You have ${localNames.length} local trainer${localNames.length!==1?'s':''} (${localNames.join(', ')}).<br>
+          Upload to the cloud so your collection is safe and accessible on any device.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button id="mg-upload" style="background:var(--accent);color:#0d0d1a;border:none;border-radius:10px;padding:14px;font-family:'Exo 2',sans-serif;font-size:15px;font-weight:700;cursor:pointer">
+            ☁ Yes, upload my collection
+          </button>
+          <button id="mg-skip" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border2);border-radius:10px;padding:14px;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer">
+            Start fresh (keep local data)
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    document.getElementById('mg-upload').onclick=async()=>{
+      overlay.remove();
+      await migrateLocalToFirestore(uid,displayName,localNames);
+      resolve();
+    };
+    document.getElementById('mg-skip').onclick=async()=>{
+      overlay.remove();
+      await fbCreateCloudUser(uid,displayName);
+      await loginAs(displayName,uid);
+      resolve();
+    };
+  });
+}
+
+async function migrateLocalToFirestore(uid,displayName,localNames){
+  showToast('Uploading collection...',true);
+  try{
+    const db=window._fbDb;
+    // Use first local user's data as the cloud user
+    const sourceName=localNames[0];
+
+    // Create user doc
+    await db.collection('users').doc(uid).set({
+      displayName:sourceName,
+      createdAt:Date.now(),
+      lastSync:Date.now(),
+      dex:[],dexCards:{},eraCollapsed:[]
+    });
+
+    // Load source user's IDB data
+    const keys=await idbKeys(`pb_u_${sourceName}_`);
+    const sets={};
+    for(const k of keys){
+      const v=await idbGet(k);
+      if(!v)continue;
+      if(k.startsWith(`pb_u_${sourceName}_s_`)){
+        const sid=k.replace(`pb_u_${sourceName}_s_`,'');
+        try{sets[sid]={...(sets[sid]||{}),owned:JSON.parse(v)};}catch{}
+      } else if(k.startsWith(`pb_u_${sourceName}_mega_`)&&!k.includes('megaopts')){
+        const sid=k.replace(`pb_u_${sourceName}_mega_`,'');
+        try{sets[sid]={...(sets[sid]||{}),megaMode:v==='1'};}catch{}
+      } else if(k.startsWith(`pb_u_${sourceName}_megaopts_`)){
+        const sid=k.replace(`pb_u_${sourceName}_megaopts_`,'');
+        try{sets[sid]={...(sets[sid]||{}),megaOpts:JSON.parse(v)};}catch{}
+      } else if(k===dexKey(sourceName)){
+        try{await db.collection('users').doc(uid).update({dex:JSON.parse(v)});}catch{}
+      } else if(k===dexCardKey(sourceName)){
+        try{await db.collection('users').doc(uid).update({dexCards:JSON.parse(v)});}catch{}
+      } else if(k===eraColKey(sourceName)){
+        try{await db.collection('users').doc(uid).update({eraCollapsed:JSON.parse(v)});}catch{}
+      }
+    }
+
+    // Upload sets
+    const batch=db.batch();
+    for(const [sid,setData] of Object.entries(sets)){
+      if(setData.owned?.length){
+        const ref=db.collection('users').doc(uid).collection('sets').doc(sid);
+        batch.set(ref,{owned:setData.owned||[],megaMode:setData.megaMode||false,megaOpts:setData.megaOpts||{},updatedAt:Date.now()});
+      }
+    }
+    await batch.commit();
+    localStorage.setItem('pb_cloud_migrated','1');
+    showToast('Collection uploaded! ✓',true);
+    await fbPullFromFirestore(uid,sourceName);
+  }catch(e){
+    console.warn('Migration failed:',e);
+    showToast('Upload failed — using local data',false);
+    await loginAs(displayName,uid);
+  }
+}
 // ════════════════════════════════════════════════════════
 function openTrainerMenu(){
   if(!currentUser)return;
-  // Populate stats
-  document.getElementById('tm-avatar').textContent=currentUser.substring(0,2).toUpperCase();
+  const avatarEl=document.getElementById('tm-avatar');
+  if(_fbUser?.photoURL){
+    avatarEl.innerHTML=`<img src="${_fbUser.photoURL}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`;
+    avatarEl.style.background='none';
+  } else {
+    avatarEl.textContent=currentUser.substring(0,2).toUpperCase();
+    avatarEl.style.background='';
+  }
   document.getElementById('tm-name').textContent=currentUser;
-  // Count sets efficiently using cached keys
+  document.getElementById('tm-sub').textContent=_fbUser?.email||
+    (getUsers()[currentUser]?.created?'Trainer since '+new Date(getUsers()[currentUser].created).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'Local trainer');
   const setKeys=_cKeys(`pb_u_${currentUser}_s_`);
   const setsStarted=setKeys.filter(k=>{try{return JSON.parse(_cGet(k)||'[]').length>0;}catch{return false;}}).length;
   const setsComplete=setKeys.filter(k=>{
@@ -2769,11 +3245,7 @@ function openTrainerMenu(){
   document.getElementById('tm-sets').textContent=setsStarted;
   document.getElementById('tm-dex').textContent=`${dexOwned}/1025`;
   document.getElementById('tm-complete').textContent=setsComplete;
-  const users=getUsers();
-  const created=users[currentUser]?.created;
-  document.getElementById('tm-sub').textContent=created?'Trainer since '+new Date(created).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'';
-  // App version from login screen
-  document.getElementById('tm-version').textContent=APP_VERSION;
+  document.getElementById('tm-version').textContent=APP_VERSION+(_fbUid?' ☁':'');
   document.getElementById('trainer-menu-overlay').classList.add('show');
   pushOverlay(closeTrainerMenu);
 }
@@ -3242,10 +3714,8 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();});
 
 (async function boot(){
-  // Init IndexedDB and migrate localStorage data on first run
   try{await openIDB();await migrateToIDB();}
   catch(e){console.warn('IDB init/migration failed:',e);}
-  // Clean old card cache keys
   try{
     Object.keys(localStorage)
       .filter(k=>k.match(/^pb_cards_v[123]_/)||k==='pb_ms_tot_undefined')
@@ -3259,8 +3729,16 @@ window.addEventListener('pagehide',()=>{if(currentUser&&_dirty)saveCurrentSet();
   renderLoginScreen();
   setupScrollTopFab();
   initKeyboardAdjust();
-  // Defer share import check so login screen renders first
   setTimeout(checkShareImport,300);
+  // If Firebase doesn't resolve within 4s (blocked/offline), fall back to local session
+  setTimeout(()=>{
+    if(!_fbReady){
+      _fbReady=true;
+      const saved=localStorage.getItem('pb_session');
+      if(saved&&getUsers()[saved]){loginAs(saved);return;}
+      renderLoginScreen();
+    }
+  },4000);
 })();
 
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW registration failed:',e));
