@@ -16,7 +16,7 @@
 import { openDB } from 'idb'
 
 const DB_NAME = 'masterbinder'
-const DB_VERSION = 1
+const DB_VERSION = 2 // bumped to force upgrade and create any missing stores
 
 // Cache the PROMISE (not the resolved value) so concurrent calls
 // before the first resolves all share the same openDB call.
