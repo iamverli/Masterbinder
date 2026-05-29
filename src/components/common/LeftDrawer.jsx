@@ -1,8 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useApp } from '../../context/AppContext'
 import { signOutUser } from '../../firebase/auth'
-import { idbSetMeta, exportLocalData, clearAllLocalData } from '../../db/indexeddb'
+import {
+  idbSetMeta,
+  exportLocalData,
+  importLocalData,
+  clearAllLocalData,
+  idbPutCardCache,
+  getDB,
+} from '../../db/indexeddb'
 import SwipeToConfirm from './SwipeToConfirm'
 import { APP_VERSION } from '../../screens/Landing'
 import styles from './LeftDrawer.module.css'
@@ -12,25 +20,41 @@ const NAV_ITEMS = [
   { icon: '📖', label: 'National Pokédex', path: '/pokedex' },
 ]
 
-const SYNC_LABELS = {
-  syncing: { text: 'Syncing…', cls: 'syncing' },
-  done:    { text: 'Synced',   cls: 'done' },
-  error:   { text: 'Sync failed', cls: 'error' },
-}
-
 export default function LeftDrawer({ open, onClose }) {
   const navigate = useNavigate()
   const { user, isLocal, syncStatus } = useAuth()
+  const { pokedexOwnedCount, setsInProgress, setsCompleted, reload } = useApp()
 
   const [confirmClear, setConfirmClear] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [lastSync, setLastSync] = useState(null)
+  const [clearingCache, setClearingCache] = useState(false)
+  const importRef = useRef(null)
+
+  // PWA install prompt
+  const [installPrompt, setInstallPrompt] = useState(null)
+  useEffect(() => {
+    function handler(e) { e.preventDefault(); setInstallPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  // Track sync status → last sync time
+  useEffect(() => {
+    if (syncStatus === 'done') setLastSync(new Date())
+  }, [syncStatus])
 
   const displayName = user?.displayName || (isLocal ? 'Local Trainer' : 'Trainer')
   const email = user?.email || null
   const avatarLetter = displayName[0].toUpperCase()
   const avatarPhoto = user?.photoURL || null
 
-  const syncInfo = syncStatus ? SYNC_LABELS[syncStatus] : null
+  const setsActiveCount = setsInProgress.length
+  const setsDoneCount = setsCompleted.length
+
+  function handleNav(path) { onClose(); navigate(path) }
 
   async function handleSignOut() {
     onClose()
@@ -40,11 +64,6 @@ export default function LeftDrawer({ open, onClose }) {
       await idbSetMeta('localMode', false)
       window.location.href = '/landing'
     }
-  }
-
-  function handleNav(path) {
-    onClose()
-    navigate(path)
   }
 
   async function handleExport() {
@@ -63,38 +82,113 @@ export default function LeftDrawer({ open, onClose }) {
     }
   }
 
+  async function handleImport(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImporting(true)
+    try {
+      const text = await file.text()
+      const json = JSON.parse(text)
+      await importLocalData(json)
+      window.location.reload()
+    } catch {
+      alert("Could not import — make sure it's a valid MasterBinder backup file.")
+    } finally {
+      setImporting(false)
+      e.target.value = ''
+    }
+  }
+
+  async function handleRefreshSets() {
+    // Clear the all-sets cache so SetSelector re-fetches from API
+    await idbPutCardCache('__all_sets__', null)
+    onClose()
+  }
+
+  async function handleClearCache() {
+    setClearingCache(true)
+    try {
+      const db = await getDB()
+      await db.clear('cardCache')
+    } finally {
+      setClearingCache(false)
+    }
+  }
+
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      await reload()
+      setLastSync(new Date())
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  async function handleInstall() {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    await installPrompt.userChoice
+    setInstallPrompt(null)
+  }
+
   async function handleClearConfirmed() {
     setConfirmClear(false)
     await clearAllLocalData()
     window.location.href = '/landing'
   }
 
+  const syncLabel = syncing
+    ? 'Syncing…'
+    : lastSync
+      ? `Synced ${lastSync.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+      : syncStatus === 'error'
+        ? 'Sync failed'
+        : 'Sync'
+
   if (!open) return null
 
   return (
     <>
-      {/* Backdrop */}
       <div className={styles.backdrop} onClick={onClose} />
 
-      {/* Drawer */}
       <div className={styles.drawer}>
 
-        {/* ── Profile section ─────────────────────────────────────────── */}
+        {/* ── Profile + stats ──────────────────────────────────────────── */}
         <div className={styles.profile}>
-          {avatarPhoto ? (
-            <img src={avatarPhoto} className={styles.avatar} alt={displayName} />
-          ) : (
-            <div className={styles.avatarFallback}>{avatarLetter}</div>
-          )}
-          <div className={styles.profileInfo}>
-            <span className={styles.profileName}>{displayName}</span>
-            {email && <span className={styles.profileEmail}>{email}</span>}
-            {isLocal && <span className={styles.localBadge}>Local Mode</span>}
-            {syncInfo && (
-              <span className={`${styles.syncBadge} ${styles['syncBadge_' + syncInfo.cls]}`}>
-                {syncInfo.text}
-              </span>
+          <div className={styles.profileTop}>
+            {avatarPhoto ? (
+              <img src={avatarPhoto} className={styles.avatar} alt={displayName} />
+            ) : (
+              <div className={styles.avatarFallback}>{avatarLetter}</div>
             )}
+            <div className={styles.profileInfo}>
+              <span className={styles.profileName}>{displayName}</span>
+              {email && <span className={styles.profileEmail}>{email}</span>}
+              {isLocal
+                ? <span className={styles.localBadge}>Local · Not synced</span>
+                : <span className={styles.syncedBadge}>
+                    {syncStatus === 'syncing' ? '↻ Syncing…' : '✓ Synced'}
+                  </span>
+              }
+            </div>
+          </div>
+          {/* Inline stats */}
+          <div className={styles.statsRow}>
+            <div className={styles.stat}>
+              <span className={styles.statVal}>{pokedexOwnedCount}</span>
+              <span className={styles.statLbl}>Dex Owned</span>
+            </div>
+            <div className={styles.statDivider} />
+            <div className={styles.stat}>
+              <span className={styles.statVal}>{setsActiveCount}</span>
+              <span className={styles.statLbl}>Sets Active</span>
+            </div>
+            <div className={styles.statDivider} />
+            <div className={styles.stat}>
+              <span className={`${styles.statVal} ${setsDoneCount > 0 ? styles.statValGold : ''}`}>{setsDoneCount}</span>
+              <span className={styles.statLbl}>Sets Done</span>
+            </div>
           </div>
         </div>
 
@@ -103,11 +197,7 @@ export default function LeftDrawer({ open, onClose }) {
         {/* ── Navigation ──────────────────────────────────────────────── */}
         <nav className={styles.nav}>
           {NAV_ITEMS.map((item) => (
-            <button
-              key={item.path}
-              className={styles.navItem}
-              onClick={() => handleNav(item.path)}
-            >
+            <button key={item.path} className={styles.navItem} onClick={() => handleNav(item.path)}>
               <span className={styles.navIcon}>{item.icon}</span>
               <span className={styles.navLabel}>{item.label}</span>
             </button>
@@ -116,29 +206,76 @@ export default function LeftDrawer({ open, onClose }) {
 
         <div className={styles.divider} />
 
-        {/* ── Settings section ─────────────────────────────────────────── */}
+        {/* ── Settings ─────────────────────────────────────────────────── */}
         <div className={styles.section}>
-          <span className={styles.sectionLabel}>Data</span>
-          <button
-            className={styles.navItem}
-            onClick={handleExport}
-            disabled={exporting}
-          >
+          <span className={styles.sectionLabel}>Settings</span>
+
+          {/* Dark mode row — always on, visual only */}
+          <div className={styles.navItem}>
+            <span className={styles.navIcon}>🌙</span>
+            <span className={styles.navLabel}>Dark Mode</span>
+            <div className={styles.toggleOn} />
+          </div>
+
+          {/* Export */}
+          <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
             <span className={styles.navIcon}>💾</span>
-            <span className={styles.navLabel}>
-              {exporting ? 'Exporting…' : 'Export collection'}
-            </span>
+            <span className={styles.navLabel}>{exporting ? 'Exporting…' : 'Export collection'}</span>
+            <span className={styles.navChevron}>›</span>
           </button>
-          <button
-            className={`${styles.navItem} ${styles.navItemDanger}`}
-            onClick={() => setConfirmClear(true)}
-          >
-            <span className={styles.navIcon}>🗑</span>
-            <span className={styles.navLabel}>Clear all data</span>
+
+          {/* Import */}
+          <button className={styles.navItem} onClick={() => importRef.current?.click()} disabled={importing}>
+            <span className={styles.navIcon}>📂</span>
+            <span className={styles.navLabel}>{importing ? 'Importing…' : 'Import collection'}</span>
+            <span className={styles.navChevron}>›</span>
+          </button>
+          <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+
+          {/* Refresh Sets List */}
+          <button className={styles.navItem} onClick={handleRefreshSets}>
+            <span className={styles.navIcon}>🔄</span>
+            <span className={styles.navLabel}>Refresh Sets List</span>
+            <span className={styles.navChevron}>›</span>
+          </button>
+
+          {/* Clear Cache */}
+          <button className={styles.navItem} onClick={handleClearCache} disabled={clearingCache}>
+            <span className={styles.navIcon}>🗂</span>
+            <span className={styles.navLabel}>{clearingCache ? 'Clearing…' : 'Clear Cache'}</span>
+            <span className={styles.navChevron}>›</span>
+          </button>
+        </div>
+
+        <div className={styles.divider} />
+
+        {/* ── Help ─────────────────────────────────────────────────────── */}
+        <div className={styles.section}>
+          <button className={styles.navItem} onClick={() => window.open('https://www.bluemooncollectibles.com', '_blank')}>
+            <span className={styles.navIcon}>❓</span>
+            <span className={styles.navLabel}>How to use MasterBinder</span>
+            <span className={styles.navChevron}>›</span>
           </button>
         </div>
 
         <div className={styles.spacer} />
+
+        {/* ── Install + Sync row ───────────────────────────────────────── */}
+        <div className={styles.actionRow}>
+          {installPrompt && (
+            <button className={styles.installBtn} onClick={handleInstall}>
+              <span>📲</span> Install App
+            </button>
+          )}
+          <button
+            className={`${styles.syncBtn} ${syncing ? styles.syncBtnBusy : ''}`}
+            onClick={handleSync}
+            disabled={syncing}
+          >
+            <span>{syncing ? '↻' : '✓'}</span>
+            <span>{syncLabel}</span>
+          </button>
+        </div>
 
         {/* ── Bottom ──────────────────────────────────────────────────── */}
         <div className={styles.bottom}>
@@ -147,9 +284,14 @@ export default function LeftDrawer({ open, onClose }) {
             <span className={styles.navIcon}>🚪</span>
             <span>{isLocal ? 'Back to Login' : 'Sign Out'}</span>
           </button>
-          <span className={styles.version}>{APP_VERSION}</span>
+          <button className={styles.version} onClick={() => console.log('MasterBinder', APP_VERSION)}>
+            {APP_VERSION}
+          </button>
         </div>
       </div>
+
+      {/* ── Danger zone: Export/Import sub-actions ───────────────────── */}
+      {/* Tapping Export/Import shows the choice inline */}
 
       {/* ── Clear data confirmation ──────────────────────────────────── */}
       {confirmClear && (

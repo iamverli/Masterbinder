@@ -94,6 +94,7 @@ export default function SetSelector({ onClose }) {
 
         {/* Header */}
         <div className={styles.header}>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close">✕</button>
           <span className={styles.title}>Add a Set</span>
           <button className={styles.expandBtn} onClick={toggleAll}>
             {allExpanded ? 'Collapse All' : 'Expand All'}

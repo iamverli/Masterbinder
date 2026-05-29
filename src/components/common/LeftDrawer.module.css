@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.55);
   backdrop-filter: blur(3px);
   z-index: 200;
 }
@@ -30,24 +30,28 @@
 
 /* ── Profile ──────────────────────────────────────────────────────────────── */
 .profile {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-6) var(--space-5) var(--space-5);
+  padding: var(--space-5) var(--space-4) var(--space-4);
   flex-shrink: 0;
 }
 
+.profileTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
 .avatar {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-pill);
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .avatarFallback {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-pill);
   background: var(--accent);
   display: flex;
@@ -62,7 +66,7 @@
 .profileInfo {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -84,28 +88,64 @@
 }
 
 .localBadge {
-  display: inline-block;
   font-size: var(--font-size-xs);
-  color: var(--accent);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.syncedBadge {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
   font-weight: 600;
 }
 
-/* ── Sync badge ───────────────────────────────────────────────────────────── */
-.syncBadge {
-  display: inline-block;
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+/* ── Stats row ────────────────────────────────────────────────────────────── */
+.statsRow {
+  display: flex;
+  align-items: center;
+  background: var(--bg-overlay);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) 0;
 }
 
-.syncBadge_syncing { color: var(--text-muted); }
-.syncBadge_done    { color: var(--color-success); }
-.syncBadge_error   { color: var(--color-error); }
+.stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.statVal {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.statValGold { color: var(--accent); }
+
+.statLbl {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.statDivider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
 
 /* ── Divider ──────────────────────────────────────────────────────────────── */
 .divider {
   height: 1px;
   background: rgba(255,255,255,0.06);
-  margin: 0 var(--space-5);
+  margin: 0 var(--space-4);
   flex-shrink: 0;
 }
 
@@ -113,8 +153,8 @@
 .nav {
   display: flex;
   flex-direction: column;
-  padding: var(--space-3) var(--space-2);
-  gap: 2px;
+  padding: var(--space-2) var(--space-2);
+  gap: 1px;
   flex-shrink: 0;
 }
 
@@ -122,40 +162,66 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 14px var(--space-3);
+  padding: 13px var(--space-3);
   border-radius: var(--radius-lg);
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition-fast);
   width: 100%;
+  transition: background var(--transition-fast);
 }
 
 .navItem:active { background: rgba(255,255,255,0.06); }
 .navItem:disabled { opacity: 0.5; pointer-events: none; }
 
-.navItemDanger .navLabel { color: var(--color-error) !important; }
-.navItemDanger:active { background: rgba(239,68,68,0.08); }
-
 .navIcon {
-  font-size: 18px;
+  font-size: 17px;
   width: 24px;
   text-align: center;
   flex-shrink: 0;
 }
 
 .navLabel {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   font-weight: 500;
+  flex: 1;
 }
 
-/* ── Settings section ─────────────────────────────────────────────────────── */
+.navChevron {
+  font-size: 18px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* ── Dark mode toggle (always on) ─────────────────────────────────────────── */
+.toggleOn {
+  width: 36px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.toggleOn::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #000;
+}
+
+/* ── Section ──────────────────────────────────────────────────────────────── */
 .section {
   display: flex;
   flex-direction: column;
-  padding: var(--space-2) var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-2) var(--space-2);
   flex-shrink: 0;
 }
 
@@ -165,17 +231,65 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: var(--space-3) var(--space-3) var(--space-2);
+  padding: var(--space-2) var(--space-3);
 }
 
-.spacer { flex: 1; min-height: var(--space-4); }
+.spacer { flex: 1; min-height: var(--space-3); }
+
+/* ── Install + Sync row ───────────────────────────────────────────────────── */
+.actionRow {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+}
+
+.installBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--bg-overlay);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.installBtn:active { background: rgba(255,255,255,0.1); }
+
+.syncBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  border: none;
+  color: #000;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.syncBtnBusy { opacity: 0.6; }
+.syncBtn:disabled { pointer-events: none; }
 
 /* ── Bottom ───────────────────────────────────────────────────────────────── */
 .bottom {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
   flex-shrink: 0;
 }
 
@@ -183,21 +297,25 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 14px var(--space-5);
+  padding: 13px var(--space-5);
   background: none;
   border: none;
   cursor: pointer;
   width: 100%;
   text-align: left;
   color: var(--text-secondary);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   transition: color var(--transition-fast);
 }
 
 .signOutBtn:active { color: var(--color-error); }
 
 .version {
-  padding: 0 var(--space-5);
+  padding: var(--space-1) var(--space-5) var(--space-3);
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
 }

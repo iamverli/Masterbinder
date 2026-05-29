@@ -24,6 +24,24 @@
   color: var(--text-primary);
 }
 
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-overlay);
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+
+.closeBtn:active { background: rgba(255,255,255,0.1); }
+
 .expandBtn {
   background: none;
   border: none;
