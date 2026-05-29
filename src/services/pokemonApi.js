@@ -39,12 +39,14 @@ export async function fetchAllSets() {
   const cached = await idbGetCardCache('__all_sets__')
   if (cached) return cached
 
-  // Check Firestore cache
-  const firestoreCached = await getCachedSet('__all_sets__')
-  if (firestoreCached?.data) {
-    await idbPutCardCache('__all_sets__', firestoreCached.data)
-    return firestoreCached.data
-  }
+  // Check Firestore cache (fail silently — rules may not cover cache path)
+  try {
+    const firestoreCached = await getCachedSet('__all_sets__')
+    if (firestoreCached?.data) {
+      await idbPutCardCache('__all_sets__', firestoreCached.data)
+      return firestoreCached.data
+    }
+  } catch { /* cache miss — fall through to API */ }
 
   // Fetch from API — paginate through all sets
   let page = 1
@@ -73,8 +75,8 @@ export async function fetchAllSets() {
     },
   }))
 
-  // Cache in Firestore and IndexedDB
-  await setCachedSet('__all_sets__', { data: normalized })
+  // Cache in Firestore and IndexedDB (Firestore optional — fail silently)
+  try { await setCachedSet('__all_sets__', { data: normalized }) } catch { /* ok */ }
   await idbPutCardCache('__all_sets__', normalized)
 
   return normalized
@@ -90,12 +92,14 @@ export async function fetchSetCards(setId) {
   const cached = await idbGetCardCache(setId)
   if (cached) return cached
 
-  // Check Firestore cache
-  const firestoreCached = await getCachedSet(setId)
-  if (firestoreCached?.data) {
-    await idbPutCardCache(setId, firestoreCached.data)
-    return firestoreCached.data
-  }
+  // Check Firestore cache (fail silently)
+  try {
+    const firestoreCached = await getCachedSet(setId)
+    if (firestoreCached?.data) {
+      await idbPutCardCache(setId, firestoreCached.data)
+      return firestoreCached.data
+    }
+  } catch { /* cache miss — fall through to API */ }
 
   // Fetch from API — paginate
   let page = 1
@@ -150,8 +154,8 @@ export async function fetchSetCards(setId) {
 
   const result = { base, master: normalized }
 
-  // Cache
-  await setCachedSet(setId, { data: result })
+  // Cache (Firestore optional — fail silently)
+  try { await setCachedSet(setId, { data: result }) } catch { /* ok */ }
   await idbPutCardCache(setId, result)
 
   return result
