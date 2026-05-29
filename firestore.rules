@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── User data — only the owner can read/write ──────────────────────────
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── Shared card/set cache — readable by anyone authenticated ──────────
+    // This is the shared TCG API response cache (not user data).
+    match /cache/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // ── Public share snapshots — readable by anyone, writable only by owner
+    // Written when a signed-in user opens the Share sheet.
+    // Contains: displayName, pokedexOwned count, sets progress — no PII.
+    match /publicProfiles/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

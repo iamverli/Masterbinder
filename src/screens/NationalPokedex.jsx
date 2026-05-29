@@ -258,6 +258,10 @@ export default function NationalPokedex() {
             setRemovePokemon(detailPokemon)
           }}
           onClose={() => setDetailPokemon(null)}
+          onSavePurchasePrice={(price) => {
+            const existing = pokedex[detailPokemon.dexNumber] || {}
+            setPokedexCard(detailPokemon.dexNumber, { ...existing, purchasePrice: price })
+          }}
         />
       )}
 

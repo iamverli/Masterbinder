@@ -1,6 +1,6 @@
 .sheet {
   width: 100%;
-  height: 92vh;
+  height: 92dvh;
   background: var(--bg-card);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   display: flex;
@@ -39,8 +39,7 @@
   flex-shrink: 0;
   transition: background var(--transition-fast);
 }
-
-.closeBtn:active { background: rgba(255,255,255,0.1); }
+.closeBtn:active { background: var(--surface-medium); }
 
 .expandBtn {
   background: none;
@@ -52,7 +51,6 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-
 .expandBtn:active { color: var(--accent); }
 
 /* ── Era list ─────────────────────────────────────────────────────────────── */
@@ -101,14 +99,29 @@
   text-align: left;
   transition: background var(--transition-fast);
 }
-
-.eraHeader:active { background: rgba(255,255,255,0.04); }
+.eraHeader:active { background: var(--surface-subtle); }
 
 .eraName {
   flex: 1;
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.eraRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.startedBadge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
 }
 
 .eraCount {
@@ -123,38 +136,75 @@
 
 /* ── Set list ─────────────────────────────────────────────────────────────── */
 .setList {
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid var(--separator);
 }
 
 .setItem {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px var(--space-4);
+  gap: var(--space-3);
+  padding: 10px var(--space-4);
   background: none;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--separator);
   cursor: pointer;
   text-align: left;
-  gap: var(--space-3);
   transition: background var(--transition-fast);
 }
-
-.setItem:active { background: rgba(255,255,255,0.04); }
+.setItem:active { background: var(--surface-subtle); }
 .setItem:last-child { border-bottom: none; }
 
-.setAdded {
-  opacity: 0.5;
-  pointer-events: none;
+.setItemAdded { /* already in user's collection — keep fully tappable */ }
+
+.setItemComplete {
+  background: rgba(245, 196, 48, 0.04);
 }
 
-.setInfo {
+/* ── Logo ─────────────────────────────────────────────────────────────────── */
+.logoWrap {
+  width: 68px;
+  height: 40px;
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.setLogo {
+  max-width: 68px;
+  max-height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+}
+
+.setSymbol {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+}
+
+.logoFallback {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--surface-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* ── Set info ─────────────────────────────────────────────────────────────── */
+.setInfo {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .setName {
@@ -167,13 +217,58 @@
 }
 
 .setMeta {
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   color: var(--text-muted);
 }
 
+/* ── Progress ─────────────────────────────────────────────────────────────── */
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 4px;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 4px;
+  background: var(--surface-medium);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.progressComplete {
+  background: linear-gradient(90deg, var(--accent), #f5c430);
+}
+
+.progressLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── Action icons ─────────────────────────────────────────────────────────── */
+.goIcon {
+  font-size: 20px;
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .addIcon {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--radius-pill);
   background: var(--accent-glow);
   border: 1px solid var(--accent-dim);
@@ -187,18 +282,11 @@
   line-height: 1;
 }
 
-.addedBadge {
-  font-size: var(--font-size-xs);
-  color: var(--color-success);
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
 /* ── Search bar ───────────────────────────────────────────────────────────── */
 .searchBar {
   flex-shrink: 0;
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--separator);
   background: var(--bg-card);
 }
 
@@ -210,8 +298,8 @@
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: var(--font-size-base);
+  box-sizing: border-box;
 }
-
 .searchInput:focus {
   border-color: var(--accent);
   outline: none;

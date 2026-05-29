@@ -1,0 +1,171 @@
+.sheet {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: var(--safe-bottom);
+}
+
+.handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-medium);
+  margin: 10px auto 0;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-subtle);
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+.closeBtn:active { background: var(--surface-medium); }
+
+/* ── QR code ──────────────────────────────────────────────────────────────── */
+.qrWrap {
+  padding: var(--space-4) 0 var(--space-2);
+}
+
+.qrImg {
+  width: 220px;
+  height: 220px;
+  border-radius: var(--radius-xl);
+  display: block;
+  background: #fff;
+}
+
+.qrPlaceholder {
+  width: 220px;
+  height: 220px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--surface-medium);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Status ───────────────────────────────────────────────────────────────── */
+.statusRow {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--space-2) 0 var(--space-1);
+}
+
+.statusText {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.statusOk {
+  font-size: 12px;
+  color: var(--color-success, #4caf82);
+  font-weight: 600;
+}
+
+.statusErr {
+  font-size: 12px;
+  color: var(--color-error);
+}
+
+.errorText {
+  font-size: 12px;
+  color: var(--color-error);
+  text-align: center;
+  padding: var(--space-3);
+}
+
+/* ── URL row ──────────────────────────────────────────────────────────────── */
+.urlRow {
+  background: var(--bg-overlay);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  margin: 0 var(--space-4) var(--space-3);
+  width: calc(100% - var(--space-8));
+  box-sizing: border-box;
+}
+
+.urlText {
+  font-size: 11px;
+  color: var(--text-muted);
+  word-break: break-all;
+  font-family: monospace;
+}
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.actions {
+  padding: 0 var(--space-4);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.copyBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  border: none;
+  color: #000;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+  font-family: inherit;
+}
+
+.copyBtn:active { opacity: 0.8; }
+.copyBtn:disabled { opacity: 0.5; cursor: default; }
+
+.copyBtnDone {
+  background: var(--color-success, #4caf82);
+  color: #fff;
+}
+
+/* ── Info ─────────────────────────────────────────────────────────────────── */
+.info {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-3) var(--space-5) var(--space-4);
+  line-height: 1.5;
+  margin: 0;
+}

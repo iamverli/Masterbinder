@@ -1,14 +1,27 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Landing from './screens/Landing'
 import Onboarding from './screens/Onboarding'
 import Home from './screens/Home'
 import NationalPokedex from './screens/NationalPokedex'
 import SetTracker from './screens/SetTracker'
+import GuestView from './screens/GuestView'
 import LoadingScreen from './components/common/LoadingScreen'
 
 export default function App() {
   const { isLoading, isAuthenticated, onboardingDone } = useAuth()
+  const location = useLocation()
+
+  // Guest view is public — render immediately, no auth check needed.
+  // Checked before the loading guard so the page doesn't flash a spinner
+  // when someone opens a share link directly.
+  if (location.pathname.startsWith('/guest/')) {
+    return (
+      <Routes>
+        <Route path="/guest/:uid" element={<GuestView />} />
+      </Routes>
+    )
+  }
 
   if (isLoading || onboardingDone === null) return <LoadingScreen />
 

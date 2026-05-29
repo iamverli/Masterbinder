@@ -1,3 +1,8 @@
+/* Needs to sit above the drawer (z-index 201) */
+.overlay {
+  z-index: 300;
+}
+
 .sheet {
   width: 100%;
   max-width: 480px;
@@ -17,7 +22,7 @@
   justify-content: space-between;
   padding: var(--space-4) var(--space-4) var(--space-3);
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--separator);
 }
 
 .title {
@@ -30,7 +35,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-subtle);
   border: none;
   cursor: pointer;
   color: var(--text-secondary);
@@ -41,7 +46,7 @@
   transition: background var(--transition-fast);
 }
 
-.closeBtn:active { background: rgba(255,255,255,0.15); }
+.closeBtn:active { background: var(--surface-medium); }
 
 /* ── Scroll ───────────────────────────────────────────────────────────────── */
 .scroll {

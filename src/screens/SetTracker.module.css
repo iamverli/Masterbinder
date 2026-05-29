@@ -33,7 +33,7 @@
   transition: background var(--transition-fast);
 }
 
-.backBtn:active { background: rgba(255,255,255,0.1); }
+.backBtn:active { background: var(--surface-medium); }
 
 .headerCenter {
   flex: 1;
@@ -65,7 +65,7 @@
   padding: 6px 14px;
   border-radius: var(--radius-pill);
   background: var(--bg-overlay);
-  border: 1.5px solid rgba(255,255,255,0.1);
+  border: 1.5px solid var(--surface-medium);
   color: var(--text-muted);
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -213,7 +213,7 @@
   transition: background var(--transition-fast);
 }
 
-.groupHeader:active { background: rgba(255,255,255,0.04); }
+.groupHeader:active { background: var(--surface-subtle); }
 
 .groupLabel {
   flex: 1;
@@ -238,7 +238,7 @@
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3) var(--space-3);
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid var(--surface-subtle);
 }
 
 /* ── Card tile ────────────────────────────────────────────────────────────── */
@@ -295,7 +295,7 @@
 
 .cardDots:active {
   color: var(--text-primary);
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-subtle);
 }
 
 .cardTileImg {
@@ -373,7 +373,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4) var(--space-4) var(--space-3);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--separator);
 }
 
 .detailClose {
@@ -391,7 +391,7 @@
   transition: background var(--transition-fast);
 }
 
-.detailClose:active { background: rgba(255,255,255,0.1); }
+.detailClose:active { background: var(--surface-medium); }
 
 .detailTitle {
   font-size: var(--font-size-base);
@@ -453,5 +453,5 @@
   display: flex;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4) var(--space-4);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--separator);
 }

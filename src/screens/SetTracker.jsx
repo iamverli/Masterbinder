@@ -59,9 +59,28 @@ export default function SetTracker() {
     fetchSetCards(setId)
       .then(data => {
         setCards(data)
-        // Open first group by default
+
+        // Backfill set metadata if it was imported from legacy format
+        // (setName === setId means it's a placeholder, printedTotal === 0 means unknown)
+        const firstCard = data.master?.[0] || data.base?.[0]
+        if (firstCard && setData) {
+          const needsUpdate =
+            setData.setName === setId ||
+            !setData.printedTotal ||
+            setData.printedTotal === 0
+          if (needsUpdate) {
+            updateSet(setId, {
+              setName: firstCard.set?.name || setData.setName,
+              series: firstCard.set?.series || setData.series,
+              printedTotal: firstCard.set?.printedTotal || setData.printedTotal,
+              total: firstCard.set?.total || setData.total,
+            })
+          }
+        }
+
+            // Open first group by default
         const activeCards = isMaster ? data.master : data.base
-        const groups = getGroups(activeCards, isMaster)
+        const groups = getGroups(activeCards)
         if (groups.length > 0) {
           setExpandedGroups({ [groups[0].label]: true })
         }
@@ -91,43 +110,24 @@ export default function SetTracker() {
   const pct = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0
   const isComplete = ownedCount >= totalCards && totalCards > 0
 
-  function getGroups(cardList, masterMode) {
-    if (!masterMode) {
-      // Base mode: group by supertype (Pokémon / Trainer / Energy)
-      const supertypes = {}
-      cardList.forEach(c => {
-        const group = c.supertype || 'Other'
-        if (!supertypes[group]) supertypes[group] = []
-        supertypes[group].push(c)
+  // Always group by supertype (Pokémon / Trainer / Energy)
+  // Masterset mode just shows the full card list — grouping stays the same
+  function getGroups(cardList) {
+    const supertypes = {}
+    cardList.forEach(c => {
+      const group = c.supertype || 'Other'
+      if (!supertypes[group]) supertypes[group] = []
+      supertypes[group].push(c)
+    })
+    return Object.entries(supertypes)
+      .sort(([a], [b]) => {
+        const order = ['Pokémon', 'Trainer', 'Energy', 'Other']
+        return order.indexOf(a) - order.indexOf(b)
       })
-      return Object.entries(supertypes)
-        .sort(([a], [b]) => {
-          const order = ['Pokémon', 'Trainer', 'Energy', 'Other']
-          return order.indexOf(a) - order.indexOf(b)
-        })
-        .map(([label, items]) => ({ label, items: items.sort(sortByNumber) }))
-    } else {
-      // Masterset mode: group by rarity
-      const rarities = {}
-      cardList.forEach(c => {
-        const group = getRarityGroup(c)
-        if (!rarities[group]) rarities[group] = []
-        rarities[group].push(c)
-      })
-      return Object.entries(rarities)
-        .sort(([a], [b]) => {
-          const ia = RARITY_ORDER.indexOf(a)
-          const ib = RARITY_ORDER.indexOf(b)
-          if (ia === -1 && ib === -1) return a.localeCompare(b)
-          if (ia === -1) return 1
-          if (ib === -1) return -1
-          return ia - ib
-        })
-        .map(([label, items]) => ({ label, items: items.sort(sortByNumber) }))
-    }
+      .map(([label, items]) => ({ label, items: items.sort(sortByNumber) }))
   }
 
-  const groups = getGroups(activeCards, isMaster)
+  const groups = getGroups(activeCards)
 
   function toggleMode() {
     const next = !isMaster
@@ -135,7 +135,7 @@ export default function SetTracker() {
     updateSet(setId, { mastersetMode: next })
     // Open first group
     const nextCards = next ? cards.master : cards.base
-    const nextGroups = getGroups(nextCards, next)
+    const nextGroups = getGroups(nextCards)
     if (nextGroups.length > 0) {
       setExpandedGroups({ [nextGroups[0].label]: true })
     }

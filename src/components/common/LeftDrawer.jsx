@@ -15,6 +15,7 @@ import {
 } from '../../db/indexeddb'
 import SwipeToConfirm from './SwipeToConfirm'
 import HelpSheet from './HelpSheet'
+import { restoreFromCloud } from '../../services/syncService'
 import { APP_VERSION } from '../../screens/Landing'
 import styles from './LeftDrawer.module.css'
 
@@ -36,6 +37,7 @@ export default function LeftDrawer({ open, onClose }) {
   const [clearingCache, setClearingCache] = useState(false)
   const [isDark, setIsDark] = useState(true)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [restoring, setRestoring] = useState(false)
   const importRef = useRef(null)
 
   // Load saved theme on mount
@@ -122,6 +124,18 @@ export default function LeftDrawer({ open, onClose }) {
       await db.clear('cardCache')
     } finally {
       setClearingCache(false)
+    }
+  }
+
+  async function handleRestoreFromCloud() {
+    if (!user?.uid) return
+    setRestoring(true)
+    try {
+      await restoreFromCloud(user.uid)
+      await reload()
+      setLastSync(new Date())
+    } finally {
+      setRestoring(false)
     }
   }
 
@@ -248,6 +262,15 @@ export default function LeftDrawer({ open, onClose }) {
             <span className={styles.navChevron}>›</span>
           </button>
           <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+
+          {/* Restore from cloud — only for signed-in users */}
+          {!isLocal && (
+            <button className={styles.navItem} onClick={handleRestoreFromCloud} disabled={restoring}>
+              <span className={styles.navIcon}>☁️</span>
+              <span className={styles.navLabel}>{restoring ? 'Restoring…' : 'Restore from Cloud'}</span>
+              <span className={styles.navChevron}>›</span>
+            </button>
+          )}
 
           {/* Refresh Sets List */}
           <button className={styles.navItem} onClick={handleRefreshSets}>

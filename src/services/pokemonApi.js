@@ -195,6 +195,40 @@ export async function searchCardsByPokemon(pokemonName, language = 'en') {
   return result
 }
 
+// ── Fetch a single card by ID (for price/rarity data in Card Detail) ─────────
+
+export async function fetchCardById(cardId) {
+  if (!cardId || cardId.startsWith('custom_')) return null
+  const cacheKey = `__card__${cardId}__`
+  const cached = await idbGetCardCache(cacheKey)
+  if (cached) return cached
+  try {
+    const json = await apiFetch(`/cards/${cardId}`)
+    const c = json.data
+    const result = {
+      id: c.id,
+      name: c.name,
+      number: c.number,
+      rarity: c.rarity || null,
+      types: c.types || [],
+      supertype: c.supertype || null,
+      subtypes: c.subtypes || [],
+      images: {
+        small: c.images?.small,
+        large: c.images?.large,
+      },
+      set: { id: c.set?.id, name: c.set?.name },
+      tcgplayer: c.tcgplayer
+        ? { url: c.tcgplayer.url, prices: c.tcgplayer.prices }
+        : null,
+    }
+    await idbPutCardCache(cacheKey, result)
+    return result
+  } catch {
+    return null
+  }
+}
+
 // ── Sprite URL helper (PokeAPI sprites — no API key needed) ──────────────────
 
 export function getSpriteUrl(dexNumber) {

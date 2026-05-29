@@ -318,13 +318,43 @@ export async function clearAllLocalData() {
 // ── Import from JSON backup ───────────────────────────────────────────────────
 
 export async function importLocalData(json) {
-  // Accept any object that has at least one recognizable key.
-  // Version check is advisory only — old exports may not have it.
-  const hasUsableData =
-    json &&
-    typeof json === 'object' &&
-    (json.pokedex || json.sets || json.profile || json.guestTrainers)
+  if (!json || typeof json !== 'object') {
+    throw new Error('Invalid backup file — not valid JSON')
+  }
 
+  // ── Legacy format (old app, version integer, users.* structure) ──────────
+  if (typeof json.version === 'number' && json.users) {
+    const userData = Object.values(json.users)[0]
+    if (!userData) throw new Error('Invalid backup file — no user data found')
+
+    // Convert dex array [1, 2, 25, ...] → { "001": { cardId, imageUrl, ... } }
+    if (Array.isArray(userData.dex)) {
+      const ownedMap = {}
+      for (const num of userData.dex) {
+        const padded = String(num).padStart(3, '0')
+        const card = userData.dexCards?.[String(num)] || {}
+        ownedMap[padded] = {
+          cardId: card.id || null,
+          setId: card.setId || null,
+          setName: card.setName || null,
+          cardNumber: card.number || null,
+          imageUrl: card.imgSmall || null,
+          imageBase64: null,
+          isCustom: false,
+          migratedFrom: 'legacy_v3',
+        }
+      }
+      await idbSetPokedex(ownedMap)
+    }
+
+    // Sets are NOT imported — user opens them manually via + in SetSelector
+    // This matches the intended UX: sets only appear on Home once cards are marked owned
+
+    return // legacy import done
+  }
+
+  // ── Current format (version string "1.0", flat structure) ────────────────
+  const hasUsableData = json.pokedex || json.sets || json.profile || json.guestTrainers
   if (!hasUsableData) {
     throw new Error('Invalid backup file — no recognizable data found')
   }

@@ -77,7 +77,7 @@
 .statDivider {
   width: 1px;
   height: 32px;
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-medium);
 }
 
 /* ── Controls row ─────────────────────────────────────────────────────────── */
@@ -157,7 +157,7 @@
   transition: background var(--transition-fast);
 }
 
-.genHeader:active { background: rgba(255,255,255,0.04); }
+.genHeader:active { background: var(--surface-subtle); }
 
 .genHeaderLeft {
   display: flex;
@@ -206,7 +206,7 @@
 /* ── Gen progress ─────────────────────────────────────────────────────────── */
 .genProgress {
   height: 3px;
-  background: rgba(255,255,255,0.05);
+  background: var(--surface-subtle);
 }
 
 .genProgressFill {

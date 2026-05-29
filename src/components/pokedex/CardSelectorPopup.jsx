@@ -85,8 +85,8 @@ export default function CardSelectorPopup({ pokemon, currentCard, onSelect, onCl
   }
 
   return (
-    <div className="overlay overlay-center" onClick={onClose}>
-      <div className={`${styles.popup} animate-scale-in`} onClick={e => e.stopPropagation()}>
+    <div className="overlay" onClick={onClose}>
+      <div className={`${styles.popup} animate-slide-up`} onClick={e => e.stopPropagation()}>
 
         {/* Header */}
         <div className={styles.header}>

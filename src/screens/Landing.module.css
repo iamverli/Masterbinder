@@ -91,7 +91,7 @@
   gap: var(--space-3);
   padding: 14px var(--space-6);
   background: var(--bg-card);
-  border: 1.5px solid rgba(255,255,255,0.1);
+  border: 1.5px solid var(--surface-medium);
   border-radius: var(--radius-pill);
   color: var(--text-primary);
   font-size: var(--font-size-base);
@@ -117,7 +117,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-subtle);
 }
 
 /* ── Form ─────────────────────────────────────────────────────────────────── */
@@ -163,7 +163,7 @@
 
 .footerDivider {
   height: 1px;
-  background: rgba(255,255,255,0.06);
+  background: var(--separator);
   margin-bottom: var(--space-4);
 }
 

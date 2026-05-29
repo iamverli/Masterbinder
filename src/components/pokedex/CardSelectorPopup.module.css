@@ -29,7 +29,7 @@
   width: 32px;
   height: 32px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-subtle);
   border: none;
   cursor: pointer;
   color: var(--text-secondary);
@@ -61,8 +61,8 @@
   flex-shrink: 0;
   padding: 5px 11px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--separator);
+  border: 1px solid var(--surface-medium);
   color: var(--text-secondary);
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -201,7 +201,7 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--separator);
 }
 
 .actionBtn {
@@ -218,7 +218,7 @@
 .uploadBtn {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--surface-subtle);
   border-radius: var(--radius-lg);
   padding: 10px var(--space-3);
 }

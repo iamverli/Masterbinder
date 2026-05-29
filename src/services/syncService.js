@@ -88,30 +88,46 @@ export async function pushToCloud(uid) {
 
 // ── Determine sync direction on sign-in ───────────────────────────────────────
 //
-// Returns: 'push' | 'pull' | 'none'
+// Returns: 'push' | 'pull' | 'merge' | 'none'
 //
 // Logic:
-//   - If local has data → push (local always wins)
-//   - If local is empty and cloud has data → pull
+//   - Compare counts: cloud wins if it has MORE data than local
+//   - This protects against fresh installs overwriting cloud with empty local
+//   - If local has more → push
+//   - If equal and non-zero → push (local is up to date)
 //   - Both empty → none
 
 export async function determineSyncDirection(uid) {
-  const localPokedex = await idbGetPokedex()
-  const localSets = await idbGetAllSets()
-  const hasLocalData =
-    Object.keys(localPokedex).length > 0 || Object.keys(localSets).length > 0
+  const [localPokedex, localSets, cloudPokedex, cloudSets] = await Promise.all([
+    idbGetPokedex(),
+    idbGetAllSets(),
+    getPokedex(uid),
+    getUserSets(uid),
+  ])
 
-  if (hasLocalData) return 'push'
+  const localPokedexCount = Object.keys(localPokedex).length
+  const localSetsCount = Object.keys(localSets).length
+  const cloudPokedexCount = cloudPokedex?.owned
+    ? Object.keys(cloudPokedex.owned).length
+    : 0
+  const cloudSetsCount = Object.keys(cloudSets).length
 
-  const cloudPokedex = await getPokedex(uid)
-  const cloudSets = await getUserSets(uid)
-  const hasCloudData =
-    (cloudPokedex?.owned && Object.keys(cloudPokedex.owned).length > 0) ||
-    Object.keys(cloudSets).length > 0
+  // Cloud has more data → pull (fresh install, new device, or IDB was wiped)
+  if (cloudPokedexCount > localPokedexCount || cloudSetsCount > localSetsCount) {
+    return 'pull'
+  }
 
-  if (hasCloudData) return 'pull'
+  // Local has data → push
+  if (localPokedexCount > 0 || localSetsCount > 0) return 'push'
 
   return 'none'
+}
+
+// ── Force restore — always pulls cloud over local ─────────────────────────────
+// Called manually from the drawer when user wants to recover cloud data
+
+export async function restoreFromCloud(uid) {
+  return pullFromCloud(uid)
 }
 
 // ── Optimistic write — Pokédex card ───────────────────────────────────────────

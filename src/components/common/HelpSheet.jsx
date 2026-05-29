@@ -44,8 +44,8 @@ const SECTIONS = [
 
 export default function HelpSheet({ onClose }) {
   return (
-    <div className="overlay overlay-center" onClick={onClose}>
-      <div className={`${styles.sheet} animate-scale-in`} onClick={e => e.stopPropagation()}>
+    <div className={`overlay ${styles.overlay}`} onClick={onClose}>
+      <div className={`${styles.sheet} animate-slide-up`} onClick={e => e.stopPropagation()}>
 
         <div className={styles.header}>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>

@@ -86,6 +86,12 @@
   /* Safe areas (iOS notch/home indicator) */
   --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Surface tints — use these instead of hardcoded rgba(255,255,255,...) */
+  --surface-subtle:  rgba(255, 255, 255, 0.06);
+  --surface-medium:  rgba(255, 255, 255, 0.12);
+  --surface-strong:  rgba(255, 255, 255, 0.20);
+  --separator:       rgba(255, 255, 255, 0.06);
 }
 
 /* ── Light theme overrides ──────────────────────────────────────────────────── */
@@ -103,6 +109,15 @@
 
   --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.08);
   --shadow-popup: 0 8px 48px rgba(0, 0, 0, 0.15);
+
+  --accent-glow:  rgba(245, 158, 11, 0.15);
+  --accent-dim:   #D97706;
+
+  /* Surface tints — replaces hardcoded rgba whites throughout components */
+  --surface-subtle:  rgba(0, 0, 0, 0.05);
+  --surface-medium:  rgba(0, 0, 0, 0.10);
+  --surface-strong:  rgba(0, 0, 0, 0.18);
+  --separator:       rgba(0, 0, 0, 0.06);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────────── */
@@ -262,7 +277,7 @@ input::placeholder, textarea::placeholder {
 .btn-secondary {
   background: var(--bg-card);
   color: var(--text-primary);
-  border: 1.5px solid rgba(255,255,255,0.08);
+  border: 1.5px solid var(--surface-medium);
 }
 
 .btn-ghost {
@@ -281,7 +296,7 @@ input::placeholder, textarea::placeholder {
   padding: 0;
   border-radius: var(--radius-pill);
   background: var(--bg-card);
-  border: 1.5px solid rgba(255,255,255,0.08);
+  border: 1.5px solid var(--surface-medium);
 }
 
 /* ── Pill badge ─────────────────────────────────────────────────────────────── */
@@ -303,9 +318,9 @@ input::placeholder, textarea::placeholder {
 }
 
 .badge-muted {
-  background: rgba(255,255,255,0.06);
+  background: var(--surface-subtle);
   color: var(--text-secondary);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--surface-medium);
 }
 
 /* ── Overlay / backdrop ─────────────────────────────────────────────────────── */
@@ -347,7 +362,7 @@ input::placeholder, textarea::placeholder {
 /* ── Progress bar ───────────────────────────────────────────────────────────── */
 .progress-bar {
   height: 6px;
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-subtle);
   border-radius: var(--radius-pill);
   overflow: hidden;
 }

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useApp } from '../context/AppContext'
 import LeftDrawer from '../components/common/LeftDrawer'
 import SetSelector from '../components/sets/SetSelector'
+import ShareSheet from '../components/common/ShareSheet'
 import styles from './Home.module.css'
 
 const POKEDEX_TOTAL = 1025
@@ -15,7 +16,6 @@ export default function Home() {
     pokedex,
     sets,
     pokedexOwnedCount,
-    setsNotStarted,
     setsInProgress,
     setsCompleted,
     loaded,
@@ -23,6 +23,7 @@ export default function Home() {
 
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [setSelectorOpen, setSetSelectorOpen] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
 
   const inProgressRef = useRef(null)
   const completedRef = useRef(null)
@@ -62,6 +63,15 @@ export default function Home() {
           <span className={styles.greetingHi}>Hi,</span>
           <span className={styles.greetingName}>{displayName}!</span>
         </div>
+        {!isLocal && (
+          <button
+            className={styles.shareBtn}
+            onClick={() => setShareOpen(true)}
+            aria-label="Share collection"
+          >
+            🔗
+          </button>
+        )}
       </div>
 
       {/* ── Scrollable content ─────────────────────────────────────────── */}
@@ -73,8 +83,8 @@ export default function Home() {
             className={styles.statCard}
             onClick={() => scrollTo(inProgressRef)}
           >
-            <span className={styles.statValue}>{setsInProgress.length + setsNotStarted.length}</span>
-            <span className={styles.statLabel}>Sets Active</span>
+            <span className={styles.statValue}>{setsInProgress.length}</span>
+            <span className={styles.statLabel}>In Progress</span>
           </button>
           <button
             className={styles.statCard}
@@ -120,28 +130,16 @@ export default function Home() {
           </div>
         </button>
 
-        {/* ── Not started sets ─────────────────────────────────────────── */}
-        {setsNotStarted.length > 0 && (
-          <div className={styles.section}>
-            <span className={styles.sectionLabel}>Not Started</span>
-            <div className={styles.setsList}>
-              {setsNotStarted.map((s) => (
-                <SetCard key={s.setId} set={s} onClick={() => navigate(`/sets/${s.setId}`)} />
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* ── Sets in progress ─────────────────────────────────────────── */}
         <div ref={inProgressRef} className={styles.section}>
           <span className={styles.sectionLabel}>In Progress</span>
-          {setsInProgress.length === 0 && setsNotStarted.length === 0 ? (
+          {setsInProgress.length === 0 ? (
             <div className={styles.emptyState}>
               <span className={styles.emptyIcon}>📦</span>
-              <p className={styles.emptyText}>No sets added yet.</p>
-              <p className={styles.emptySubtext}>Tap + to add your first set.</p>
+              <p className={styles.emptyText}>No sets in progress.</p>
+              <p className={styles.emptySubtext}>Tap + to open a set and start collecting.</p>
             </div>
-          ) : setsInProgress.length === 0 ? null : (
+          ) : (
             <div className={styles.setsList}>
               {setsInProgress.map((s) => (
                 <SetCard key={s.setId} set={s} onClick={() => navigate(`/sets/${s.setId}`)} />
@@ -180,6 +178,15 @@ export default function Home() {
       {/* ── Set selector ──────────────────────────────────────────────── */}
       {setSelectorOpen && (
         <SetSelector onClose={() => setSetSelectorOpen(false)} />
+      )}
+
+      {/* ── Share sheet ───────────────────────────────────────────────── */}
+      {shareOpen && !isLocal && (
+        <ShareSheet
+          uid={user?.uid}
+          displayName={user?.displayName || 'Trainer'}
+          onClose={() => setShareOpen(false)}
+        />
       )}
     </div>
   )

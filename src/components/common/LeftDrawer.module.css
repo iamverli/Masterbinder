@@ -137,14 +137,14 @@
 .statDivider {
   width: 1px;
   height: 28px;
-  background: rgba(255,255,255,0.08);
+  background: var(--surface-medium);
   flex-shrink: 0;
 }
 
 /* ── Divider ──────────────────────────────────────────────────────────────── */
 .divider {
   height: 1px;
-  background: rgba(255,255,255,0.06);
+  background: var(--separator);
   margin: 0 var(--space-4);
   flex-shrink: 0;
 }
@@ -172,7 +172,7 @@
   transition: background var(--transition-fast);
 }
 
-.navItem:active { background: rgba(255,255,255,0.06); }
+.navItem:active { background: var(--surface-subtle); }
 .navItem:disabled { opacity: 0.5; pointer-events: none; }
 
 .navIcon {
@@ -221,7 +221,7 @@
   width: 36px;
   height: 20px;
   border-radius: var(--radius-pill);
-  background: rgba(255,255,255,0.15);
+  background: var(--surface-medium);
   flex-shrink: 0;
   position: relative;
   transition: background var(--transition-fast);
@@ -235,7 +235,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.6);
+  background: var(--surface-strong);
 }
 
 /* ── Section ──────────────────────────────────────────────────────────────── */
@@ -274,7 +274,7 @@
   padding: 10px var(--space-3);
   border-radius: var(--radius-lg);
   background: var(--bg-overlay);
-  border: 1.5px solid rgba(255,255,255,0.1);
+  border: 1.5px solid var(--surface-medium);
   color: var(--text-primary);
   font-size: var(--font-size-xs);
   font-weight: 700;
@@ -282,7 +282,7 @@
   transition: background var(--transition-fast);
 }
 
-.installBtn:active { background: rgba(255,255,255,0.1); }
+.installBtn:active { background: var(--surface-medium); }
 
 .syncBtn {
   flex: 1;

@@ -160,6 +160,30 @@ export async function setCachedCard(cardId, data) {
   await setDoc(cacheCardRef(cardId), { ...data, cachedAt: serverTimestamp() })
 }
 
+// ── Public share snapshot ─────────────────────────────────────────────────────
+//
+// Writes a public read-only snapshot to `publicProfiles/{uid}`.
+// Firestore rules must allow: match /publicProfiles/{uid} { allow read: true; }
+// This collection is separate from user data so rules don't expose private info.
+
+function publicProfileRef(uid) {
+  return doc(db, 'publicProfiles', uid)
+}
+
+export async function writePublicSnapshot(uid, { displayName, pokedexOwned, sets }) {
+  await setDoc(publicProfileRef(uid), {
+    displayName: displayName || 'Trainer',
+    pokedexOwned: pokedexOwned || {},
+    sets: sets || {},
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function getPublicSnapshot(uid) {
+  const snap = await getDoc(publicProfileRef(uid))
+  return snap.exists() ? snap.data() : null
+}
+
 // ── Full data upload (local → cloud migration) ────────────────────────────────
 
 export async function uploadLocalData(uid, { profile, pokedex, sets }) {
