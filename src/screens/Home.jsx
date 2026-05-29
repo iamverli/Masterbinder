@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext'
 import LeftDrawer from '../components/common/LeftDrawer'
 import SetSelector from '../components/sets/SetSelector'
 import ShareSheet from '../components/common/ShareSheet'
+import HelpSheet from '../components/common/HelpSheet'
 import styles from './Home.module.css'
 
 const POKEDEX_TOTAL = 1025
@@ -24,6 +25,7 @@ export default function Home() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [setSelectorOpen, setSetSelectorOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
 
   const inProgressRef = useRef(null)
   const completedRef = useRef(null)
@@ -102,31 +104,29 @@ export default function Home() {
           className={styles.pokedexCard}
           onClick={() => navigate('/pokedex')}
         >
-          <div className={styles.pokedexLeft}>
-            <span className={styles.pokedexTitle}>National Pokédex</span>
-            <span className={styles.pokedexSub}>
-              {hasPokedexStarted
-                ? `${pokedexOwnedCount} / ${POKEDEX_TOTAL} Pokémon`
-                : 'Not started yet — tap to begin'}
-            </span>
-            {hasPokedexStarted && (
-              <div className="progress-bar" style={{ marginTop: 10, width: '100%' }}>
-                <div
-                  className={`progress-bar-fill${pokedexOwnedCount === POKEDEX_TOTAL ? ' complete' : ''}`}
-                  style={{ width: `${pokedexPct}%` }}
-                />
-              </div>
-            )}
+          <div className={styles.pokedexCardTop}>
+            <div className={styles.pokedexIcon}>◆</div>
+            <div className={styles.pokedexTitleGroup}>
+              <span className={styles.pokedexTitle}>National Pokédex</span>
+              <span className={styles.pokedexSub}>Gen I – IX · All Regions</span>
+            </div>
           </div>
-          <div className={styles.pokedexRight}>
-            {hasPokedexStarted ? (
-              <>
-                <span className={styles.pokedexPct}>{pokedexPct}%</span>
-                <span className={styles.pokedexPctLabel}>complete</span>
-              </>
-            ) : (
-              <span className={styles.pokedexArrow}>→</span>
-            )}
+          <div className={styles.pokedexStats}>
+            <div className={styles.pokedexStat}>
+              <span className={`${styles.pokedexStatValue} ${styles.owned}`}>{pokedexOwnedCount}</span>
+              <span className={styles.pokedexStatLabel}>Owned</span>
+            </div>
+            <div className={styles.pokedexStat}>
+              <span className={`${styles.pokedexStatValue} ${styles.missing}`}>{POKEDEX_TOTAL - pokedexOwnedCount}</span>
+              <span className={styles.pokedexStatLabel}>Missing</span>
+            </div>
+            <div className={styles.pokedexStat}>
+              <span className={`${styles.pokedexStatValue} ${styles.complete}`}>{pokedexPct}%</span>
+              <span className={styles.pokedexStatLabel}>Complete</span>
+            </div>
+          </div>
+          <div className={styles.pokedexProgress}>
+            <div className={styles.pokedexProgressFill} style={{ width: `${pokedexPct}%` }} />
           </div>
         </button>
 
@@ -173,7 +173,7 @@ export default function Home() {
       </button>
 
       {/* ── Left drawer ───────────────────────────────────────────────── */}
-      <LeftDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <LeftDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onOpenHelp={() => setHelpOpen(true)} />
 
       {/* ── Set selector ──────────────────────────────────────────────── */}
       {setSelectorOpen && (
@@ -187,6 +187,11 @@ export default function Home() {
           displayName={user?.displayName || 'Trainer'}
           onClose={() => setShareOpen(false)}
         />
+      )}
+
+      {/* ── Help sheet ────────────────────────────────────────────────── */}
+      {helpOpen && (
+        <HelpSheet onClose={() => setHelpOpen(false)} />
       )}
     </div>
   )

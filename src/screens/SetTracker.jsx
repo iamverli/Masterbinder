@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { fetchSetCards } from '../services/pokemonApi'
+import { useAppBack } from '../hooks/useAppBack'
 import CardSelectorPopup from '../components/pokedex/CardSelectorPopup'
 import SwipeToConfirm from '../components/common/SwipeToConfirm'
 import styles from './SetTracker.module.css'
@@ -38,6 +39,8 @@ export default function SetTracker() {
   const { sets, updateSet, removeSet } = useApp()
 
   const setData = sets[setId]
+
+  useAppBack('/')
 
   const [cards, setCards] = useState({ base: [], master: [] })
   const [loading, setLoading] = useState(true)
@@ -103,10 +106,24 @@ export default function SetTracker() {
     )
   }
 
-  const activeCards = isMaster ? cards.master : cards.base
-  const ownedList = isMaster ? (setData.masterOwned || []) : (setData.baseOwned || [])
+  // Extra cards = in master but not in base (secret rares, promos, trainer gallery, etc.)
+  const baseIds = new Set(cards.base.map(c => c.id))
+  const extraCards = cards.master.filter(c => !baseIds.has(c.id))
+
+  // Active card list: base always shown; masterset ON adds extras on top
+  const activeCards = isMaster ? [...cards.base, ...extraCards] : cards.base
+
+  const baseOwned = setData.baseOwned || []
+  const masterOwned = setData.masterOwned || []
+
+  // isOwned: base cards → baseOwned, extra cards → masterOwned
+  function isOwnedById(cardId) {
+    if (baseIds.has(cardId)) return baseOwned.includes(cardId)
+    return masterOwned.includes(cardId)
+  }
+
   const totalCards = activeCards.length || (isMaster ? setData.total : setData.printedTotal) || 0
-  const ownedCount = ownedList.length
+  const ownedCount = activeCards.filter(c => isOwnedById(c.id)).length
   const pct = totalCards > 0 ? Math.round((ownedCount / totalCards) * 100) : 0
   const isComplete = ownedCount >= totalCards && totalCards > 0
 
@@ -163,20 +180,21 @@ export default function SetTracker() {
   }
 
   function isOwned(cardId) {
-    return ownedList.includes(cardId)
+    return isOwnedById(cardId)
   }
 
   function toggleOwned(cardId) {
-    let next
-    if (ownedList.includes(cardId)) {
-      next = ownedList.filter(id => id !== cardId)
-    } else {
-      next = [...ownedList, cardId]
-    }
-    if (isMaster) {
-      updateSet(setId, { masterOwned: next })
-    } else {
+    const isBase = baseIds.has(cardId)
+    if (isBase) {
+      const next = baseOwned.includes(cardId)
+        ? baseOwned.filter(id => id !== cardId)
+        : [...baseOwned, cardId]
       updateSet(setId, { baseOwned: next })
+    } else {
+      const next = masterOwned.includes(cardId)
+        ? masterOwned.filter(id => id !== cardId)
+        : [...masterOwned, cardId]
+      updateSet(setId, { masterOwned: next })
     }
   }
 

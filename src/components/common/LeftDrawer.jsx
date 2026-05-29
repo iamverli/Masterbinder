@@ -14,7 +14,6 @@ import {
   getDB,
 } from '../../db/indexeddb'
 import SwipeToConfirm from './SwipeToConfirm'
-import HelpSheet from './HelpSheet'
 import { restoreFromCloud } from '../../services/syncService'
 import { APP_VERSION } from '../../screens/Landing'
 import styles from './LeftDrawer.module.css'
@@ -24,7 +23,7 @@ const NAV_ITEMS = [
   { icon: '📖', label: 'National Pokédex', path: '/pokedex' },
 ]
 
-export default function LeftDrawer({ open, onClose }) {
+export default function LeftDrawer({ open, onClose, onOpenHelp }) {
   const navigate = useNavigate()
   const { user, isLocal, syncStatus } = useAuth()
   const { pokedexOwnedCount, setsInProgress, setsCompleted, reload } = useApp()
@@ -36,7 +35,6 @@ export default function LeftDrawer({ open, onClose }) {
   const [lastSync, setLastSync] = useState(null)
   const [clearingCache, setClearingCache] = useState(false)
   const [isDark, setIsDark] = useState(true)
-  const [helpOpen, setHelpOpen] = useState(false)
   const [restoring, setRestoring] = useState(false)
   const importRef = useRef(null)
 
@@ -291,7 +289,7 @@ export default function LeftDrawer({ open, onClose }) {
 
         {/* ── Help ─────────────────────────────────────────────────────── */}
         <div className={styles.section}>
-          <button className={styles.navItem} onClick={() => setHelpOpen(true)}>
+          <button className={styles.navItem} onClick={() => { onClose(); onOpenHelp?.() }}>
             <span className={styles.navIcon}>❓</span>
             <span className={styles.navLabel}>How to use MasterBinder</span>
             <span className={styles.navChevron}>›</span>
@@ -342,9 +340,6 @@ export default function LeftDrawer({ open, onClose }) {
         />
       )}
 
-      {helpOpen && (
-        <HelpSheet onClose={() => setHelpOpen(false)} />
-      )}
     </>
   )
 }

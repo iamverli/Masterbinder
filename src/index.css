@@ -125,6 +125,8 @@ html {
   height: 100%;
   /* Prevent iOS text size adjustment */
   -webkit-text-size-adjust: 100%;
+  /* Disable pull-to-refresh */
+  overscroll-behavior: none;
 }
 
 body {
@@ -137,6 +139,8 @@ body {
   overflow-x: hidden;
   /* Smooth scrolling */
   -webkit-overflow-scrolling: touch;
+  /* Disable pull-to-refresh */
+  overscroll-behavior: none;
 }
 
 #root {
