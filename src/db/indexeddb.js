@@ -18,33 +18,36 @@ import { openDB } from 'idb'
 const DB_NAME = 'masterbinder'
 const DB_VERSION = 1
 
-let _db = null
+// Cache the PROMISE (not the resolved value) so concurrent calls
+// before the first resolves all share the same openDB call.
+let _dbPromise = null
 
-export async function getDB() {
-  if (_db) return _db
-  _db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains('profile')) {
-        db.createObjectStore('profile')
-      }
-      if (!db.objectStoreNames.contains('pokedex')) {
-        db.createObjectStore('pokedex')
-      }
-      if (!db.objectStoreNames.contains('userSets')) {
-        db.createObjectStore('userSets')
-      }
-      if (!db.objectStoreNames.contains('cardCache')) {
-        db.createObjectStore('cardCache')
-      }
-      if (!db.objectStoreNames.contains('guestTrainers')) {
-        db.createObjectStore('guestTrainers')
-      }
-      if (!db.objectStoreNames.contains('meta')) {
-        db.createObjectStore('meta')
-      }
-    },
-  })
-  return _db
+export function getDB() {
+  if (!_dbPromise) {
+    _dbPromise = openDB(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('profile')) {
+          db.createObjectStore('profile')
+        }
+        if (!db.objectStoreNames.contains('pokedex')) {
+          db.createObjectStore('pokedex')
+        }
+        if (!db.objectStoreNames.contains('userSets')) {
+          db.createObjectStore('userSets')
+        }
+        if (!db.objectStoreNames.contains('cardCache')) {
+          db.createObjectStore('cardCache')
+        }
+        if (!db.objectStoreNames.contains('guestTrainers')) {
+          db.createObjectStore('guestTrainers')
+        }
+        if (!db.objectStoreNames.contains('meta')) {
+          db.createObjectStore('meta')
+        }
+      },
+    })
+  }
+  return _dbPromise
 }
 
 // ── Profile ───────────────────────────────────────────────────────────────────
