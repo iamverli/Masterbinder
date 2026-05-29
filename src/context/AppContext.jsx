@@ -162,8 +162,12 @@ export function AppProvider({ children }) {
     reload: loadLocal,
     // Derived stats
     pokedexOwnedCount: Object.keys(state.pokedex).length,
+    setsNotStarted: Object.values(state.sets).filter(
+      (s) => (!s.baseOwned || s.baseOwned.length === 0) && (!s.masterOwned || s.masterOwned.length === 0)
+    ),
     setsInProgress: Object.values(state.sets).filter(
-      (s) => s.baseOwned?.length > 0 && s.baseOwned?.length < s.printedTotal
+      (s) => (s.baseOwned?.length > 0 && s.baseOwned?.length < s.printedTotal) ||
+             (s.masterOwned?.length > 0 && s.masterOwned?.length < (s.masterTotal || s.printedTotal))
     ),
     setsCompleted: Object.values(state.sets).filter(
       (s) => s.baseOwned?.length >= s.printedTotal && s.printedTotal > 0

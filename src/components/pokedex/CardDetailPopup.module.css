@@ -1,0 +1,120 @@
+.popup {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: rgba(255,255,255,0.08);
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.closeBtn:active { background: rgba(255,255,255,0.15); }
+
+/* ── Card image ───────────────────────────────────────────────────────────── */
+.imageWrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2) var(--space-6) var(--space-4);
+}
+
+.cardImg {
+  width: 200px;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  object-fit: contain;
+}
+
+.noImage {
+  width: 200px;
+  height: 280px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Info row ─────────────────────────────────────────────────────────────── */
+.info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-4);
+  flex-wrap: wrap;
+}
+
+.infoSet {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.infoNum {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.infoBadge {
+  font-size: var(--font-size-xs);
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius-pill);
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+.actionBtn {
+  width: 100%;
+  justify-content: center;
+}
+
+.removeBtn {
+  width: 100%;
+  justify-content: center;
+  color: var(--color-error) !important;
+  font-size: var(--font-size-sm);
+}

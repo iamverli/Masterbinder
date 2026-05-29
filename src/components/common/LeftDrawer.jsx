@@ -9,9 +9,12 @@ import {
   importLocalData,
   clearAllLocalData,
   idbPutCardCache,
+  idbGetTheme,
+  idbSetTheme,
   getDB,
 } from '../../db/indexeddb'
 import SwipeToConfirm from './SwipeToConfirm'
+import HelpSheet from './HelpSheet'
 import { APP_VERSION } from '../../screens/Landing'
 import styles from './LeftDrawer.module.css'
 
@@ -31,7 +34,14 @@ export default function LeftDrawer({ open, onClose }) {
   const [syncing, setSyncing] = useState(false)
   const [lastSync, setLastSync] = useState(null)
   const [clearingCache, setClearingCache] = useState(false)
+  const [isDark, setIsDark] = useState(true)
+  const [helpOpen, setHelpOpen] = useState(false)
   const importRef = useRef(null)
+
+  // Load saved theme on mount
+  useEffect(() => {
+    idbGetTheme().then((t) => setIsDark(t !== 'light'))
+  }, [])
 
   // PWA install prompt
   const [installPrompt, setInstallPrompt] = useState(null)
@@ -113,6 +123,13 @@ export default function LeftDrawer({ open, onClose }) {
     } finally {
       setClearingCache(false)
     }
+  }
+
+  async function handleToggleTheme() {
+    const next = isDark ? 'light' : 'dark'
+    setIsDark(!isDark)
+    document.documentElement.setAttribute('data-theme', next)
+    await idbSetTheme(next)
   }
 
   async function handleSync() {
@@ -210,12 +227,12 @@ export default function LeftDrawer({ open, onClose }) {
         <div className={styles.section}>
           <span className={styles.sectionLabel}>Settings</span>
 
-          {/* Dark mode row — always on, visual only */}
-          <div className={styles.navItem}>
-            <span className={styles.navIcon}>🌙</span>
-            <span className={styles.navLabel}>Dark Mode</span>
-            <div className={styles.toggleOn} />
-          </div>
+          {/* Dark mode toggle */}
+          <button className={styles.navItem} onClick={handleToggleTheme}>
+            <span className={styles.navIcon}>{isDark ? '🌙' : '☀️'}</span>
+            <span className={styles.navLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
+            <div className={isDark ? styles.toggleOn : styles.toggleOff} />
+          </button>
 
           {/* Export */}
           <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
@@ -251,7 +268,7 @@ export default function LeftDrawer({ open, onClose }) {
 
         {/* ── Help ─────────────────────────────────────────────────────── */}
         <div className={styles.section}>
-          <button className={styles.navItem} onClick={() => window.open('https://www.bluemooncollectibles.com', '_blank')}>
+          <button className={styles.navItem} onClick={() => setHelpOpen(true)}>
             <span className={styles.navIcon}>❓</span>
             <span className={styles.navLabel}>How to use MasterBinder</span>
             <span className={styles.navChevron}>›</span>
@@ -300,6 +317,10 @@ export default function LeftDrawer({ open, onClose }) {
           onConfirm={handleClearConfirmed}
           onCancel={() => setConfirmClear(false)}
         />
+      )}
+
+      {helpOpen && (
+        <HelpSheet onClose={() => setHelpOpen(false)} />
       )}
     </>
   )

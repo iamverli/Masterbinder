@@ -10,6 +10,7 @@ import {
 } from '../utils/pokemonData'
 import PokemonTile from '../components/pokedex/PokemonTile'
 import CardSelectorPopup from '../components/pokedex/CardSelectorPopup'
+import CardDetailPopup from '../components/pokedex/CardDetailPopup'
 import SwipeToConfirm from '../components/common/SwipeToConfirm'
 import styles from './NationalPokedex.module.css'
 
@@ -26,8 +27,11 @@ export default function NationalPokedex() {
   const [expandedGens, setExpandedGens] = useState({ 1: true }) // Gen I open by default
   const [allExpanded, setAllExpanded] = useState(false)
 
-  // Card selector popup
+  // Card selector popup (pick/change a card)
   const [selectorPokemon, setSelectorPokemon] = useState(null) // { dexNumber, name }
+
+  // Card detail popup (view assigned card)
+  const [detailPokemon, setDetailPokemon] = useState(null) // { dexNumber, name }
 
   // Removal confirmation
   const [removePokemon, setRemovePokemon] = useState(null) // { dexNumber, name }
@@ -90,6 +94,18 @@ export default function NationalPokedex() {
   }
 
   function handleDots(dexNumber, name) {
+    const cardData = pokedex[dexNumber]
+    // If a specific card is assigned, show the detail view
+    // If owned with no card (manually marked) or not owned, open the selector
+    if (cardData?.cardId || cardData?.imageBase64) {
+      setDetailPokemon({ dexNumber, name })
+    } else {
+      setSelectorPokemon({ dexNumber, name })
+    }
+  }
+
+  function handleChangeCard(dexNumber, name) {
+    setDetailPokemon(null)
     setSelectorPokemon({ dexNumber, name })
   }
 
@@ -230,6 +246,20 @@ export default function NationalPokedex() {
         })}
         <div style={{ height: 40 }} />
       </div>
+
+      {/* ── Card detail popup ──────────────────────────────────────────────── */}
+      {detailPokemon && (
+        <CardDetailPopup
+          pokemon={detailPokemon}
+          cardData={pokedex[detailPokemon.dexNumber] || null}
+          onChangeCard={() => handleChangeCard(detailPokemon.dexNumber, detailPokemon.name)}
+          onRemove={() => {
+            setDetailPokemon(null)
+            setRemovePokemon(detailPokemon)
+          }}
+          onClose={() => setDetailPokemon(null)}
+        />
+      )}
 
       {/* ── Card selector popup ─────────────────────────────────────────── */}
       {selectorPokemon && (

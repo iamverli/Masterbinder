@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import styles from './Landing.module.css'
 
 // App version — update with each release
-export const APP_VERSION = 'V1.0 Bulbasaur'
+export const APP_VERSION = 'V1.1 Bulbasaur'
 
 export default function Landing() {
   const navigate = useNavigate()

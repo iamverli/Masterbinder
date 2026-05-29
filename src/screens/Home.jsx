@@ -15,6 +15,7 @@ export default function Home() {
     pokedex,
     sets,
     pokedexOwnedCount,
+    setsNotStarted,
     setsInProgress,
     setsCompleted,
     loaded,
@@ -72,8 +73,8 @@ export default function Home() {
             className={styles.statCard}
             onClick={() => scrollTo(inProgressRef)}
           >
-            <span className={styles.statValue}>{setsInProgress.length}</span>
-            <span className={styles.statLabel}>In Progress</span>
+            <span className={styles.statValue}>{setsInProgress.length + setsNotStarted.length}</span>
+            <span className={styles.statLabel}>Sets Active</span>
           </button>
           <button
             className={styles.statCard}
@@ -119,16 +120,28 @@ export default function Home() {
           </div>
         </button>
 
+        {/* ── Not started sets ─────────────────────────────────────────── */}
+        {setsNotStarted.length > 0 && (
+          <div className={styles.section}>
+            <span className={styles.sectionLabel}>Not Started</span>
+            <div className={styles.setsList}>
+              {setsNotStarted.map((s) => (
+                <SetCard key={s.setId} set={s} onClick={() => navigate(`/sets/${s.setId}`)} />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Sets in progress ─────────────────────────────────────────── */}
         <div ref={inProgressRef} className={styles.section}>
           <span className={styles.sectionLabel}>In Progress</span>
-          {setsInProgress.length === 0 ? (
+          {setsInProgress.length === 0 && setsNotStarted.length === 0 ? (
             <div className={styles.emptyState}>
               <span className={styles.emptyIcon}>📦</span>
-              <p className={styles.emptyText}>No sets started yet.</p>
+              <p className={styles.emptyText}>No sets added yet.</p>
               <p className={styles.emptySubtext}>Tap + to add your first set.</p>
             </div>
-          ) : (
+          ) : setsInProgress.length === 0 ? null : (
             <div className={styles.setsList}>
               {setsInProgress.map((s) => (
                 <SetCard key={s.setId} set={s} onClick={() => navigate(`/sets/${s.setId}`)} />

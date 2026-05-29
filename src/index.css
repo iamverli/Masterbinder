@@ -88,6 +88,23 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* ── Light theme overrides ──────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-base:        #F1F5F9;
+  --bg-card:        #FFFFFF;
+  --bg-card-hover:  #E2E8F0;
+  --bg-overlay:     #E8EFF7;
+  --bg-input:       #EDF2F7;
+
+  --text-primary:   #0F172A;
+  --text-secondary: #475569;
+  --text-muted:     #94A3B8;
+  --text-accent:    #B45309;
+
+  --shadow-card:  0 4px 24px rgba(0, 0, 0, 0.08);
+  --shadow-popup: 0 8px 48px rgba(0, 0, 0, 0.15);
+}
+
 /* ── Base ───────────────────────────────────────────────────────────────────── */
 html {
   height: 100%;

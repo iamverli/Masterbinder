@@ -160,6 +160,22 @@ export async function idbSetMeta(key, value) {
   await db.put('meta', value, key)
 }
 
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+export async function idbGetTheme() {
+  return (await idbGetMeta('theme')) || 'dark'
+}
+
+export async function idbSetTheme(theme) {
+  await idbSetMeta('theme', theme)
+}
+
+// Apply theme to <html> element — call once on app boot
+export async function applyStoredTheme() {
+  const theme = await idbGetTheme()
+  document.documentElement.setAttribute('data-theme', theme)
+}
+
 // ── Migration from old app (pb_ prefixed keys) ────────────────────────────────
 //
 // Old app structure (localStorage + IndexedDB with pb_ prefix):
@@ -302,8 +318,15 @@ export async function clearAllLocalData() {
 // ── Import from JSON backup ───────────────────────────────────────────────────
 
 export async function importLocalData(json) {
-  if (!json || json.version !== '1.0') {
-    throw new Error('Invalid backup file format')
+  // Accept any object that has at least one recognizable key.
+  // Version check is advisory only — old exports may not have it.
+  const hasUsableData =
+    json &&
+    typeof json === 'object' &&
+    (json.pokedex || json.sets || json.profile || json.guestTrainers)
+
+  if (!hasUsableData) {
+    throw new Error('Invalid backup file — no recognizable data found')
   }
 
   if (json.profile) await idbSetProfile(json.profile)
