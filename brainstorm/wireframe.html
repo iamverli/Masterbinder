@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MasterBinder — UI Wireframe v1.0 Bulbasaur</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --bg:#060B18;--navy:#0F172A;--slate:#1E293B;--slate2:#2D3F55;--border:#334155;
+      --gold:#F59E0B;--text:#F8FAFC;--muted:#94A3B8;--dim:#64748B;
+      --green:#22C55E;--red:#EF4444;--blue:#3B82F6;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;padding:48px 40px;}
+
+    /* DOC HEADER */
+    .doc-header{margin-bottom:56px;padding-bottom:32px;border-bottom:1px solid var(--border);}
+    .doc-title{font-size:32px;font-weight:900;letter-spacing:-1px;}
+    .doc-title span{color:var(--gold);}
+    .doc-meta{font-size:13px;color:var(--muted);margin-top:6px;}
+    .tags{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+    .tag{font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--slate);color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+    .tag.gold{background:var(--gold);color:#000;}
+
+    /* SECTION */
+    .section{margin-bottom:72px;}
+    .section-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:var(--gold);margin-bottom:6px;}
+    .section-desc{font-size:13px;color:var(--muted);margin-bottom:32px;max-width:680px;line-height:1.6;}
+    .screens-row{display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;}
+
+    /* PHONE */
+    .phone-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
+    .phone-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+    .phone{width:248px;background:var(--navy);border-radius:32px;border:2px solid var(--border);overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.6);}
+    .phone-tall{min-height:560px;}
+    .phone-status{height:22px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--navy);}
+    .phone-status span{font-size:8px;font-weight:600;color:var(--muted);}
+
+    /* ANNOTATION */
+    .note{font-size:11px;color:var(--muted);max-width:220px;line-height:1.6;margin-top:4px;}
+    .note strong{color:var(--gold);}
+
+    /* FLOW ARROW */
+    .arrow{display:flex;align-items:center;color:var(--gold);font-size:22px;padding-top:80px;padding-left:4px;padding-right:4px;}
+
+    /* ── UI PRIMITIVES ── */
+    .ui-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 6px;}
+    .ui-header-title{font-size:12px;font-weight:800;}
+    .ui-icon-btn{width:26px;height:26px;background:var(--slate);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);flex-shrink:0;}
+    .ui-avatar{width:30px;height:30px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#000;flex-shrink:0;}
+    .ui-avatar-name{display:flex;align-items:center;gap:8px;}
+    .ui-avatar-text{font-size:11px;font-weight:700;}
+    .ui-avatar-sub{font-size:8px;color:var(--muted);}
+
+    .ui-stats-row{display:flex;gap:8px;padding:6px 14px;}
+    .ui-stat{flex:1;background:var(--slate);border-radius:12px;padding:10px;text-align:center;}
+    .ui-stat-num{font-size:20px;font-weight:900;color:var(--gold);}
+    .ui-stat-lbl{font-size:8px;color:var(--muted);margin-top:2px;line-height:1.3;}
+
+    .ui-card{margin:6px 14px;background:var(--slate);border-radius:14px;padding:12px;border:1px solid var(--border);}
+    .ui-card-row{display:flex;align-items:center;justify-content:space-between;}
+    .ui-card-title{font-size:11px;font-weight:700;}
+    .ui-card-sub{font-size:8px;color:var(--muted);margin-top:2px;}
+    .ui-progress{height:4px;background:var(--slate2);border-radius:99px;margin-top:8px;overflow:hidden;}
+    .ui-progress-fill{height:100%;background:var(--gold);border-radius:99px;}
+
+    .ui-section-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px 14px 4px;}
+    .ui-divider{height:1px;background:var(--border);margin:6px 14px;}
+
+    .ui-list-item{margin:3px 14px;background:var(--slate);border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;}
+    .ui-list-left{display:flex;align-items:center;gap:8px;}
+    .ui-list-icon{width:26px;height:26px;background:var(--slate2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+    .ui-list-title{font-size:10px;font-weight:600;}
+    .ui-list-sub{font-size:8px;color:var(--muted);}
+    .ui-list-right{font-size:8px;color:var(--dim);}
+
+    .ui-btn{display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:11px;font-weight:700;padding:10px 14px;gap:6px;}
+    .ui-btn-primary{background:var(--gold);color:#000;}
+    .ui-btn-secondary{background:var(--slate);color:var(--text);}
+    .ui-btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+    .ui-btn-red{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+    .ui-btns-row{display:flex;gap:6px;padding:6px 14px;}
+
+    .ui-fab{position:absolute;bottom:14px;right:14px;width:42px;height:42px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:300;color:#000;box-shadow:0 4px 16px rgba(245,158,11,.4);}
+
+    .ui-filter-row{display:flex;align-items:center;gap:4px;padding:6px 14px;}
+    .ui-filter{font-size:8px;font-weight:700;padding:4px 8px;border-radius:99px;background:var(--slate);color:var(--muted);}
+    .ui-filter.active{background:var(--gold);color:#000;}
+    .ui-filter-spacer{flex:1;}
+    .ui-expand-btn{font-size:8px;font-weight:700;color:var(--gold);}
+
+    /* GEN STACKED CARD */
+    .ui-gen{margin:3px 14px;border-radius:12px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;}
+    .ui-gen-left .name{font-size:10px;font-weight:800;color:#fff;}
+    .ui-gen-left .count{font-size:8px;color:rgba(255,255,255,.55);margin-top:1px;}
+    .ui-gen-right{text-align:right;font-size:8px;color:rgba(255,255,255,.7);}
+
+    /* CARD GRID */
+    .ui-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px 14px;}
+    .ui-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px 0;}
+    .ui-tile{background:var(--slate);border-radius:8px;aspect-ratio:2/3;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:4px;overflow:hidden;}
+    .ui-tile.owned{border:1px solid var(--gold);}
+    .ui-tile.dim{opacity:.35;}
+    .ui-tile-num{font-size:6px;color:var(--dim);}
+    .ui-tile-name{font-size:6px;font-weight:700;color:var(--text);text-align:center;line-height:1.2;}
+    .ui-tile-rarity{font-size:5px;color:var(--gold);text-align:center;}
+    .ui-tile-sm{background:var(--slate2);border-radius:6px;aspect-ratio:2/3;}
+
+    /* SEARCH */
+    .ui-search{margin:5px 14px;background:var(--slate);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px;}
+    .ui-search-ph{font-size:9px;color:var(--dim);}
+
+    /* TOGGLE */
+    .ui-toggle-row{display:flex;align-items:center;padding:6px 14px;gap:8px;}
+    .ui-toggle-lbl{font-size:9px;color:var(--muted);flex:1;}
+    .ui-toggle-track{width:36px;height:18px;background:var(--slate2);border-radius:99px;position:relative;}
+    .ui-toggle-track.on{background:var(--gold);}
+    .ui-toggle-dot{width:13px;height:13px;background:var(--muted);border-radius:50%;position:absolute;top:2.5px;left:2.5px;transition:.2s;}
+    .ui-toggle-track.on .ui-toggle-dot{left:calc(100% - 15.5px);background:#000;}
+    .ui-masterset-row{display:flex;align-items:center;gap:8px;padding:6px 14px;}
+    .ui-masterset-lbl{font-size:9px;font-weight:700;color:var(--muted);}
+    .ui-masterset-lbl.active{color:var(--gold);}
+    .ui-pill-toggle{height:18px;width:48px;background:var(--slate);border-radius:99px;position:relative;border:1px solid var(--border);}
+    .ui-pill-dot{width:22px;height:14px;background:var(--gold);border-radius:99px;position:absolute;top:1px;right:1px;}
+
+    /* BADGE */
+    .badge{font-size:7px;font-weight:700;padding:2px 6px;border-radius:99px;}
+    .badge-gold{background:var(--gold);color:#000;}
+    .badge-green{background:var(--green);color:#000;}
+    .badge-slate{background:var(--slate2);color:var(--muted);}
+    .badge-blue{background:var(--blue);color:#fff;}
+
+    /* DRAWER */
+    .drawer-overlay-bg{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1;}
+    .drawer-panel{position:absolute;top:0;left:0;width:78%;height:100%;background:#111D2E;border-right:1px solid var(--border);z-index:2;overflow:hidden;}
+
+    /* POPUP SHEET */
+    .popup-sheet{position:absolute;bottom:0;left:0;right:0;background:#16213A;border-radius:20px 20px 0 0;border-top:1px solid var(--border);padding:12px;z-index:5;}
+    .popup-handle{width:30px;height:3px;background:var(--border);border-radius:99px;margin:0 auto 10px;}
+    .popup-title{font-size:13px;font-weight:800;text-align:center;margin-bottom:8px;}
+    .popup-dim{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:4;}
+
+    /* SET TILES (ERA GRID) */
+    .ui-era-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;padding:4px 14px;}
+    .ui-set-tile{background:var(--slate);border-radius:8px;padding:8px 6px;text-align:center;}
+    .ui-set-icon{font-size:18px;margin-bottom:3px;}
+    .ui-set-name{font-size:7px;font-weight:700;color:var(--text);}
+    .ui-set-year{font-size:6px;color:var(--muted);}
+    .ui-set-progress{height:3px;background:var(--slate2);border-radius:99px;margin-top:4px;overflow:hidden;}
+    .ui-set-fill{height:100%;background:var(--gold);}
+    .ui-set-started .ui-set-name{color:var(--gold);}
+
+    /* PRICE GRAPH */
+    .price-block{background:var(--navy);border-radius:10px;padding:10px;margin:6px 0;}
+    .price-main{font-size:22px;font-weight:900;color:var(--gold);}
+    .price-lbl{font-size:8px;color:var(--muted);}
+    .price-graph{display:flex;align-items:center;gap:2px;margin-top:8px;}
+    .price-dot{width:7px;height:7px;background:var(--muted);border-radius:50%;flex-shrink:0;}
+    .price-dot.market{background:var(--gold);width:9px;height:9px;}
+    .price-line{flex:1;height:2px;background:linear-gradient(90deg,var(--muted),var(--gold),var(--muted));}
+    .price-labels{display:flex;justify-content:space-between;margin-top:3px;}
+    .price-label-item{font-size:6px;color:var(--muted);}
+    .price-label-item.mid{color:var(--gold);}
+
+    /* CARD LARGE */
+    .card-large{width:72px;height:100px;background:linear-gradient(135deg,var(--slate2),var(--slate));border-radius:7px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:26px;border:1px solid var(--border);}
+
+    /* LANG ROW */
+    .lang-row{display:flex;gap:3px;flex-wrap:wrap;margin:4px 0;}
+    .lang{font-size:7px;font-weight:700;padding:2px 5px;background:var(--slate2);border-radius:4px;color:var(--muted);}
+    .lang.active{background:var(--gold);color:#000;}
+
+    /* BOTTOM NAV */
+    .bottom-nav{display:flex;background:var(--navy);border-top:1px solid var(--border);padding:8px 0 10px;}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+    .nav-icon{font-size:16px;}
+    .nav-lbl{font-size:7px;font-weight:600;color:var(--muted);}
+    .nav-item.active .nav-lbl{color:var(--gold);}
+    .nav-item.active .nav-icon{filter:drop-shadow(0 0 4px var(--gold));}
+
+    /* ERA HEADER */
+    .era-hdr{margin:3px 14px;border-radius:10px;padding:8px 10px;}
+    .era-hdr-row{display:flex;justify-content:space-between;align-items:center;}
+    .era-hdr-name{font-size:10px;font-weight:800;color:#fff;}
+    .era-hdr-stats{font-size:8px;color:rgba(255,255,255,.6);}
+    .era-hdr-bar{height:3px;background:rgba(255,255,255,.2);border-radius:99px;margin-top:5px;overflow:hidden;}
+    .era-hdr-fill{height:100%;background:rgba(255,255,255,.8);border-radius:99px;}
+
+    /* SCROLL HINT */
+    .scroll-hint{font-size:7px;color:var(--dim);text-align:center;padding:4px;font-style:italic;}
+
+    /* VERSION */
+    .version-lbl{font-size:8px;color:var(--dim);text-align:center;padding:8px;}
+    .version-lbl span{text-decoration:underline;cursor:pointer;color:var(--muted);}
+
+    /* SYNC ROW */
+    .sync-row{display:flex;gap:6px;padding:6px 14px;}
+
+    /* LANDING SPECIFIC */
+    .landing-hero{padding:24px 14px 12px;text-align:center;}
+    .landing-mascot{width:72px;height:72px;background:linear-gradient(135deg,#1E3A5F,#2D5A8E);border-radius:20px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:32px;border:1px solid var(--border);}
+    .landing-appname{font-size:18px;font-weight:900;letter-spacing:-0.5px;}
+    .landing-appname span{color:var(--gold);}
+    .landing-tagline{font-size:9px;color:var(--muted);margin-top:3px;}
+    .landing-divider{text-align:center;font-size:9px;color:var(--dim);padding:4px 0;}
+    .landing-btns{padding:6px 14px;display:flex;flex-direction:column;gap:6px;}
+    .landing-footer{padding:10px 14px 12px;text-align:center;}
+    .landing-store-logo{font-size:9px;font-weight:700;color:var(--muted);}
+
+    /* POPUP DIM OVERLAY */
+    .overlay-dim{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.55);z-index:3;}
+
+    /* INPUT FIELD */
+    .ui-input{background:var(--slate2);border-radius:8px;padding:7px 10px;font-size:9px;color:var(--text);margin:3px 0;}
+    .ui-input-lbl{font-size:8px;color:var(--muted);margin-bottom:2px;}
+
+    /* INFO ROW */
+    .info-row{display:flex;gap:6px;margin:4px 0;}
+    .info-chip{background:var(--slate2);border-radius:6px;padding:4px 8px;font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px;}
+    .info-chip span{color:var(--text);font-weight:600;}
+
+    /* COLOR PALETTE */
+    .palette{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+    .swatch-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .swatch{width:36px;height:36px;border-radius:8px;}
+    .swatch-label{font-size:8px;color:var(--muted);text-align:center;}
+    .swatch-hex{font-size:7px;color:var(--dim);text-align:center;}
+
+    /* GEN COLOR PALETTE */
+    .gen-palette{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+    .gen-chip{height:28px;padding:0 10px;border-radius:8px;display:flex;align-items:center;font-size:9px;font-weight:700;color:#fff;}
+
+    /* PHOTO BTNS */
+    .photo-btns{display:flex;gap:5px;margin-top:4px;}
+    .photo-btn{flex:1;background:var(--slate2);border-radius:8px;padding:8px 4px;text-align:center;font-size:8px;color:var(--muted);}
+    .photo-btn-icon{font-size:14px;margin-bottom:2px;}
+
+    /* GUEST TRAINER */
+    .guest-card{margin:4px 14px;border-radius:12px;padding:10px;background:var(--slate);border:1px solid var(--border);}
+    .guest-row{display:flex;align-items:center;justify-content:space-between;}
+    .guest-name{font-size:10px;font-weight:700;}
+    .guest-sub{font-size:8px;color:var(--muted);}
+    .guest-owned{width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block;margin-right:3px;}
+    .guest-reserved{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block;margin-right:3px;}
+    .guest-alert{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;margin-right:3px;box-shadow:0 0 4px var(--red);}
+
+    /* CONFIRM SLIDER */
+    .confirm-slider{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;margin:4px 0;}
+    .confirm-track{flex:1;height:6px;background:rgba(239,68,68,.2);border-radius:99px;position:relative;}
+    .confirm-thumb{width:20px;height:20px;background:var(--red);border-radius:50%;position:absolute;top:-7px;left:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;}
+    .confirm-text{font-size:9px;color:var(--red);}
+
+    /* SHARE QR */
+    .qr-block{background:var(--slate);border-radius:10px;padding:10px;text-align:center;margin:6px 14px;}
+    .qr-box{width:60px;height:60px;background:#fff;border-radius:6px;margin:0 auto 5px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+    .qr-text{font-size:8px;color:var(--muted);}
+
+    @media(max-width:900px){body{padding:24px 16px;}.screens-row{gap:20px;}}
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  DOCUMENT HEADER                                   -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="doc-header">
+  <div class="doc-title">Master<span>Binder</span> — UI Wireframes</div>
+  <div class="doc-meta">Version 1.0 Bulbasaur · Brainstorm Phase · May 2026</div>
+  <div class="tags">
+    <span class="tag gold">Wireframe</span>
+    <span class="tag">Dark Mode</span>
+    <span class="tag">PWA</span>
+    <span class="tag">React + Vite</span>
+    <span class="tag">Firebase Auth</span>
+    <span class="tag">Firestore</span>
+    <span class="tag">Netlify</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  COLOR SYSTEM                                      -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">01 — Color System</div>
+  <div class="section-desc">Dark navy base, yellow/gold accent. Device system preference sets default mode; user can override in Settings.</div>
+  <div class="palette">
+    <div class="swatch-wrap"><div class="swatch" style="background:#0F172A;border:1px solid #334155;"></div><div class="swatch-label">Background</div><div class="swatch-hex">#0F172A</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#1E293B;"></div><div class="swatch-label">Card</div><div class="swatch-hex">#1E293B</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#2D3F55;"></div><div class="swatch-label">Element</div><div class="swatch-hex">#2D3F55</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#334155;"></div><div class="swatch-label">Border</div><div class="swatch-hex">#334155</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#F59E0B;"></div><div class="swatch-label">Gold Accent</div><div class="swatch-hex">#F59E0B</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#F8FAFC;"></div><div class="swatch-label">Text</div><div class="swatch-hex">#F8FAFC</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#94A3B8;"></div><div class="swatch-label">Muted</div><div class="swatch-hex">#94A3B8</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#22C55E;"></div><div class="swatch-label">Success</div><div class="swatch-hex">#22C55E</div></div>
+    <div class="swatch-wrap"><div class="swatch" style="background:#EF4444;"></div><div class="swatch-label">Danger / Alert</div><div class="swatch-hex">#EF4444</div></div>
+  </div>
+  <div style="margin-top:24px;">
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Generation Colors</div>
+    <div class="gen-palette">
+      <div class="gen-chip" style="background:#B71C1C;">Gen I — Kanto</div>
+      <div class="gen-chip" style="background:#BF6900;">Gen II — Johto</div>
+      <div class="gen-chip" style="background:#1B5E20;">Gen III — Hoenn</div>
+      <div class="gen-chip" style="background:#1A237E;">Gen IV — Sinnoh</div>
+      <div class="gen-chip" style="background:#006064;">Gen V — Unova</div>
+      <div class="gen-chip" style="background:#311B92;">Gen VI — Kalos</div>
+      <div class="gen-chip" style="background:#E64A19;">Gen VII — Alola</div>
+      <div class="gen-chip" style="background:#6A1B9A;">Gen VIII — Galar</div>
+      <div class="gen-chip" style="background:#880E4F;">Gen IX — Paldea</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  02 — LANDING SCREEN                               -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">02 — Landing Screen</div>
+  <div class="section-desc">Entry point when the QR code is scanned. Three paths: create account, sign in with cloud data, or continue locally. Blue Moon branding lives here only.</div>
+  <div class="screens-row">
+
+    <div class="phone-wrap">
+      <div class="phone-label">Landing / Auth</div>
+      <div class="phone" style="min-height:600px;display:flex;flex-direction:column;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <!-- Hero — breathable top section -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px 16px;text-align:center;">
+          <div class="landing-mascot" style="width:88px;height:88px;font-size:40px;margin-bottom:20px;">🃏</div>
+          <div class="landing-appname" style="font-size:22px;">Master<span>Binder</span></div>
+          <div class="landing-tagline" style="margin-top:6px;font-size:10px;line-height:1.6;">Your Pokémon Collection, Tracked.</div>
+        </div>
+        <!-- Auth buttons — mid section -->
+        <div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px;">
+          <div class="ui-btn ui-btn-primary" style="padding:13px;">＋ &nbsp; Add Trainer</div>
+          <div style="display:flex;gap:8px;">
+            <div class="ui-btn ui-btn-secondary" style="flex:1;font-size:10px;padding:11px;">🔍 Google</div>
+            <div class="ui-btn ui-btn-secondary" style="flex:1;font-size:10px;padding:11px;">✉ Email</div>
+          </div>
+          <div class="landing-divider" style="padding:4px 0;">— or —</div>
+          <div class="ui-btn ui-btn-ghost" style="padding:11px;">Continue Locally</div>
+        </div>
+        <!-- Footer — pinned to very bottom -->
+        <div style="padding:0 20px 20px;text-align:center;border-top:1px solid var(--border);padding-top:14px;">
+          <div style="font-size:18px;margin-bottom:4px;">🔵</div>
+          <div class="landing-store-logo" style="font-size:9px;">Blue Moon Collectibles</div>
+          <div class="version-lbl" style="margin-top:4px;"><span>V1.0 Bulbasaur</span></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>"Add Trainer"</strong> — Pokémon term, used here only.<br><br>
+        <strong>Hero area</strong> — breathable, centered, mascot prominent.<br><br>
+        <strong>Logo + version</strong> — pinned to bottom, separated by a divider.<br><br>
+        <strong>Version</strong> — tappable → system log popup.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  03 — HOME SCREEN                                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">03 — Home Screen</div>
+  <div class="section-desc">Dashboard + launchpad. Avatar triggers drawer. Stats scroll to their sections. National Pokédex always pinned. FAB opens Set Selector.</div>
+  <div class="screens-row">
+
+    <div class="phone-wrap">
+      <div class="phone-label">Home (with sets)</div>
+      <div class="phone phone-tall">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <!-- Header -->
+        <div class="ui-header" style="padding-top:12px;">
+          <div class="ui-avatar-name">
+            <div class="ui-avatar">E</div>
+            <div>
+              <div class="ui-avatar-text">Endri</div>
+              <div class="ui-avatar-sub">Tap to open menu</div>
+            </div>
+          </div>
+        </div>
+        <!-- Stats -->
+        <div class="ui-stats-row">
+          <div class="ui-stat">
+            <div class="ui-stat-num">3</div>
+            <div class="ui-stat-lbl">Sets in<br>Progress</div>
+          </div>
+          <div class="ui-stat">
+            <div class="ui-stat-num">2</div>
+            <div class="ui-stat-lbl">Sets<br>Completed</div>
+          </div>
+        </div>
+        <!-- Pokédex card -->
+        <div class="ui-card">
+          <div class="ui-card-row">
+            <div>
+              <div class="ui-card-title">📖 National Pokédex</div>
+              <div class="ui-card-sub">487 / 1025 Pokémon owned</div>
+            </div>
+            <div class="badge badge-gold">47%</div>
+          </div>
+          <div class="ui-progress"><div class="ui-progress-fill" style="width:47%;"></div></div>
+        </div>
+        <!-- In Progress -->
+        <div class="ui-section-lbl">In Progress</div>
+        <div class="ui-list-item">
+          <div class="ui-list-left">
+            <div class="ui-list-icon">⚡</div>
+            <div>
+              <div class="ui-list-title">Scarlet & Violet</div>
+              <div class="ui-list-sub">87 / 198 · Base</div>
+            </div>
+          </div>
+          <div class="badge badge-slate">44%</div>
+        </div>
+        <div class="ui-list-item">
+          <div class="ui-list-left">
+            <div class="ui-list-icon">🌙</div>
+            <div>
+              <div class="ui-list-title">Paldea Evolved</div>
+              <div class="ui-list-sub">120 / 312 · Masterset</div>
+            </div>
+          </div>
+          <div class="badge badge-slate">38%</div>
+        </div>
+        <!-- Completed -->
+        <div class="ui-section-lbl">Completed</div>
+        <div class="ui-list-item">
+          <div class="ui-list-left">
+            <div class="ui-list-icon">🔥</div>
+            <div>
+              <div class="ui-list-title">Base Set</div>
+              <div class="ui-list-sub">102 / 102 · Base</div>
+            </div>
+          </div>
+          <div class="badge badge-green">✓ 100%</div>
+        </div>
+        <div style="height:50px;"></div>
+        <div class="ui-fab">+</div>
+      </div>
+      <div class="note">
+        <strong>Stats row</strong> — tap either card scrolls to that section.<br><br>
+        <strong>Pokédex card</strong> — always pinned, always visible.<br><br>
+        <strong>FAB +</strong> — opens Set Selector (full screen slide-up).
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone-label">Home (empty state)</div>
+      <div class="phone phone-tall">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header" style="padding-top:12px;">
+          <div class="ui-avatar-name">
+            <div class="ui-avatar">E</div>
+            <div>
+              <div class="ui-avatar-text">Endri</div>
+              <div class="ui-avatar-sub">Local · Not synced</div>
+            </div>
+          </div>
+        </div>
+        <div class="ui-stats-row">
+          <div class="ui-stat">
+            <div class="ui-stat-num" style="font-size:14px;color:var(--muted);">0</div>
+            <div class="ui-stat-lbl">Sets in<br>Progress</div>
+          </div>
+          <div class="ui-stat">
+            <div class="ui-stat-num" style="font-size:14px;color:var(--muted);">0</div>
+            <div class="ui-stat-lbl">Sets<br>Completed</div>
+          </div>
+        </div>
+        <div class="ui-card">
+          <div class="ui-card-row">
+            <div>
+              <div class="ui-card-title">📖 National Pokédex</div>
+              <div class="ui-card-sub" style="color:var(--dim);">Not started yet</div>
+            </div>
+            <div class="badge badge-slate">0%</div>
+          </div>
+          <div class="ui-progress"><div class="ui-progress-fill" style="width:0%;"></div></div>
+        </div>
+        <div style="padding:24px 14px;text-align:center;">
+          <div style="font-size:28px;margin-bottom:8px;">🃏</div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);">Not collecting yet</div>
+          <div style="font-size:9px;color:var(--dim);margin-top:4px;line-height:1.5;">Tap <strong style="color:var(--gold);">+</strong> to start tracking your first set</div>
+        </div>
+        <div style="height:50px;"></div>
+        <div class="ui-fab">+</div>
+      </div>
+      <div class="note">
+        <strong>Mascot</strong> appears in empty state.<br><br>
+        <strong>Pokédex card</strong> still pinned even when not started.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  04 — LEFT DRAWER MENU                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">04 — Left Drawer Menu</div>
+  <div class="section-desc">Triggered by tapping avatar + name. Slides in from left, dims main content. Contains profile, trainer switching, settings, sync, and install.</div>
+  <div class="screens-row">
+
+    <div class="phone-wrap">
+      <div class="phone-label">Drawer Open</div>
+      <div class="phone phone-tall" style="position:relative;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <!-- Main content dimmed behind -->
+        <div style="padding:10px 14px;opacity:.3;">
+          <div class="ui-avatar-name"><div class="ui-avatar">E</div><div class="ui-avatar-text">Endri</div></div>
+        </div>
+        <!-- Dim overlay -->
+        <div class="overlay-dim"></div>
+        <!-- Drawer panel -->
+        <div class="drawer-panel">
+          <div style="padding:12px 12px 6px;">
+            <!-- Profile -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <div class="ui-avatar" style="width:40px;height:40px;font-size:16px;">E</div>
+              <div>
+                <div style="font-size:12px;font-weight:800;">Endri</div>
+                <div style="font-size:8px;color:var(--muted);">Local · Not synced</div>
+              </div>
+            </div>
+            <!-- Drawer Stats -->
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <div class="ui-stat" style="padding:6px;"><div class="ui-stat-num" style="font-size:14px;">487</div><div class="ui-stat-lbl">Dex<br>Owned</div></div>
+              <div class="ui-stat" style="padding:6px;"><div class="ui-stat-num" style="font-size:14px;">3</div><div class="ui-stat-lbl">Sets<br>Active</div></div>
+              <div class="ui-stat" style="padding:6px;"><div class="ui-stat-num" style="font-size:14px;">2</div><div class="ui-stat-lbl">Sets<br>Done</div></div>
+            </div>
+            <div class="ui-divider"></div>
+            <!-- Trainer List -->
+            <div style="font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:4px 0 4px;">Trainers</div>
+            <div style="background:var(--slate);border-radius:8px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="ui-avatar" style="width:22px;height:22px;font-size:8px;">E</div>
+                <div style="font-size:9px;font-weight:700;">Endri <span style="color:var(--gold);font-size:7px;">● Active</span></div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);">⚙</div>
+            </div>
+            <div style="background:var(--slate);border-radius:8px;padding:6px 8px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;opacity:.6;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">A</div>
+                <div style="font-size:9px;font-weight:700;">Aldi <span style="font-size:7px;color:var(--muted);">[Guest]</span></div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);">⚙</div>
+            </div>
+            <div style="font-size:9px;color:var(--gold);padding:2px 0 6px;font-weight:700;">＋ Add a Trainer</div>
+            <div class="ui-divider"></div>
+            <!-- Settings -->
+            <div style="font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:4px 0;">Settings</div>
+            <div class="ui-toggle-row" style="padding:3px 0;">
+              <div class="ui-toggle-lbl">🌙 Dark Mode</div>
+              <div class="ui-toggle-track on"><div class="ui-toggle-dot"></div></div>
+            </div>
+            <div style="font-size:9px;color:var(--muted);padding:3px 0;display:flex;justify-content:space-between;"><span>📤 Export / Import</span><span style="color:var(--dim);">›</span></div>
+            <div style="font-size:9px;color:var(--muted);padding:3px 0;display:flex;justify-content:space-between;"><span>🔄 Refresh Sets List</span><span style="color:var(--dim);">›</span></div>
+            <div style="font-size:9px;color:var(--muted);padding:3px 0;display:flex;justify-content:space-between;"><span>🗑 Clear Cache</span><span style="color:var(--dim);">›</span></div>
+            <div class="ui-divider"></div>
+            <div style="font-size:9px;color:var(--muted);padding:3px 0;">❓ How to use MasterBinder</div>
+            <div class="ui-divider"></div>
+            <!-- Install + Sync -->
+            <div style="display:flex;gap:5px;margin:4px 0;">
+              <div class="ui-btn ui-btn-secondary" style="flex:1;font-size:9px;padding:7px;">📲 Install App</div>
+              <div class="ui-btn ui-btn-primary" style="flex:1;font-size:9px;padding:7px;">☁ Sync</div>
+            </div>
+            <div class="ui-divider"></div>
+            <div class="ui-btn ui-btn-ghost" style="font-size:9px;padding:7px;margin:2px 0;">🏠 Back to Login</div>
+            <div class="version-lbl"><span>V1.0 Bulbasaur</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Trainer row ⚙</strong> — set default, delete trainer.<br><br>
+        <strong>Install App</strong> disappears after install.<br><br>
+        <strong>Sync</strong> shows ✓ + timestamp when synced.<br><br>
+        <strong>Version</strong> tappable → system log.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  05 — SET SELECTOR                                 -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">05 — Set Selector</div>
+  <div class="section-desc">Full screen, slides up from bottom. Triggered by FAB on Home. Sets grouped by era, expandable accordion. Search pinned above keyboard.</div>
+  <div class="screens-row">
+
+    <div class="phone-wrap">
+      <div class="phone-label">Set Selector</div>
+      <div class="phone phone-tall">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header">
+          <div class="ui-header-title">Start a Set</div>
+          <div class="ui-icon-btn">✕</div>
+        </div>
+        <!-- Controls -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 14px;">
+          <div class="ui-btn ui-btn-secondary" style="padding:5px 10px;font-size:9px;">⇅ Sort</div>
+          <div class="ui-expand-btn">Expand All</div>
+        </div>
+        <!-- Era accordion -->
+        <!-- Base Era — expanded -->
+        <div class="era-hdr" style="background:#B71C1C;margin-top:6px;">
+          <div class="era-hdr-row"><div class="era-hdr-name">Base Era</div><div class="era-hdr-stats">5 sets · 2 started</div></div>
+        </div>
+        <div class="ui-era-grid">
+          <div class="ui-set-tile ui-set-started">
+            <div class="ui-set-icon">⚡</div>
+            <div class="ui-set-name" style="color:var(--gold);">Base Set</div>
+            <div class="ui-set-year">1999 · 102 cards</div>
+            <div class="ui-set-progress"><div class="ui-set-fill" style="width:65%;"></div></div>
+            <div style="margin-top:3px;"><span class="badge badge-gold" style="font-size:6px;">Base · 65%</span></div>
+          </div>
+          <div class="ui-set-tile">
+            <div class="ui-set-icon">🌿</div>
+            <div class="ui-set-name">Jungle</div>
+            <div class="ui-set-year">1999 · 64 cards</div>
+            <div class="ui-set-progress"></div>
+          </div>
+          <div class="ui-set-tile">
+            <div class="ui-set-icon">🦴</div>
+            <div class="ui-set-name">Fossil</div>
+            <div class="ui-set-year">1999 · 62 cards</div>
+          </div>
+          <div class="ui-set-tile">
+            <div class="ui-set-icon">🏝</div>
+            <div class="ui-set-name">Team Rocket</div>
+            <div class="ui-set-year">2000 · 83 cards</div>
+          </div>
+        </div>
+        <!-- Scarlet & Violet Era — collapsed -->
+        <div class="era-hdr" style="background:#880E4F;">
+          <div class="era-hdr-row"><div class="era-hdr-name">Scarlet & Violet Era</div><div style="font-size:10px;color:rgba(255,255,255,.5);">▶ 12 sets</div></div>
+        </div>
+        <!-- Sword & Shield Era — collapsed -->
+        <div class="era-hdr" style="background:#6A1B9A;">
+          <div class="era-hdr-row"><div class="era-hdr-name">Sword & Shield Era</div><div style="font-size:10px;color:rgba(255,255,255,.5);">▶ 14 sets</div></div>
+        </div>
+        <div class="scroll-hint">↕ scroll to see all eras</div>
+        <!-- Fixed search -->
+        <div style="border-top:1px solid var(--border);margin-top:auto;">
+          <div class="ui-search" style="margin:8px 14px;">
+            <span style="font-size:11px;">🔍</span>
+            <span class="ui-search-ph">Search sets...</span>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Started sets</strong> show progress bar + mode badge.<br><br>
+        <strong>Search</strong> stays visible above keyboard.<br><br>
+        Tap any set → opens in Base mode, Masterset toggle available inside.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  06 — NATIONAL POKÉDEX                             -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">06 — National Pokédex</div>
+  <div class="section-desc">1025 slots, one per Pokémon. Grouped by generation using stacked colored card headers. 3-column grid. Tap = own, long press = remove, ⋮ = card detail.</div>
+  <div class="screens-row">
+
+    <div class="phone-wrap">
+      <div class="phone-label">Pokédex View</div>
+      <div class="phone phone-tall">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header">
+          <div class="ui-icon-btn">←</div>
+          <div class="ui-header-title">National Pokédex</div>
+          <div class="ui-icon-btn">⤴</div>
+        </div>
+        <!-- Stats -->
+        <div class="ui-stats-row">
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">487</div><div class="ui-stat-lbl">Owned</div></div>
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">538</div><div class="ui-stat-lbl">Missing</div></div>
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">47%</div><div class="ui-stat-lbl">Complete</div></div>
+        </div>
+        <!-- Filters -->
+        <div class="ui-filter-row">
+          <div class="ui-filter active">All</div>
+          <div class="ui-filter">Owned</div>
+          <div class="ui-filter">Missing</div>
+          <div class="ui-filter-spacer"></div>
+          <div class="ui-expand-btn">Expand All</div>
+        </div>
+        <!-- Gen I — expanded -->
+        <div class="ui-gen" style="background:#B71C1C;">
+          <div class="ui-gen-left"><div class="name">Gen I — Kanto</div><div class="count">151 Pokémon</div></div>
+          <div class="ui-gen-right">89 owned<br>62 missing · 59%</div>
+        </div>
+        <div class="ui-grid-3">
+          <div class="ui-tile owned"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#001</div><div class="ui-tile-name">Bulbasaur</div></div>
+          <div class="ui-tile owned"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#002</div><div class="ui-tile-name">Ivysaur</div></div>
+          <div class="ui-tile owned"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#003</div><div class="ui-tile-name">Venusaur</div></div>
+          <div class="ui-tile owned"><div style="font-size:14px;">🔥</div><div class="ui-tile-num">#004</div><div class="ui-tile-name">Charmander</div></div>
+          <div class="ui-tile dim"><div style="font-size:14px;opacity:.3;">❓</div><div class="ui-tile-num">#005</div><div class="ui-tile-name">Charmeleon</div></div>
+          <div class="ui-tile owned"><div style="font-size:14px;">🔥</div><div class="ui-tile-num">#006</div><div class="ui-tile-name">Charizard</div></div>
+        </div>
+        <!-- Gen II — collapsed -->
+        <div class="ui-gen" style="background:#BF6900;">
+          <div class="ui-gen-left"><div class="name">Gen II — Johto</div><div class="count">100 Pokémon</div></div>
+          <div class="ui-gen-right" style="font-size:10px;">▶</div>
+        </div>
+        <!-- Gen III — collapsed -->
+        <div class="ui-gen" style="background:#1B5E20;">
+          <div class="ui-gen-left"><div class="name">Gen III — Hoenn</div><div class="count">135 Pokémon</div></div>
+          <div class="ui-gen-right" style="font-size:10px;">▶</div>
+        </div>
+        <div class="scroll-hint">↕ Gen IV–IX below</div>
+      </div>
+      <div class="note">
+        <strong>Gen headers</strong> — stacked card style, each gen color. Stats update with filter.<br><br>
+        <strong>Owned</strong> = full color border.<br>
+        <strong>Missing</strong> = dimmed.<br><br>
+        <strong>⤴ Share</strong> — generates live QR link.
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone-label">Share QR</div>
+      <div class="phone" style="min-height:320px;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header">
+          <div class="ui-icon-btn">←</div>
+          <div class="ui-header-title">Share Collection</div>
+        </div>
+        <div style="padding:10px 14px;text-align:center;">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:10px;">Share your live Pokédex with another trainer</div>
+          <div class="qr-block">
+            <div class="qr-box">⬛</div>
+            <div class="qr-text">Scan to view Endri's collection</div>
+            <div style="font-size:7px;color:var(--dim);margin-top:3px;">Link expires when you revoke</div>
+          </div>
+          <div class="ui-btn ui-btn-ghost" style="margin-top:10px;font-size:10px;">🔗 Copy Link</div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Live link</strong> — requires cloud account.<br><br>
+        Recipient gets a read-only guest trainer view.
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone-label">Guest Trainer View</div>
+      <div class="phone" style="min-height:380px;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header">
+          <div class="ui-icon-btn">←</div>
+          <div class="ui-header-title">Aldi's Pokédex</div>
+          <div class="badge badge-blue" style="font-size:8px;">Guest</div>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;gap:8px;padding:4px 14px;flex-wrap:wrap;">
+          <div style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px;"><span style="color:var(--blue);">■</span> Their cards</div>
+          <div style="font-size:8px;color:var(--muted);display:flex;align-items:center;gap:3px;"><span style="color:var(--gold);">■</span> Reserved by you</div>
+          <div style="font-size:8px;color:var(--red);display:flex;align-items:center;gap:3px;">■ Got it elsewhere</div>
+        </div>
+        <div class="ui-gen" style="background:#B71C1C;">
+          <div class="ui-gen-left"><div class="name">Gen I — Kanto</div></div>
+          <div class="ui-gen-right">62 owned</div>
+        </div>
+        <div class="ui-grid-3">
+          <div class="ui-tile" style="border:1px solid var(--blue);"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#001</div><div class="ui-tile-name">Bulbasaur</div></div>
+          <div class="ui-tile" style="border:1px solid var(--gold);"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#002</div><div class="ui-tile-name">Ivysaur</div></div>
+          <div class="ui-tile" style="border:1px solid var(--red);box-shadow:0 0 6px rgba(239,68,68,.5);"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#003</div><div class="ui-tile-name">Venusaur</div></div>
+          <div class="ui-tile dim"><div style="font-size:14px;opacity:.3;">❓</div><div class="ui-tile-num">#004</div><div class="ui-tile-name">Charmander</div></div>
+          <div class="ui-tile dim"><div style="font-size:14px;opacity:.3;">❓</div><div class="ui-tile-num">#005</div><div class="ui-tile-name">Charmeleon</div></div>
+          <div class="ui-tile dim"><div style="font-size:14px;opacity:.3;">❓</div><div class="ui-tile-num">#006</div><div class="ui-tile-name">Charizard</div></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong style="color:var(--blue);">Blue border</strong> — they own it.<br>
+        <strong style="color:var(--gold);">Gold border</strong> — you reserved it for them.<br>
+        <strong style="color:var(--red);">Red glow</strong> — they got it elsewhere. Stand down.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  07 — SET TRACKER                                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">07 — Set Tracker</div>
+  <div class="section-desc">Tracks a single set. Toggle between Base and Masterset. Cards grouped by Pokémon / Trainer / Energy. Sorted by set number within groups.</div>
+  <div class="screens-row">
+
+    <div class="phone-wrap">
+      <div class="phone-label">Set Tracker — Base</div>
+      <div class="phone phone-tall">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header">
+          <div class="ui-icon-btn">←</div>
+          <div class="ui-header-title">Base Set</div>
+          <div class="ui-icon-btn">⤴</div>
+        </div>
+        <!-- Set info + toggle -->
+        <div class="ui-card" style="margin-bottom:4px;">
+          <div class="ui-card-row">
+            <div>
+              <div class="ui-card-title">⚡ Base Set · 1999</div>
+              <div class="ui-card-sub">102 cards total</div>
+            </div>
+            <div class="badge badge-gold">Base</div>
+          </div>
+          <!-- Masterset toggle -->
+          <div class="ui-masterset-row" style="margin-top:8px;padding:0;">
+            <div class="ui-masterset-lbl active">Base</div>
+            <div class="ui-pill-toggle"><div class="ui-pill-dot" style="left:1px;right:auto;"></div></div>
+            <div class="ui-masterset-lbl">Masterset</div>
+          </div>
+        </div>
+        <!-- Stats -->
+        <div class="ui-stats-row" style="padding:0 14px 4px;">
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">66</div><div class="ui-stat-lbl">Owned</div></div>
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">36</div><div class="ui-stat-lbl">Missing</div></div>
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">65%</div><div class="ui-stat-lbl">Complete</div></div>
+        </div>
+        <!-- Filters -->
+        <div class="ui-filter-row">
+          <div class="ui-filter active">All</div>
+          <div class="ui-filter">Owned</div>
+          <div class="ui-filter">Missing</div>
+          <div class="ui-filter-spacer"></div>
+          <div class="ui-expand-btn">Expand All</div>
+        </div>
+        <!-- Pokémon group -->
+        <div class="ui-card" style="margin:3px 14px;padding:8px 10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:10px;font-weight:800;">🐾 Pokémon</div>
+            <div style="font-size:8px;color:var(--muted);">52 / 80 · 65%</div>
+          </div>
+          <div class="ui-progress" style="margin-top:6px;"><div class="ui-progress-fill" style="width:65%;"></div></div>
+        </div>
+        <div class="ui-grid-3" style="padding:4px 14px;">
+          <div class="ui-tile owned"><div style="font-size:12px;">🌊</div><div class="ui-tile-num">001</div><div class="ui-tile-name">Blastoise</div><div class="ui-tile-rarity">Holo Rare</div></div>
+          <div class="ui-tile owned"><div style="font-size:12px;">🌿</div><div class="ui-tile-num">002</div><div class="ui-tile-name">Venusaur</div><div class="ui-tile-rarity">Holo Rare</div></div>
+          <div class="ui-tile dim"><div style="font-size:12px;opacity:.3;">❓</div><div class="ui-tile-num">003</div><div class="ui-tile-name">Chansey</div><div class="ui-tile-rarity" style="opacity:.5;">Holo Rare</div></div>
+        </div>
+        <!-- Trainer group collapsed -->
+        <div class="ui-card" style="margin:3px 14px;padding:8px 10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:10px;font-weight:800;">🎴 Trainer</div>
+            <div style="font-size:10px;color:var(--dim);">▶ 12 cards</div>
+          </div>
+        </div>
+        <!-- Energy group collapsed -->
+        <div class="ui-card" style="margin:3px 14px;padding:8px 10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:10px;font-weight:800;">⚡ Energy</div>
+            <div style="font-size:10px;color:var(--dim);">▶ 10 cards</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Toggle</strong> switches Base ↔ Masterset — stats update instantly.<br><br>
+        <strong>Groups</strong> — Pokémon / Trainer / Energy, each expandable.<br><br>
+        Cards sorted by set number within each group.
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone-label">Set Tracker — Masterset</div>
+      <div class="phone" style="min-height:360px;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header">
+          <div class="ui-icon-btn">←</div>
+          <div class="ui-header-title">Base Set</div>
+          <div class="ui-icon-btn">⤴</div>
+        </div>
+        <div class="ui-card" style="margin-bottom:4px;">
+          <div class="ui-card-row">
+            <div>
+              <div class="ui-card-title">⚡ Base Set · 1999</div>
+              <div class="ui-card-sub">214 cards (masterset)</div>
+            </div>
+            <div class="badge badge-gold">Masterset</div>
+          </div>
+          <div class="ui-masterset-row" style="margin-top:8px;padding:0;">
+            <div class="ui-masterset-lbl">Base</div>
+            <div class="ui-pill-toggle"><div class="ui-pill-dot"></div></div>
+            <div class="ui-masterset-lbl active">Masterset</div>
+          </div>
+        </div>
+        <div class="ui-stats-row" style="padding:0 14px 4px;">
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">66</div><div class="ui-stat-lbl">Owned</div></div>
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">148</div><div class="ui-stat-lbl">Missing</div></div>
+          <div class="ui-stat"><div class="ui-stat-num" style="font-size:16px;">31%</div><div class="ui-stat-lbl">Complete</div></div>
+        </div>
+        <div style="padding:8px 14px;font-size:9px;color:var(--muted);text-align:center;font-style:italic;">Masterset includes Reverse Holos, Secret Rares,<br>Special Illustration Rares & more</div>
+        <div class="ui-grid-3" style="padding:4px 14px;">
+          <div class="ui-tile owned"><div style="font-size:12px;">🌊</div><div class="ui-tile-num">001</div><div class="ui-tile-name">Blastoise</div><div class="ui-tile-rarity">Holo Rare</div></div>
+          <div class="ui-tile dim"><div style="font-size:12px;opacity:.3;">❓</div><div class="ui-tile-num">001</div><div class="ui-tile-name">Blastoise</div><div class="ui-tile-rarity" style="opacity:.4;">Rev. Holo</div></div>
+          <div class="ui-tile dim"><div style="font-size:12px;opacity:.3;">❓</div><div class="ui-tile-num">002</div><div class="ui-tile-name">Venusaur</div><div class="ui-tile-rarity" style="opacity:.4;">Rev. Holo</div></div>
+        </div>
+        <div class="scroll-hint">Rarity label distinguishes variants</div>
+      </div>
+      <div class="note">
+        <strong>Masterset</strong> — same card can appear multiple times with different rarity labels.<br><br>
+        Stats drop when toggling — expected and correct.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  08 — CARD INTERACTIONS                            -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">08 — Card Interactions & Popups</div>
+  <div class="section-desc">Three interactions per card tile. The ⋮ popup is shared between Pokédex and Set Tracker — only "Change Card" is removed in Set Tracker context.</div>
+  <div class="screens-row">
+
+    <!-- Long press confirm -->
+    <div class="phone-wrap">
+      <div class="phone-label">Long Press — Remove</div>
+      <div class="phone" style="min-height:280px;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div class="ui-header"><div class="ui-icon-btn">←</div><div class="ui-header-title">National Pokédex</div><div class="ui-icon-btn">⤴</div></div>
+        <div class="ui-grid-3" style="padding:8px 14px;">
+          <div class="ui-tile owned" style="opacity:.5;"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#001</div><div class="ui-tile-name">Bulbasaur</div></div>
+          <div class="ui-tile owned" style="border-color:var(--red);box-shadow:0 0 8px rgba(239,68,68,.4);position:relative;">
+            <div style="font-size:14px;">🌿</div><div class="ui-tile-num">#002</div><div class="ui-tile-name">Ivysaur</div>
+          </div>
+          <div class="ui-tile owned" style="opacity:.5;"><div style="font-size:14px;">🌿</div><div class="ui-tile-num">#003</div><div class="ui-tile-name">Venusaur</div></div>
+        </div>
+        <div style="padding:0 14px;">
+          <div class="confirm-slider">
+            <div style="font-size:10px;">→</div>
+            <div class="confirm-track"><div class="confirm-thumb">✕</div></div>
+            <div class="confirm-text">Slide to remove</div>
+          </div>
+        </div>
+      </div>
+      <div class="note"><strong>Long press</strong> activates swipe-to-confirm. Prevents accidental removals. Must swipe intentionally.</div>
+    </div>
+
+    <!-- Card Selector Popup -->
+    <div class="phone-wrap">
+      <div class="phone-label">Card Selector Popup (⋮)</div>
+      <div class="phone phone-tall" style="position:relative;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div style="padding:8px;opacity:.3;">
+          <div class="ui-grid-3">
+            <div class="ui-tile owned"></div><div class="ui-tile dim"></div><div class="ui-tile"></div>
+          </div>
+        </div>
+        <div class="overlay-dim" style="z-index:3;"></div>
+        <div class="popup-sheet" style="z-index:5;">
+          <div class="popup-handle"></div>
+          <div class="popup-title">Charizard</div>
+          <!-- Language -->
+          <div class="lang-row">
+            <div class="lang active">EN</div><div class="lang">JP</div><div class="lang">FR</div><div class="lang">DE</div><div class="lang">IT</div><div class="lang">ES</div><div class="lang">KR</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin:4px 0;">
+            <div style="font-size:8px;color:var(--muted);">⭐ Black Star Promo</div>
+            <div class="ui-toggle-track"><div class="ui-toggle-dot"></div></div>
+          </div>
+          <div class="ui-search" style="margin:4px 0;">
+            <span style="font-size:10px;">🔍</span><span class="ui-search-ph">Search cards...</span>
+          </div>
+          <!-- 4-col grid -->
+          <div class="ui-grid-4">
+            <div class="ui-tile-sm"></div><div class="ui-tile-sm"></div><div class="ui-tile-sm" style="border:1px solid var(--gold);"></div><div class="ui-tile-sm"></div>
+            <div class="ui-tile-sm"></div><div class="ui-tile-sm"></div><div class="ui-tile-sm"></div><div class="ui-tile-sm"></div>
+          </div>
+          <div style="font-size:7px;color:var(--dim);text-align:center;margin:2px 0;">Card name · Set · Set #</div>
+          <div class="ui-divider"></div>
+          <div class="ui-btn ui-btn-secondary" style="margin:3px 0;font-size:9px;padding:7px;">🏪 Search availability in store</div>
+          <div class="photo-btns">
+            <div class="photo-btn"><div class="photo-btn-icon">🖼</div>Add your own</div>
+            <div class="photo-btn"><div class="photo-btn-icon">📷</div>Take a photo</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Language filter</strong> + Black Star Promo toggle.<br><br>
+        <strong>4-col grid</strong> from TCG API — filtered live.<br><br>
+        Custom images auto-compressed silently.
+      </div>
+    </div>
+
+    <!-- Assigned Card Detail -->
+    <div class="phone-wrap">
+      <div class="phone-label">Card Detail Popup</div>
+      <div class="phone phone-tall" style="position:relative;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div style="padding:8px;opacity:.3;">
+          <div class="ui-grid-3">
+            <div class="ui-tile owned"></div><div class="ui-tile dim"></div><div class="ui-tile"></div>
+          </div>
+        </div>
+        <div class="overlay-dim" style="z-index:3;"></div>
+        <div class="popup-sheet" style="z-index:5;">
+          <div class="popup-handle"></div>
+          <!-- Card image -->
+          <div class="card-large">🔥</div>
+          <div style="text-align:center;margin-bottom:6px;">
+            <div style="font-size:12px;font-weight:800;">Charizard</div>
+            <div style="font-size:9px;color:var(--muted);">Base Set · #4</div>
+          </div>
+          <!-- Info chips -->
+          <div class="info-row">
+            <div class="info-chip">🌟 <span>Holo Rare</span></div>
+            <div class="info-chip">🔥 <span>Fire</span></div>
+          </div>
+          <!-- Price graph -->
+          <div class="price-block">
+            <div class="price-lbl">Market Price (USD)</div>
+            <div class="price-main">$420.00</div>
+            <div class="price-graph">
+              <div class="price-dot"></div>
+              <div class="price-line"></div>
+              <div class="price-dot market"></div>
+              <div class="price-line"></div>
+              <div class="price-dot"></div>
+            </div>
+            <div class="price-labels">
+              <div class="price-label-item">$280 Low</div>
+              <div class="price-label-item mid">$420 Market</div>
+              <div class="price-label-item">$680 High</div>
+            </div>
+          </div>
+          <!-- Purchase price -->
+          <div>
+            <div class="ui-input-lbl">My purchase price</div>
+            <div class="ui-input">$350.00</div>
+          </div>
+          <div class="ui-divider"></div>
+          <div class="ui-btn ui-btn-secondary" style="font-size:9px;padding:7px;margin:2px 0;">🏪 Search in store</div>
+          <div class="ui-btn ui-btn-secondary" style="font-size:9px;padding:7px;margin:2px 0;">🔄 Change the card</div>
+          <div class="ui-btn ui-btn-red" style="font-size:9px;padding:7px;margin:2px 0;">✕ Remove from Pokédex</div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Price graph</strong> — Low / Market / High from TCG API (USD).<br><br>
+        <strong>"Change card"</strong> — only in Pokédex context, not Set Tracker.<br><br>
+        <strong>Remove</strong> — requires swipe confirm.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  09 — NAVIGATION FLOW                              -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">09 — Navigation Flow Summary</div>
+  <div class="section-desc">How screens connect. All primary navigation from Home. Drawer accessible from any screen via avatar tap.</div>
+  <div style="background:var(--slate);border-radius:16px;padding:24px;max-width:760px;font-size:12px;color:var(--muted);line-height:2.2;">
+    <div><span style="color:var(--gold);font-weight:700;">QR Scan</span> → <span style="color:var(--text);">Landing</span> → <span style="color:var(--text);">Home</span></div>
+    <div><span style="color:var(--text);">Home · Avatar tap</span> → <span style="color:var(--gold);font-weight:700;">Left Drawer</span> (accessible from any screen)</div>
+    <div><span style="color:var(--text);">Home · Pokédex card tap</span> → <span style="color:var(--gold);font-weight:700;">National Pokédex</span> → Card tile ⋮ → Card Selector → Card Detail</div>
+    <div><span style="color:var(--text);">Home · FAB +</span> → <span style="color:var(--gold);font-weight:700;">Set Selector</span> (slides up) → Tap set → <span style="color:var(--gold);font-weight:700;">Set Tracker</span></div>
+    <div><span style="color:var(--text);">Home · In Progress / Completed set tap</span> → <span style="color:var(--gold);font-weight:700;">Set Tracker</span></div>
+    <div><span style="color:var(--text);">Any screen · Share ⤴</span> → <span style="color:var(--gold);font-weight:700;">QR Share sheet</span></div>
+    <div><span style="color:var(--text);">Drawer · Back to Login</span> → <span style="color:var(--gold);font-weight:700;">Landing</span></div>
+    <div><span style="color:var(--text);">Drawer · Version tap</span> → <span style="color:var(--gold);font-weight:700;">System Log popup</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  10 — ONBOARDING FLOW                              -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">10 — Onboarding Flow</div>
+  <div class="section-desc">Shows once after a new trainer is created. 4 swipeable steps, always skippable. Accessible later via "How to use" in the drawer. Swipe left/right or tap dots to navigate.</div>
+  <div class="screens-row">
+
+    <!-- Step 1 — Welcome -->
+    <div class="phone-wrap">
+      <div class="phone-label">Step 1 — Welcome</div>
+      <div class="phone" style="min-height:600px;display:flex;flex-direction:column;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <!-- Skip -->
+        <div style="display:flex;justify-content:flex-end;padding:10px 16px 0;">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);">Skip</div>
+        </div>
+        <!-- Content -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px;text-align:center;">
+          <div style="width:96px;height:96px;background:linear-gradient(135deg,#1E3A5F,#2D5A8E);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:28px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(245,158,11,.15);">🃏</div>
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;">Welcome, Endri.</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:20px;">Your collection, finally tracked<br>the right way.</div>
+          <!-- WIP notice -->
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:10px 12px;text-align:left;">
+            <div style="font-size:9px;color:var(--gold);font-weight:700;margin-bottom:3px;">⚠ Work in Progress</div>
+            <div style="font-size:8px;color:var(--muted);line-height:1.6;">MasterBinder is actively being developed. You may run into bugs — we're working on them. Thanks for being here early.</div>
+          </div>
+        </div>
+        <!-- Progress dots -->
+        <div style="display:flex;justify-content:center;gap:6px;padding-bottom:24px;">
+          <div style="width:20px;height:6px;background:var(--gold);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Skip</strong> always top right.<br><br>
+        <strong>WIP notice</strong> — warm, not alarming. Framed as a thank-you to early users.<br><br>
+        Active dot is wide pill, inactive dots are small circles.
+      </div>
+    </div>
+
+    <!-- Step 2 — National Pokédex -->
+    <div class="phone-wrap">
+      <div class="phone-label">Step 2 — Pokédex</div>
+      <div class="phone" style="min-height:600px;display:flex;flex-direction:column;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div style="display:flex;justify-content:flex-end;padding:10px 16px 0;">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);">Skip</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px;text-align:center;">
+          <!-- Mini Pokédex grid visual -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:28px;width:140px;">
+            <div class="ui-tile owned" style="aspect-ratio:2/3;border-radius:6px;"><div style="font-size:10px;">🌿</div></div>
+            <div class="ui-tile owned" style="aspect-ratio:2/3;border-radius:6px;"><div style="font-size:10px;">🔥</div></div>
+            <div class="ui-tile dim" style="aspect-ratio:2/3;border-radius:6px;opacity:.25;"></div>
+            <div class="ui-tile owned" style="aspect-ratio:2/3;border-radius:6px;"><div style="font-size:10px;">💧</div></div>
+            <div class="ui-tile dim" style="aspect-ratio:2/3;border-radius:6px;opacity:.25;"></div>
+            <div class="ui-tile owned" style="aspect-ratio:2/3;border-radius:6px;"><div style="font-size:10px;">⚡</div></div>
+            <div class="ui-tile owned" style="aspect-ratio:2/3;border-radius:6px;"><div style="font-size:10px;">🌿</div></div>
+            <div class="ui-tile dim" style="aspect-ratio:2/3;border-radius:6px;opacity:.25;"></div>
+          </div>
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;">One card per Pokémon.</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;">#001 to #1025 — one slot for every Pokémon, any card that represents them fills it.</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;padding-bottom:24px;">
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+          <div style="width:20px;height:6px;background:var(--gold);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Visual</strong> — mini grid with owned (colored border) and missing (dimmed) slots.<br><br>
+        No buttons needed — swipe to advance.
+      </div>
+    </div>
+
+    <!-- Step 3 — Set Tracker -->
+    <div class="phone-wrap">
+      <div class="phone-label">Step 3 — Set Tracker</div>
+      <div class="phone" style="min-height:600px;display:flex;flex-direction:column;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div style="display:flex;justify-content:flex-end;padding:10px 16px 0;">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);">Skip</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px;text-align:center;">
+          <!-- Set card visual -->
+          <div style="background:var(--slate);border-radius:16px;padding:14px;width:100%;margin-bottom:28px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="text-align:left;">
+                <div style="font-size:11px;font-weight:800;">⚡ Base Set · 1999</div>
+                <div style="font-size:8px;color:var(--muted);">102 cards</div>
+              </div>
+              <!-- Toggle visual -->
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="font-size:8px;font-weight:700;color:var(--gold);">Masterset</div>
+                <div class="ui-pill-toggle" style="width:36px;height:16px;"><div class="ui-pill-dot" style="width:14px;height:12px;top:1px;right:1px;"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-bottom:4px;"><span>66 owned</span><span>65%</span></div>
+            <div class="ui-progress"><div class="ui-progress-fill" style="width:65%;"></div></div>
+          </div>
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;">Track any set, any way.</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;">Base or Masterset — toggle between them anytime. Your pace, your goal.</div>
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;padding-bottom:24px;">
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+          <div style="width:20px;height:6px;background:var(--gold);border-radius:99px;"></div>
+          <div style="width:6px;height:6px;background:var(--slate2);border-radius:99px;"></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Visual</strong> — a real set card mockup with toggle showing Masterset active.<br><br>
+        Reinforces the toggle mechanic before they encounter it.
+      </div>
+    </div>
+
+    <!-- Step 4 — Ready -->
+    <div class="phone-wrap">
+      <div class="phone-label">Step 4 — Ready</div>
+      <div class="phone" style="min-height:600px;display:flex;flex-direction:column;">
+        <div class="phone-status"><span>9:41</span><span>● ▲ ■</span></div>
+        <div style="display:flex;justify-content:flex-end;padding:10px 16px 0;">
+          <div style="font-size:9px;font-weight:700;color:transparent;">Skip</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 24px;text-align:center;">
+          <!-- Mascot peace sign -->
+          <div style="width:96px;height:96px;background:linear-gradient(135deg,#1E3A5F,#2D5A8E);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:28px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(245,158,11,.2);">✌️</div>
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px;">You're all set.</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:32px;">Tap <strong style="color:var(--gold);">+</strong> to start your first set, or open the National Pokédex to begin tracking.</div>
+          <div class="ui-btn ui-btn-primary" style="width:100%;padding:14px;font-size:13px;">Start Collecting →</div>
+        </div>
+        <!-- Progress dots — all filled -->
+        <div style="display:flex;justify-content:center;gap:6px;padding-bottom:24px;">
+          <div style="width:6px;height:6px;background:var(--gold);border-radius:99px;opacity:.4;"></div>
+          <div style="width:6px;height:6px;background:var(--gold);border-radius:99px;opacity:.4;"></div>
+          <div style="width:6px;height:6px;background:var(--gold);border-radius:99px;opacity:.4;"></div>
+          <div style="width:20px;height:6px;background:var(--gold);border-radius:99px;"></div>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Skip hidden</strong> on last step — no reason to skip the CTA.<br><br>
+        <strong>"Start Collecting"</strong> drops user into Home.<br><br>
+        Previous dots fade to gold to show full journey completed.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!--  11 — OPEN ITEMS                                   -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">10 — Open / Not Yet Defined</div>
+  <div class="section-desc">Items still to be brainstormed before build begins.</div>
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:600px;">
+    <div class="ui-list-item"><div class="ui-list-left"><div class="ui-list-icon">👤</div><div><div class="ui-list-title">Profile popup</div><div class="ui-list-sub">Card detail style sheet — avatar, edit name, edit email</div></div></div><div class="badge badge-slate">Defined</div></div>
+    <div class="ui-list-item"><div class="ui-list-left"><div class="ui-list-icon">🏪</div><div><div class="ui-list-title">Blue Moon store URL</div><div class="ui-list-sub">bluemooncollectibles.com/en/shop?query={pokemonName}</div></div></div><div class="badge badge-green">✓ Done</div></div>
+    <div class="ui-list-item"><div class="ui-list-left"><div class="ui-list-icon">📋</div><div><div class="ui-list-title">System log popup content</div><div class="ui-list-sub">What debug info / changelog to show when version is tapped</div></div></div><div class="badge badge-slate">TBD</div></div>
+    <div class="ui-list-item"><div class="ui-list-left"><div class="ui-list-icon">❓</div><div><div class="ui-list-title">How to use — content</div><div class="ui-list-sub">In-app guide reuses onboarding content + extra detail</div></div></div><div class="badge badge-slate">TBD</div></div>
+  </div>
+</div>
+
+<div style="border-top:1px solid var(--border);padding-top:24px;margin-top:24px;font-size:11px;color:var(--dim);text-align:center;">
+  MasterBinder · UI Wireframe Document · V1.0 Bulbasaur · Brainstorm Phase · May 2026<br>
+  Endri · Blue Moon Collectibles · Tirana, Albania
+</div>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--bg-base);
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-6);
+  gap: var(--space-10);
+}
+
+/* ── Logo area ────────────────────────────────────────────────────────────── */
+.logoArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.mascot {
+  width: 120px;
+  height: 120px;
+}
+
+.mascotPlaceholder {
+  width: 120px;
+  height: 120px;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+}
+
+.appName {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.tagline {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.actions {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.btnFull {
+  width: 100%;
+}
+
+.btnContinue {
+  width: 100%;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.localNote {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+
+/* ── Google button ────────────────────────────────────────────────────────── */
+.googleBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: 14px var(--space-6);
+  background: var(--bg-card);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-pill);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.googleBtn:active { opacity: 0.7; }
+.googleBtn:disabled { opacity: 0.4; pointer-events: none; }
+
+/* ── Divider ──────────────────────────────────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+/* ── Form ─────────────────────────────────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.input {
+  width: 100%;
+  padding: 14px var(--space-4);
+  background: var(--bg-input);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.switchBtn {
+  width: 100%;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.footer {
+  flex-shrink: 0;
+  padding: 0 var(--space-6) var(--space-6);
+}
+
+.footerDivider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin-bottom: var(--space-4);
+}
+
+.footerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.blueMoonLogo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.blueMoonText {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.version {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}

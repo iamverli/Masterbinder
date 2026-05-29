@@ -1,0 +1,200 @@
+.sheet {
+  width: 100%;
+  height: 92vh;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.expandBtn:active { color: var(--accent); }
+
+/* ── Era list ─────────────────────────────────────────────────────────────── */
+.eraList {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--space-4);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-10);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid rgba(245, 158, 11, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Era section ──────────────────────────────────────────────────────────── */
+.eraSection {
+  margin-bottom: var(--space-2);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-overlay);
+}
+
+.eraHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px var(--space-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.eraHeader:active { background: rgba(255,255,255,0.04); }
+
+.eraName {
+  flex: 1;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.eraCount {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.chevron {
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+/* ── Set list ─────────────────────────────────────────────────────────────── */
+.setList {
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.setItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px var(--space-4);
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  cursor: pointer;
+  text-align: left;
+  gap: var(--space-3);
+  transition: background var(--transition-fast);
+}
+
+.setItem:active { background: rgba(255,255,255,0.04); }
+.setItem:last-child { border-bottom: none; }
+
+.setAdded {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.setInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.setName {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.setMeta {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.addIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.addedBadge {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ── Search bar ───────────────────────────────────────────────────────────── */
+.searchBar {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: var(--bg-card);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px var(--space-4);
+  background: var(--bg-input);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+}
+
+.searchInput:focus {
+  border-color: var(--accent);
+  outline: none;
+}

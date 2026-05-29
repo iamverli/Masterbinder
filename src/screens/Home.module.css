@@ -1,0 +1,326 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-base);
+  padding-top: var(--safe-top);
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  flex-shrink: 0;
+}
+
+.avatarBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.avatarBtn:active { opacity: 0.7; }
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #000;
+}
+
+.greeting {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.greetingHi {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.greetingName {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── Scroll ───────────────────────────────────────────────────────────────── */
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--space-4);
+}
+
+/* ── Stats row ────────────────────────────────────────────────────────────── */
+.statsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.statCard {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  text-align: left;
+}
+
+.statCard:active { background: var(--bg-card-hover); }
+
+.statValue {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.statValueGold {
+  color: var(--accent);
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* ── Pokédex card ─────────────────────────────────────────────────────────── */
+.pokedexCard {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border: none;
+  cursor: pointer;
+  margin-bottom: var(--space-5);
+  transition: background var(--transition-fast);
+  text-align: left;
+  border: 1.5px solid rgba(245, 158, 11, 0.15);
+}
+
+.pokedexCard:active { background: var(--bg-card-hover); }
+
+.pokedexLeft {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.pokedexTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pokedexSub {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.pokedexRight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pokedexPct {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.pokedexPctLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pokedexArrow {
+  font-size: var(--font-size-xl);
+  color: var(--text-muted);
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────────── */
+.section {
+  margin-bottom: var(--space-6);
+}
+
+.sectionLabel {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-3);
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+.emptyState {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.emptyIcon { font-size: 40px; }
+
+.emptyText {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.emptySubtext {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+/* ── Sets list ────────────────────────────────────────────────────────────── */
+.setsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.setCard {
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.setCard:active { background: var(--bg-card-hover); }
+
+.setCardComplete {
+  border: 1.5px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.1);
+}
+
+.setCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.setName {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.setStats {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.setSeries {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.setProgressWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: 2px;
+}
+
+.setPct {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── FAB ──────────────────────────────────────────────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: calc(var(--space-8) + var(--safe-bottom));
+  right: var(--space-6);
+  width: 56px;
+  height: 56px;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.45);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  z-index: 50;
+}
+
+.fab:active {
+  transform: scale(0.93);
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+}
+
+.fabIcon {
+  font-size: 28px;
+  font-weight: 300;
+  color: #000;
+  line-height: 1;
+  margin-top: -2px;
+}
