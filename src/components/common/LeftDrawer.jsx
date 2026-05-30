@@ -16,6 +16,8 @@ import {
 import SwipeToConfirm from './SwipeToConfirm'
 import { restoreFromCloud } from '../../services/syncService'
 import { APP_VERSION } from '../../screens/Landing'
+import ChangelogSheet from './ChangelogSheet'
+import BugReportSheet from './BugReportSheet'
 import styles from './LeftDrawer.module.css'
 
 const NAV_ITEMS = [
@@ -23,7 +25,7 @@ const NAV_ITEMS = [
   { icon: '📖', label: 'National Pokédex', path: '/pokedex' },
 ]
 
-export default function LeftDrawer({ open, onClose, onOpenHelp }) {
+export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog, onOpenBugReport }) {
   const navigate = useNavigate()
   const { user, isLocal, syncStatus } = useAuth()
   const { pokedexOwnedCount, setsInProgress, setsCompleted, reload } = useApp()
@@ -36,6 +38,9 @@ export default function LeftDrawer({ open, onClose, onOpenHelp }) {
   const [clearingCache, setClearingCache] = useState(false)
   const [isDark, setIsDark] = useState(true)
   const [restoring, setRestoring] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  const [updateDone, setUpdateDone] = useState(false)
   const importRef = useRef(null)
 
   // Load saved theme on mount
@@ -161,6 +166,28 @@ export default function LeftDrawer({ open, onClose, onOpenHelp }) {
     setInstallPrompt(null)
   }
 
+  async function handleCheckUpdates() {
+    setUpdating(true)
+    setUpdateDone(false)
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration()
+      if (reg) {
+        await reg.update()
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+          setTimeout(() => window.location.reload(), 500)
+        } else {
+          setUpdateDone(true)
+          setTimeout(() => setUpdateDone(false), 3000)
+        }
+      } else {
+        window.location.reload()
+      }
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   async function handleClearConfirmed() {
     setConfirmClear(false)
     await clearAllLocalData()
@@ -224,11 +251,11 @@ export default function LeftDrawer({ open, onClose, onOpenHelp }) {
         <div className={styles.divider} />
 
         {/* ── Navigation ──────────────────────────────────────────────── */}
-        <nav className={styles.nav}>
+        <nav className={styles.navGrid}>
           {NAV_ITEMS.map((item) => (
-            <button key={item.path} className={styles.navItem} onClick={() => handleNav(item.path)}>
-              <span className={styles.navIcon}>{item.icon}</span>
-              <span className={styles.navLabel}>{item.label}</span>
+            <button key={item.path} className={styles.navIconBtn} onClick={() => handleNav(item.path)} aria-label={item.label}>
+              <span className={styles.navIconLarge}>{item.icon}</span>
+              <span className={styles.navIconLabel}>{item.label}</span>
             </button>
           ))}
         </nav>
@@ -237,66 +264,75 @@ export default function LeftDrawer({ open, onClose, onOpenHelp }) {
 
         {/* ── Settings ─────────────────────────────────────────────────── */}
         <div className={styles.section}>
-          <span className={styles.sectionLabel}>Settings</span>
-
-          {/* Dark mode toggle */}
-          <button className={styles.navItem} onClick={handleToggleTheme}>
-            <span className={styles.navIcon}>{isDark ? '🌙' : '☀️'}</span>
-            <span className={styles.navLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
-            <div className={isDark ? styles.toggleOn : styles.toggleOff} />
+          <button className={styles.sectionToggle} onClick={() => setSettingsOpen(o => !o)}>
+            <span className={styles.sectionLabel}>Settings</span>
+            <span className={styles.chevron}>{settingsOpen ? '▲' : '▼'}</span>
           </button>
 
-          {/* Export */}
-          <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
-            <span className={styles.navIcon}>💾</span>
-            <span className={styles.navLabel}>{exporting ? 'Exporting…' : 'Export collection'}</span>
-            <span className={styles.navChevron}>›</span>
-          </button>
+          {settingsOpen && (
+            <>
+              {/* ── Appearance ── */}
+              <span className={styles.settingsCat}>Appearance</span>
+              <button className={styles.navItem} onClick={handleToggleTheme}>
+                <span className={styles.navIcon}>{isDark ? '🌙' : '☀️'}</span>
+                <span className={styles.navLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
+                <div className={isDark ? styles.toggleOn : styles.toggleOff} />
+              </button>
 
-          {/* Import */}
-          <button className={styles.navItem} onClick={() => importRef.current?.click()} disabled={importing}>
-            <span className={styles.navIcon}>📂</span>
-            <span className={styles.navLabel}>{importing ? 'Importing…' : 'Import collection'}</span>
-            <span className={styles.navChevron}>›</span>
-          </button>
-          <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+              {/* ── Backup & Sync ── */}
+              <span className={styles.settingsCat}>Backup & Sync</span>
+              <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
+                <span className={styles.navIcon}>💾</span>
+                <span className={styles.navLabel}>{exporting ? 'Exporting…' : 'Export collection'}</span>
+                <span className={styles.navChevron}>›</span>
+              </button>
+              <button className={styles.navItem} onClick={() => importRef.current?.click()} disabled={importing}>
+                <span className={styles.navIcon}>📂</span>
+                <span className={styles.navLabel}>{importing ? 'Importing…' : 'Import collection'}</span>
+                <span className={styles.navChevron}>›</span>
+              </button>
+              <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+              {!isLocal && (
+                <button className={styles.navItem} onClick={handleRestoreFromCloud} disabled={restoring}>
+                  <span className={styles.navIcon}>☁️</span>
+                  <span className={styles.navLabel}>{restoring ? 'Restoring…' : 'Restore from Cloud'}</span>
+                  <span className={styles.navChevron}>›</span>
+                </button>
+              )}
 
-          {/* Restore from cloud — only for signed-in users */}
-          {!isLocal && (
-            <button className={styles.navItem} onClick={handleRestoreFromCloud} disabled={restoring}>
-              <span className={styles.navIcon}>☁️</span>
-              <span className={styles.navLabel}>{restoring ? 'Restoring…' : 'Restore from Cloud'}</span>
-              <span className={styles.navChevron}>›</span>
-            </button>
+              {/* ── App ── */}
+              <span className={styles.settingsCat}>App</span>
+              <button className={styles.navItem} onClick={handleRefreshSets}>
+                <span className={styles.navIcon}>🔄</span>
+                <span className={styles.navLabel}>Refresh Sets List</span>
+                <span className={styles.navChevron}>›</span>
+              </button>
+              <button className={styles.navItem} onClick={handleClearCache} disabled={clearingCache}>
+                <span className={styles.navIcon}>🗂</span>
+                <span className={styles.navLabel}>{clearingCache ? 'Clearing…' : 'Clear Cache'}</span>
+                <span className={styles.navChevron}>›</span>
+              </button>
+            </>
           )}
-
-          {/* Refresh Sets List */}
-          <button className={styles.navItem} onClick={handleRefreshSets}>
-            <span className={styles.navIcon}>🔄</span>
-            <span className={styles.navLabel}>Refresh Sets List</span>
-            <span className={styles.navChevron}>›</span>
-          </button>
-
-          {/* Clear Cache */}
-          <button className={styles.navItem} onClick={handleClearCache} disabled={clearingCache}>
-            <span className={styles.navIcon}>🗂</span>
-            <span className={styles.navLabel}>{clearingCache ? 'Clearing…' : 'Clear Cache'}</span>
-            <span className={styles.navChevron}>›</span>
-          </button>
         </div>
 
-        <div className={styles.divider} />
+        <div className={styles.spacer} />
 
-        {/* ── Help ─────────────────────────────────────────────────────── */}
-        <div className={styles.section}>
+        {/* ── Check for updates + Help (above sync) ────────────────────── */}
+        <div className={styles.bottomActions}>
+          <button className={styles.navItem} onClick={handleCheckUpdates} disabled={updating}>
+            <span className={styles.navIcon}>⬆️</span>
+            <span className={styles.navLabel}>
+              {updating ? 'Checking…' : updateDone ? '✓ Up to date' : 'Check for Updates'}
+            </span>
+            <span className={styles.navChevron}>›</span>
+          </button>
           <button className={styles.navItem} onClick={() => { onClose(); onOpenHelp?.() }}>
             <span className={styles.navIcon}>❓</span>
             <span className={styles.navLabel}>How to use MasterBinder</span>
             <span className={styles.navChevron}>›</span>
           </button>
         </div>
-
-        <div className={styles.spacer} />
 
         {/* ── Install + Sync row ───────────────────────────────────────── */}
         <div className={styles.actionRow}>
@@ -318,12 +354,18 @@ export default function LeftDrawer({ open, onClose, onOpenHelp }) {
         {/* ── Bottom ──────────────────────────────────────────────────── */}
         <div className={styles.bottom}>
           <div className={styles.divider} />
-          <button className={styles.signOutBtn} onClick={handleSignOut}>
-            <span className={styles.navIcon}>🚪</span>
-            <span>{isLocal ? 'Back to Login' : 'Sign Out'}</span>
-          </button>
-          <button className={styles.version} onClick={() => console.log('MasterBinder', APP_VERSION)}>
-            {APP_VERSION}
+          <div className={styles.bottomRow}>
+            <button className={styles.signOutBtn} onClick={handleSignOut}>
+              <span className={styles.navIcon}>🚪</span>
+              <span>{isLocal ? 'Back to Login' : 'Sign Out'}</span>
+            </button>
+            <button className={styles.bugBtn} onClick={() => { onClose(); onOpenBugReport?.() }}>
+              <span className={styles.navIcon}>🐛</span>
+              <span>Report Bug</span>
+            </button>
+          </div>
+          <button className={styles.version} onClick={() => { onClose(); onOpenChangelog?.() }}>
+            {APP_VERSION} ›
           </button>
         </div>
       </div>

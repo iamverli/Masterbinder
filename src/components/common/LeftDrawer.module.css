@@ -246,6 +246,72 @@
   flex-shrink: 0;
 }
 
+.navGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+}
+
+.navIconBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--space-3) var(--space-2);
+  background: var(--bg-overlay);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.navIconBtn:active { background: var(--surface-medium); }
+
+.navIconLarge {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.navIconLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.bottomActions {
+  flex-shrink: 0;
+  border-top: 1px solid var(--separator);
+  padding-top: var(--space-1);
+}
+
+.settingsCat {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: var(--space-3) var(--space-2) var(--space-1);
+  opacity: 0.6;
+}
+
+.sectionToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-2) 0 var(--space-1);
+  transition: opacity var(--transition-fast);
+}
+.sectionToggle:active { opacity: 0.6; }
+
 .sectionLabel {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
@@ -314,11 +380,32 @@
   flex-shrink: 0;
 }
 
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.bugBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 13px var(--space-4);
+  background: none;
+  border: none;
+  border-left: 1px solid var(--separator);
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+.bugBtn:active { color: var(--accent); }
+
 .signOutBtn {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 13px var(--space-5);
+  padding: 13px var(--space-4);
   background: none;
   border: none;
   cursor: pointer;
@@ -339,4 +426,6 @@
   border: none;
   cursor: pointer;
   text-align: left;
+  transition: color var(--transition-fast);
 }
+.version:active { color: var(--accent); }

@@ -1,0 +1,108 @@
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: var(--safe-bottom);
+}
+
+.handle {
+  width: 36px;
+  height: 4px;
+  background: var(--surface-medium);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--separator);
+}
+
+.title {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-subtle);
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+.closeBtn:active { background: var(--surface-medium); }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.hint {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.textarea {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-overlay);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-sans);
+  resize: none;
+  transition: border-color var(--transition-fast);
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  text-align: center;
+}
+
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10) var(--space-6);
+  gap: var(--space-3);
+}
+
+.successIcon {
+  font-size: 48px;
+  color: var(--color-success);
+}
+
+.successText {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}

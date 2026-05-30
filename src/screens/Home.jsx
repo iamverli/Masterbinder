@@ -6,6 +6,8 @@ import LeftDrawer from '../components/common/LeftDrawer'
 import SetSelector from '../components/sets/SetSelector'
 import ShareSheet from '../components/common/ShareSheet'
 import HelpSheet from '../components/common/HelpSheet'
+import ChangelogSheet from '../components/common/ChangelogSheet'
+import BugReportSheet from '../components/common/BugReportSheet'
 import styles from './Home.module.css'
 
 const POKEDEX_TOTAL = 1025
@@ -26,6 +28,8 @@ export default function Home() {
   const [setSelectorOpen, setSetSelectorOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [changelogOpen, setChangelogOpen] = useState(false)
+  const [bugReportOpen, setBugReportOpen] = useState(false)
 
   const inProgressRef = useRef(null)
   const completedRef = useRef(null)
@@ -173,7 +177,7 @@ export default function Home() {
       </button>
 
       {/* ── Left drawer ───────────────────────────────────────────────── */}
-      <LeftDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onOpenHelp={() => setHelpOpen(true)} />
+      <LeftDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onOpenHelp={() => setHelpOpen(true)} onOpenChangelog={() => setChangelogOpen(true)} onOpenBugReport={() => setBugReportOpen(true)} />
 
       {/* ── Set selector ──────────────────────────────────────────────── */}
       {setSelectorOpen && (
@@ -193,14 +197,23 @@ export default function Home() {
       {helpOpen && (
         <HelpSheet onClose={() => setHelpOpen(false)} />
       )}
+
+      {changelogOpen && (
+        <ChangelogSheet onClose={() => setChangelogOpen(false)} />
+      )}
+
+      {bugReportOpen && (
+        <BugReportSheet onClose={() => setBugReportOpen(false)} />
+      )}
     </div>
   )
 }
 
 function SetCard({ set, onClick, complete = false }) {
-  const isMasterMode = set.mastersetMode
-  const owned = isMasterMode ? (set.masterOwned?.length || 0) : (set.baseOwned?.length || 0)
-  const total = isMasterMode ? (set.masterTotal || set.printedTotal || 0) : (set.printedTotal || 0)
+  // baseOwned tracks all regular card versions (base + secret rares)
+  // masterOwned tracks reverse holo versions — show combined count on home
+  const owned = (set.baseOwned?.length || 0)
+  const total = set.printedTotal || 0
   const pct = total > 0 ? Math.round((owned / total) * 100) : 0
 
   return (

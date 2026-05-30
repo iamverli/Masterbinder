@@ -36,7 +36,7 @@ function sortByNumber(a, b) {
 export default function SetTracker() {
   const { setId } = useParams()
   const navigate = useNavigate()
-  const { sets, updateSet, loaded } = useApp()
+  const { sets, updateSet, removeSet, loaded } = useApp()
 
   const resolvedKey = sets[setId]
     ? setId
@@ -61,6 +61,7 @@ export default function SetTracker() {
   const [filter, setFilter] = useState('all')
   const [detailCard, setDetailCard] = useState(null)
   const [removeCard, setRemoveCard] = useState(null)
+  const [confirmDeleteSet, setConfirmDeleteSet] = useState(false)
 
   const isMaster = mode === 'master' || mode === 'grandmaster'
   const isGrandMaster = mode === 'grandmaster'
@@ -274,6 +275,11 @@ export default function SetTracker() {
     }
   }
 
+  function handleDeleteSet() {
+    removeSet(resolvedKey)
+    navigate('/')
+  }
+
   return (
     <div className={styles.root}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -283,12 +289,15 @@ export default function SetTracker() {
           <span className={styles.setName}>{setData.setName}</span>
           {setData.series && <span className={styles.setSeries}>{setData.series}</span>}
         </div>
-        <button
-          className={`${styles.modeToggle} ${mode === 'master' ? styles.modeToggleMaster : ''} ${mode === 'grandmaster' ? styles.modeToggleGrand : ''}`}
-          onClick={cycleMode}
-        >
-          {modeLabels[mode]}
-        </button>
+        <div className={styles.headerRight}>
+          <button
+            className={`${styles.modeToggle} ${mode === 'master' ? styles.modeToggleMaster : ''} ${mode === 'grandmaster' ? styles.modeToggleGrand : ''}`}
+            onClick={cycleMode}
+          >
+            {modeLabels[mode]}
+          </button>
+          <button className={styles.deleteSetBtn} onClick={() => setConfirmDeleteSet(true)} aria-label="Remove set">🗑</button>
+        </div>
       </div>
 
       {/* ── Stats ──────────────────────────────────────────────────────── */}
@@ -382,6 +391,14 @@ export default function SetTracker() {
           label={`Slide to remove ${removeCard.name}`}
           onConfirm={handleRemoveConfirm}
           onCancel={() => setRemoveCard(null)}
+        />
+      )}
+
+      {confirmDeleteSet && (
+        <SwipeToConfirm
+          label={`Slide to remove ${setData.setName} from collection`}
+          onConfirm={handleDeleteSet}
+          onCancel={() => setConfirmDeleteSet(false)}
         />
       )}
     </div>
