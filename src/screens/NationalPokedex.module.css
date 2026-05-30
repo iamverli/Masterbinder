@@ -319,6 +319,8 @@
   height: 38px;
   object-fit: contain;
   image-rendering: pixelated;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 .spriteImgCard {
