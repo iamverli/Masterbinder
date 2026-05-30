@@ -162,25 +162,15 @@ export default function SetSelector({ onClose }) {
                       return (
                         <button
                           key={set.id}
-                          className={`${styles.setItem} ${added ? styles.setItemAdded : ''} ${isComplete ? styles.setItemComplete : ''}`}
+                          className={`${styles.setItem} ${isComplete ? styles.setItemComplete : ''}`}
                           onClick={() => handleSelectSet(set)}
                         >
                           {/* Logo */}
                           <div className={styles.logoWrap}>
                             {set.images?.logo ? (
-                              <img
-                                src={set.images.logo}
-                                alt={set.name}
-                                className={styles.setLogo}
-                                loading="lazy"
-                              />
+                              <img src={set.images.logo} alt={set.name} className={styles.setLogo} loading="lazy" />
                             ) : set.images?.symbol ? (
-                              <img
-                                src={set.images.symbol}
-                                alt=""
-                                className={styles.setSymbol}
-                                loading="lazy"
-                              />
+                              <img src={set.images.symbol} alt="" className={styles.setSymbol} loading="lazy" />
                             ) : (
                               <div className={styles.logoFallback}>{set.name[0]}</div>
                             )}
@@ -189,28 +179,17 @@ export default function SetSelector({ onClose }) {
                           {/* Info */}
                           <div className={styles.setInfo}>
                             <span className={styles.setName}>{set.name}</span>
-                            <span className={styles.setMeta}>
-                              {set.releaseDate?.slice(0, 4)} · {set.printedTotal} cards
-                            </span>
+                            <span className={styles.setMeta}>{set.releaseDate?.slice(0, 4)}</span>
+                            <span className={styles.setCount}>{ownedCount}/{total}</span>
                             {hasProgress && (
-                              <div className={styles.progressRow}>
-                                <div className={styles.progressTrack}>
-                                  <div
-                                    className={`${styles.progressFill} ${isComplete ? styles.progressComplete : ''}`}
-                                    style={{ width: `${pct}%` }}
-                                  />
-                                </div>
-                                <span className={styles.progressLabel}>{ownedCount}/{total}</span>
+                              <div className={styles.progressTrack}>
+                                <div
+                                  className={`${styles.progressFill} ${isComplete ? styles.progressComplete : ''}`}
+                                  style={{ width: `${pct}%` }}
+                                />
                               </div>
                             )}
                           </div>
-
-                          {/* Arrow / plus */}
-                          {added ? (
-                            <span className={styles.goIcon}>›</span>
-                          ) : (
-                            <span className={styles.addIcon}>+</span>
-                          )}
                         </button>
                       )
                     })}

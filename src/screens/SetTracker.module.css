@@ -81,6 +81,12 @@
   color: var(--accent);
 }
 
+.modeToggleGrand {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #a78bfa;
+}
+
 /* ── Stats row ────────────────────────────────────────────────────────────── */
 .statsRow {
   display: flex;
@@ -216,15 +222,17 @@
 .groupHeader:active { background: var(--surface-subtle); }
 
 .groupLabel {
-  flex: 1;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
+  margin-right: var(--space-2);
 }
 
 .groupStats {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+  margin-left: auto;
+  margin-right: var(--space-2);
 }
 
 .chevron {
@@ -235,7 +243,7 @@
 /* ── Card grid ────────────────────────────────────────────────────────────── */
 .cardGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3) var(--space-3);
   border-top: 1px solid var(--surface-subtle);
@@ -265,38 +273,39 @@
 }
 
 .cardTileInner {
+  cursor: pointer;
+}
+
+.cardTileFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 5px 5px;
+  gap: 2px;
+}
+
+.cardTileInfo {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 6px 4px 5px;
-  gap: 3px;
-  cursor: pointer;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
 }
 
 .cardDots {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--radius-pill);
+  flex-shrink: 0;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-muted);
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  z-index: 1;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  color: #94a3b8;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px;
+  transition: color var(--transition-fast);
 }
 
-.cardDots:active {
-  color: var(--text-primary);
-  background: var(--surface-subtle);
-}
+.cardDots:active { color: var(--text-primary); }
 
 .cardTileImg {
   width: 100%;
@@ -325,38 +334,92 @@
 }
 
 .cardTileNum {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--text-muted);
   font-weight: 600;
 }
 
 .cardTileName {
-  font-size: 9px;
+  font-size: 8px;
   color: var(--text-primary);
   font-weight: 600;
-  text-align: center;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   max-width: 100%;
-  word-break: break-word;
 }
 
 .cardMissing .cardTileName {
   color: var(--text-muted);
 }
 
-.cardTileRarity {
-  font-size: 8px;
-  color: var(--accent);
-  font-weight: 600;
-  text-align: center;
+.cardRH {
+  position: relative;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 100%;
+}
+
+/* Standard RH shimmer — white diagonal sweep */
+.cardRHShimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 80%
+  );
+  animation: shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Poké Ball pattern — red/white tint shimmer */
+.cardPBShimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 80, 80, 0.22) 50%,
+    transparent 80%
+  );
+  animation: shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Master Ball pattern — purple tint shimmer */
+.cardMBShimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(168, 139, 250, 0.28) 50%,
+    transparent 80%
+  );
+  animation: shimmer 2.0s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0%   { left: -100%; }
+  50%  { left: 160%; }
+  100% { left: 160%; }
+}
+
+.detailImgRH {
+  box-shadow: 0 0 12px rgba(168, 139, 250, 0.3);
 }
 
 /* ── Card detail popup ────────────────────────────────────────────────────── */

@@ -25,8 +25,12 @@ export default function NationalPokedex() {
   const [namesLoading, setNamesLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const [expandedGens, setExpandedGens] = useState({ 1: true })
-  const [allExpanded, setAllExpanded] = useState(false)
+  const [expandedGens, setExpandedGens] = useState(() => {
+    const all = {}
+    GENERATIONS.forEach(g => (all[g.id] = true))
+    return all
+  })
+  const [allExpanded, setAllExpanded] = useState(true)
 
   const [selectorPokemon, setSelectorPokemon] = useState(null)
   const [detailPokemon, setDetailPokemon] = useState(null)
@@ -243,22 +247,25 @@ export default function NationalPokedex() {
                         onClick={() => owned ? null : handleTap(dexNum)}
                       >
                         {/* Sprite */}
-                        <div className={`${styles.spriteBox} ${!owned ? styles.spriteBoxMissing : ''}`}>
-                          {cardData?.imageUrl ? (
+                        {cardData?.imageUrl ? (
+                          <div className={`${styles.spriteBox} ${styles.spriteBoxCard}`}>
                             <img
                               src={cardData.imageUrl}
                               alt={name}
-                              className={`${styles.spriteImg} ${!owned ? styles.spriteDimmed : ''}`}
+                              className={`${styles.spriteImgCard} ${!owned ? styles.spriteDimmed : ''}`}
                             />
-                          ) : (
+                            {owned && <div className={styles.ownedDot} />}
+                          </div>
+                        ) : (
+                          <div className={`${styles.spriteBox} ${!owned ? styles.spriteBoxMissing : ''}`}>
                             <img
                               src={spriteUrl}
                               alt={name}
                               className={`${styles.spriteImg} ${!owned ? styles.spriteDimmed : ''}`}
                             />
-                          )}
-                          {owned && <div className={styles.ownedDot} />}
-                        </div>
+                            {owned && <div className={styles.ownedDot} />}
+                          </div>
+                        )}
 
                         {/* Info */}
                         <div className={styles.pokeInfo}>
