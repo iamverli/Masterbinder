@@ -166,7 +166,14 @@
   background: var(--bg-card);
   border-radius: var(--radius-xl);
   padding: var(--space-3) var(--space-4);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: opacity var(--transition-fast);
 }
+
+.setCard:active { opacity: 0.7; }
 
 .setCardComplete {
   background: rgba(245, 196, 48, 0.06);

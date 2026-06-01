@@ -6,6 +6,18 @@
 
 ## Session 2 — Queued
 
+### 5. Ascended Heroes — card-type-aware RH variants
+- [ ] Pokémon (Common/Uncommon/Rare): 2 RH variants → Poké Ball + Energy pattern
+- [ ] Trainers (Common/Uncommon/Rare): 1 RH variant → Poké Ball only
+- [ ] Requires supertype-aware RH generation in `getPatternVariants()` for ME era sets
+
+### 4. Drawer — Settings repositioned + slide animation
+- [ ] Move Settings section to bottom of drawer, just above the Check for Updates separator
+- [ ] Settings items animate in with a slide-down/up transition when toggled
+
+### 3. Remove Home & Pokédex nav from drawer
+- [ ] Remove the 2-col icon nav grid (Home + Pokédex) from LeftDrawer — redundant
+
 ### 2. Base Set / Master Set — correct data model ⭐
 - [ ] Base Set = ALL API cards (numbered 1–printedTotal + secret rares) — use `cards.master` as base display
 - [ ] Master Set = Base Set + synthetic reverse holo entries (`${cardId}_rh`) for every card ≤ printedTotal

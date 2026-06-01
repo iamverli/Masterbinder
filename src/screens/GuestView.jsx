@@ -86,7 +86,11 @@ export default function GuestView() {
                 const pct = s.total > 0 ? Math.round((s.ownedCount / s.total) * 100) : 0
                 const complete = s.ownedCount >= s.total && s.total > 0
                 return (
-                  <div key={s.setId} className={`${styles.setCard} ${complete ? styles.setCardComplete : ''}`}>
+                  <button
+                    key={s.setId}
+                    className={`${styles.setCard} ${complete ? styles.setCardComplete : ''}`}
+                    onClick={() => navigate(`/guest/${uid}/set/${s.setId}`)}
+                  >
                     <div className={styles.setTop}>
                       <span className={styles.setName}>{s.setName}</span>
                       <span className={styles.setStats}>{s.ownedCount}/{s.total}</span>
@@ -101,7 +105,7 @@ export default function GuestView() {
                       </div>
                       <span className={styles.setPct}>{pct}%</span>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>

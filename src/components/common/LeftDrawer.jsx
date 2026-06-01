@@ -11,6 +11,7 @@ import {
   idbPutCardCache,
   idbGetTheme,
   idbSetTheme,
+  idbGetAllSavedShares,
   getDB,
 } from '../../db/indexeddb'
 import SwipeToConfirm from './SwipeToConfirm'
@@ -19,11 +20,6 @@ import { APP_VERSION } from '../../screens/Landing'
 import ChangelogSheet from './ChangelogSheet'
 import BugReportSheet from './BugReportSheet'
 import styles from './LeftDrawer.module.css'
-
-const NAV_ITEMS = [
-  { icon: '🏠', label: 'Home', path: '/' },
-  { icon: '📖', label: 'National Pokédex', path: '/pokedex' },
-]
 
 export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog, onOpenBugReport }) {
   const navigate = useNavigate()
@@ -41,12 +37,21 @@ export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog,
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [updateDone, setUpdateDone] = useState(false)
+  const [savedShares, setSavedShares] = useState([])
+  const [showAllShares, setShowAllShares] = useState(false)
   const importRef = useRef(null)
 
   // Load saved theme on mount
   useEffect(() => {
     idbGetTheme().then((t) => setIsDark(t !== 'light'))
   }, [])
+
+  // Load saved shares when drawer opens
+  useEffect(() => {
+    if (open) {
+      idbGetAllSavedShares().then(setSavedShares).catch(() => {})
+    }
+  }, [open])
 
   // PWA install prompt
   const [installPrompt, setInstallPrompt] = useState(null)
@@ -250,73 +255,98 @@ export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog,
 
         <div className={styles.divider} />
 
-        {/* ── Navigation ──────────────────────────────────────────────── */}
-        <nav className={styles.navGrid}>
-          {NAV_ITEMS.map((item) => (
-            <button key={item.path} className={styles.navIconBtn} onClick={() => handleNav(item.path)} aria-label={item.label}>
-              <span className={styles.navIconLarge}>{item.icon}</span>
-              <span className={styles.navIconLabel}>{item.label}</span>
-            </button>
-          ))}
-        </nav>
+        {/* ── Saved Shares (Trainer icon strip) ───────────────────────── */}
+        {savedShares.length > 0 ? (
+          <div className={styles.sharesSection}>
+            <span className={styles.sharesSectionLabel}>Trainer Cards</span>
+            <div className={styles.sharesStrip}>
+              {savedShares.slice(0, 4).map(share => (
+                <button
+                  key={`${share.uid}_${share.setId}`}
+                  className={styles.shareChip}
+                  onClick={() => { onClose(); navigate(`/guest/${share.uid}/set/${share.setId}`) }}
+                >
+                  <div className={styles.shareChipImg}>
+                    {share.setImage
+                      ? <img src={share.setImage} alt={share.setName} className={styles.shareChipIcon} />
+                      : <span className={styles.shareChipFallback}>🃏</span>
+                    }
+                  </div>
+                  <span className={styles.shareChipName} title={`${share.trainerName}'s ${share.setName}`}>
+                    {share.trainerName}'s
+                  </span>
+                  <span className={styles.shareChipSet} title={share.setName}>{share.setName}</span>
+                </button>
+              ))}
+              {savedShares.length > 4 && (
+                <button className={styles.shareChipMore} onClick={() => setShowAllShares(true)}>
+                  <span className={styles.shareChipMoreIcon}>›</span>
+                  <span className={styles.shareChipMoreLabel}>{savedShares.length - 4} more</span>
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className={styles.sharesEmpty}>
+            <span className={styles.sharesEmptyText}>Open a shared set link to see it here</span>
+          </div>
+        )}
 
         <div className={styles.divider} />
 
-        {/* ── Settings ─────────────────────────────────────────────────── */}
+        <div className={styles.spacer} />
+
+        {/* ── Settings (pinned above Check for Updates) ─────────────────── */}
         <div className={styles.section}>
           <button className={styles.sectionToggle} onClick={() => setSettingsOpen(o => !o)}>
             <span className={styles.sectionLabel}>Settings</span>
-            <span className={styles.chevron}>{settingsOpen ? '▲' : '▼'}</span>
+            <span className={styles.chevron}>{settingsOpen ? '▼' : '▲'}</span>
           </button>
 
-          {settingsOpen && (
-            <>
-              {/* ── Appearance ── */}
-              <span className={styles.settingsCat}>Appearance</span>
-              <button className={styles.navItem} onClick={handleToggleTheme}>
-                <span className={styles.navIcon}>{isDark ? '🌙' : '☀️'}</span>
-                <span className={styles.navLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
-                <div className={isDark ? styles.toggleOn : styles.toggleOff} />
-              </button>
+          <div className={`${styles.settingsPanel} ${settingsOpen ? styles.settingsPanelOpen : ''}`}>
+            {/* ── Appearance ── */}
+            <span className={styles.settingsCat}>Appearance</span>
+            <button className={styles.navItem} onClick={handleToggleTheme}>
+              <span className={styles.navIcon}>{isDark ? '🌙' : '☀️'}</span>
+              <span className={styles.navLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</span>
+              <div className={isDark ? styles.toggleOn : styles.toggleOff} />
+            </button>
 
-              {/* ── Backup & Sync ── */}
-              <span className={styles.settingsCat}>Backup & Sync</span>
-              <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
-                <span className={styles.navIcon}>💾</span>
-                <span className={styles.navLabel}>{exporting ? 'Exporting…' : 'Export collection'}</span>
+            {/* ── Backup & Sync ── */}
+            <span className={styles.settingsCat}>Backup & Sync</span>
+            <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
+              <span className={styles.navIcon}>💾</span>
+              <span className={styles.navLabel}>{exporting ? 'Exporting…' : 'Export collection'}</span>
+              <span className={styles.navChevron}>›</span>
+            </button>
+            <button className={styles.navItem} onClick={() => importRef.current?.click()} disabled={importing}>
+              <span className={styles.navIcon}>📂</span>
+              <span className={styles.navLabel}>{importing ? 'Importing…' : 'Import collection'}</span>
+              <span className={styles.navChevron}>›</span>
+            </button>
+            <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+            {!isLocal && (
+              <button className={styles.navItem} onClick={handleRestoreFromCloud} disabled={restoring}>
+                <span className={styles.navIcon}>☁️</span>
+                <span className={styles.navLabel}>{restoring ? 'Restoring…' : 'Restore from Cloud'}</span>
                 <span className={styles.navChevron}>›</span>
               </button>
-              <button className={styles.navItem} onClick={() => importRef.current?.click()} disabled={importing}>
-                <span className={styles.navIcon}>📂</span>
-                <span className={styles.navLabel}>{importing ? 'Importing…' : 'Import collection'}</span>
-                <span className={styles.navChevron}>›</span>
-              </button>
-              <input ref={importRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
-              {!isLocal && (
-                <button className={styles.navItem} onClick={handleRestoreFromCloud} disabled={restoring}>
-                  <span className={styles.navIcon}>☁️</span>
-                  <span className={styles.navLabel}>{restoring ? 'Restoring…' : 'Restore from Cloud'}</span>
-                  <span className={styles.navChevron}>›</span>
-                </button>
-              )}
+            )}
 
-              {/* ── App ── */}
-              <span className={styles.settingsCat}>App</span>
-              <button className={styles.navItem} onClick={handleRefreshSets}>
-                <span className={styles.navIcon}>🔄</span>
-                <span className={styles.navLabel}>Refresh Sets List</span>
-                <span className={styles.navChevron}>›</span>
-              </button>
-              <button className={styles.navItem} onClick={handleClearCache} disabled={clearingCache}>
-                <span className={styles.navIcon}>🗂</span>
-                <span className={styles.navLabel}>{clearingCache ? 'Clearing…' : 'Clear Cache'}</span>
-                <span className={styles.navChevron}>›</span>
-              </button>
-            </>
-          )}
+            {/* ── App ── */}
+            <span className={styles.settingsCat}>App</span>
+            <button className={styles.navItem} onClick={handleRefreshSets}>
+              <span className={styles.navIcon}>🔄</span>
+              <span className={styles.navLabel}>Refresh Sets List</span>
+              <span className={styles.navChevron}>›</span>
+            </button>
+            <button className={styles.navItem} onClick={handleClearCache} disabled={clearingCache}>
+              <span className={styles.navIcon}>🗂</span>
+              <span className={styles.navLabel}>{clearingCache ? 'Clearing…' : 'Clear Cache'}</span>
+              <span className={styles.navChevron}>›</span>
+            </button>
+          </div>
         </div>
-
-        <div className={styles.spacer} />
 
         {/* ── Check for updates + Help (above sync) ────────────────────── */}
         <div className={styles.bottomActions}>
@@ -380,6 +410,37 @@ export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog,
           onConfirm={handleClearConfirmed}
           onCancel={() => setConfirmClear(false)}
         />
+      )}
+
+      {/* ── All saved shares popup ───────────────────────────────────── */}
+      {showAllShares && (
+        <div className="overlay" onClick={() => setShowAllShares(false)}>
+          <div className={`${styles.allSharesSheet} animate-slide-up`} onClick={e => e.stopPropagation()}>
+            <div className={styles.allSharesHandle} />
+            <div className={styles.allSharesHeader}>
+              <span className={styles.allSharesTitle}>Trainer Cards</span>
+              <button className={styles.allSharesClose} onClick={() => setShowAllShares(false)}>✕</button>
+            </div>
+            <div className={styles.allSharesGrid}>
+              {savedShares.map(share => (
+                <button
+                  key={`${share.uid}_${share.setId}`}
+                  className={styles.shareChip}
+                  onClick={() => { setShowAllShares(false); onClose(); navigate(`/guest/${share.uid}/set/${share.setId}`) }}
+                >
+                  <div className={styles.shareChipImg}>
+                    {share.setImage
+                      ? <img src={share.setImage} alt={share.setName} className={styles.shareChipIcon} />
+                      : <span className={styles.shareChipFallback}>🃏</span>
+                    }
+                  </div>
+                  <span className={styles.shareChipName}>{share.trainerName}'s</span>
+                  <span className={styles.shareChipSet}>{share.setName}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
     </>

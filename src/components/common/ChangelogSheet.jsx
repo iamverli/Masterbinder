@@ -2,6 +2,21 @@ import styles from './ChangelogSheet.module.css'
 
 const CHANGELOG = [
   {
+    version: 'V2.1 Ivysaur',
+    date: 'June 2026',
+    entries: [
+      { type: 'feature', text: 'Per-set sharing — share button in Set Tracker generates a set-specific QR code and link' },
+      { type: 'feature', text: 'Pokédex share — share button in National Pokédex for full collection sharing' },
+      { type: 'feature', text: 'Guest Set View — guests see full card-level set layout, same as Set Tracker (read-only)' },
+      { type: 'feature', text: 'Trainer Cards strip in drawer — saved shared sets appear as a scrollable strip; tap to reopen' },
+      { type: 'feature', text: 'Ascended Heroes ME era RH — Pokémon get Poké Ball + Energy pattern variants, Trainers get 1 standard RH' },
+      { type: 'feature', text: 'Settings accordion slide animation — smooth expand/collapse in the drawer' },
+      { type: 'feature', text: 'Settings repositioned above Check for Updates in the drawer' },
+      { type: 'fix', text: 'Base mode showing promo alt-art duplicates for sets like Ascended Heroes' },
+      { type: 'fix', text: 'Masterset inflated card count caused by undeduped promo entries in card cache' },
+    ],
+  },
+  {
     version: 'V2.0 Ivysaur',
     date: 'May 2026',
     entries: [

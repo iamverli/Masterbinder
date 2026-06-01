@@ -1,16 +1,23 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useAuth } from '../context/AuthContext'
 import { fetchSetCards } from '../services/pokemonApi'
 import { useAppBack } from '../hooks/useAppBack'
 import SwipeToConfirm from '../components/common/SwipeToConfirm'
+import ShareSheet from '../components/common/ShareSheet'
 import styles from './SetTracker.module.css'
 
 // Rarities that get a Reverse Holo variant
 const REVERSE_HOLO_RARITIES = new Set(['Common', 'Uncommon', 'Rare', 'Rare Holo'])
 
-// Grand Master pattern variants by set era
-// SV era has Poké Ball + Master Ball pattern holos
+// ME era sets: card-type-aware RH — Pokémon get 2 pattern variants, Trainers/Energy get 1 standard RH
+// No grandmaster mode for ME era (master already contains all RH)
+const ME_ERA_SETS = new Set(['me2pt5'])
+
+// Pattern variants by set era
+// SV era: Poké Ball + Master Ball (grandmaster mode)
+// ME era: Poké Ball + Energy (master mode, Pokémon only)
 function getPatternVariants(setId) {
   if (!setId) return []
   if (setId.startsWith('sv')) {
@@ -19,12 +26,27 @@ function getPatternVariants(setId) {
       { suffix: '_rh_mb', label: 'Master Ball' },
     ]
   }
-  // SWSH, ME, XY, SM, older eras — no pattern variants
+  if (ME_ERA_SETS.has(setId)) {
+    return [
+      { suffix: '_rh_pb', label: 'Poké Ball' },
+      { suffix: '_rh_energy', label: 'Energy' },
+    ]
+  }
   return []
 }
 
-// Mode cycle: base → master → grandmaster (only if set has pattern variants)
+// Mode cycle: base → master → grandmaster (grandmaster only for SV era pattern sets)
 const MODES = ['base', 'master', 'grandmaster']
+
+// Deduplicate card array by number — removes promo alt-arts sharing a slot number
+function dedupeByNumber(arr) {
+  const seen = new Set()
+  return arr.filter(c => {
+    if (seen.has(c.number)) return false
+    seen.add(c.number)
+    return true
+  })
+}
 
 function sortByNumber(a, b) {
   const na = parseInt(a.number, 10)
@@ -37,6 +59,7 @@ export default function SetTracker() {
   const { setId } = useParams()
   const navigate = useNavigate()
   const { sets, updateSet, removeSet, loaded } = useApp()
+  const { user } = useAuth()
 
   const resolvedKey = sets[setId]
     ? setId
@@ -46,7 +69,12 @@ export default function SetTracker() {
   useAppBack('/')
 
   const patternVariants = getPatternVariants(setId)
+  const isMEEra = ME_ERA_SETS.has(setId)
+  // SV era: 3 modes (base → master → grandmaster)
+  // ME era: 2 modes (base → master, pattern variants shown at master level)
+  // Other: 2 modes (base → master, standard RH only)
   const hasPatternVariants = patternVariants.length > 0
+  const hasGrandMaster = hasPatternVariants && !isMEEra
 
   const [cards, setCards] = useState({ base: [], master: [] })
   const [loading, setLoading] = useState(true)
@@ -62,6 +90,7 @@ export default function SetTracker() {
   const [detailCard, setDetailCard] = useState(null)
   const [removeCard, setRemoveCard] = useState(null)
   const [confirmDeleteSet, setConfirmDeleteSet] = useState(false)
+  const [showShare, setShowShare] = useState(false)
 
   const isMaster = mode === 'master' || mode === 'grandmaster'
   const isGrandMaster = mode === 'grandmaster'
@@ -84,7 +113,7 @@ export default function SetTracker() {
             })
           }
         }
-        const firstGroup = getGroupsFromCards(data.master)[0]
+        const firstGroup = getGroupsFromCards(dedupeByNumber(data.master))[0]
         if (firstGroup) setExpandedGroups({ [firstGroup.label]: true })
         setLoading(false)
       })
@@ -113,22 +142,28 @@ export default function SetTracker() {
 
   // ── Card model ────────────────────────────────────────────────────────────
   //
-  // base mode       = cards.master (all API cards = numbered base + secret rares)
-  // master mode     = cards.master + standard RH (_rh) per eligible base card
-  // grandmaster mode= master + pattern variants (_rh_pb, _rh_mb) per eligible base card (SV era only)
+  // base mode        = cards.base (numbered 1–printedTotal only)
+  // master mode      = cards.master (base + secret rares) + RH cards:
+  //   SV/other era:  + _rh for all eligible C/U/R cards
+  //   ME era:        + _rh_pb + _rh_energy for Pokémon C/U/R
+  //                  + _rh for Trainer/Energy C/U (standard ME reverse)
+  // grandmaster mode = master + _rh_pb + _rh_mb (SV era only)
   //
   // Ownership arrays:
-  //   baseOwned[]         — regular card versions
+  //   baseOwned[]         — regular card versions (base + secret rares)
   //   masterOwned[]       — standard RH versions (_rh)
-  //   grandMasterOwned[]  — pattern variant RH versions (_rh_pb, _rh_mb)
+  //   grandMasterOwned[]  — pattern variant RH versions (_rh_pb, _rh_mb, _rh_energy)
 
   const printedTotal = setData.printedTotal || 0
   const baseOwned = setData.baseOwned || []
   const masterOwned = setData.masterOwned || []
   const grandMasterOwned = setData.grandMasterOwned || []
 
+  const baseCards = dedupeByNumber(cards.base)
+  const masterCards = dedupeByNumber(cards.master)
+
   // Eligible base cards for reverse holos
-  const rhEligible = cards.base.filter(c => {
+  const rhEligible = baseCards.filter(c => {
     const n = parseInt(c.number, 10)
     return !isNaN(n) && n <= printedTotal && REVERSE_HOLO_RARITIES.has(c.rarity)
   })
@@ -145,13 +180,24 @@ export default function SetTracker() {
     }
   }
 
-  const standardRHCards = isMaster
-    ? rhEligible.map(c => makeRH(c, '_rh', null))
-    : []
+  let standardRHCards = []
+  let patternRHCards = []
 
-  const patternRHCards = isGrandMaster
-    ? patternVariants.flatMap(v => rhEligible.map(c => makeRH(c, v.suffix, v.label)))
-    : []
+  if (isMaster) {
+    if (isMEEra) {
+      // ME era: Trainers/Energy → standard _rh; Pokémon → Poké Ball + Energy patterns
+      const rhPokemon = rhEligible.filter(c => c.supertype === 'Pokémon')
+      const rhNonPokemon = rhEligible.filter(c => c.supertype !== 'Pokémon')
+      standardRHCards = rhNonPokemon.map(c => makeRH(c, '_rh', null))
+      patternRHCards = patternVariants.flatMap(v => rhPokemon.map(c => makeRH(c, v.suffix, v.label)))
+    } else {
+      // SV / other eras: standard _rh for all eligible
+      standardRHCards = rhEligible.map(c => makeRH(c, '_rh', null))
+      if (isGrandMaster) {
+        patternRHCards = patternVariants.flatMap(v => rhEligible.map(c => makeRH(c, v.suffix, v.label)))
+      }
+    }
+  }
 
   // Build a map: baseCardId → [rh, rh_pb, rh_mb] for interleaving
   const rhByBase = {}
@@ -160,14 +206,18 @@ export default function SetTracker() {
     rhByBase[rh.baseCardId].push(rh)
   })
 
+  function isPatternVariant(cardId) {
+    return cardId.endsWith('_rh_pb') || cardId.endsWith('_rh_mb') || cardId.endsWith('_rh_energy')
+  }
+
   function isOwned(cardId) {
-    if (cardId.endsWith('_rh_pb') || cardId.endsWith('_rh_mb')) return grandMasterOwned.includes(cardId)
+    if (isPatternVariant(cardId)) return grandMasterOwned.includes(cardId)
     if (cardId.endsWith('_rh')) return masterOwned.includes(cardId)
     return baseOwned.includes(cardId)
   }
 
   function toggleOwned(cardId) {
-    if (cardId.endsWith('_rh_pb') || cardId.endsWith('_rh_mb')) {
+    if (isPatternVariant(cardId)) {
       const next = grandMasterOwned.includes(cardId)
         ? grandMasterOwned.filter(id => id !== cardId)
         : [...grandMasterOwned, cardId]
@@ -186,8 +236,9 @@ export default function SetTracker() {
   }
 
   // Count all cards in current mode
+  const regularCards = isMaster ? masterCards : baseCards
   const allCardsInMode = [
-    ...cards.master,
+    ...regularCards,
     ...standardRHCards,
     ...patternRHCards,
   ]
@@ -212,7 +263,7 @@ export default function SetTracker() {
       .map(([label, items]) => ({ label, items: items.sort(sortByNumber) }))
   }
 
-  const groups = getGroupsFromCards(cards.master).map(group => {
+  const groups = getGroupsFromCards(regularCards).map(group => {
     const interleaved = []
     group.items.forEach(card => {
       interleaved.push(card)
@@ -231,7 +282,7 @@ export default function SetTracker() {
   }
 
   function cycleMode() {
-    const available = hasPatternVariants ? MODES : ['base', 'master']
+    const available = hasGrandMaster ? MODES : ['base', 'master']
     const currentIndex = available.indexOf(mode)
     const next = available[(currentIndex + 1) % available.length]
     setMode(next)
@@ -239,7 +290,8 @@ export default function SetTracker() {
       mastersetMode: next === 'master' || next === 'grandmaster',
       grandMastersetMode: next === 'grandmaster',
     })
-    const firstGroup = getGroupsFromCards(cards.master)[0]
+    const nextRegular = next === 'base' ? baseCards : masterCards
+    const firstGroup = getGroupsFromCards(nextRegular)[0]
     if (firstGroup) setExpandedGroups({ [firstGroup.label]: true })
     setAllExpanded(false)
   }
@@ -296,6 +348,7 @@ export default function SetTracker() {
           >
             {modeLabels[mode]}
           </button>
+          {user && <button className={styles.shareBtn} onClick={() => setShowShare(true)} aria-label="Share set">↗</button>}
           <button className={styles.deleteSetBtn} onClick={() => setConfirmDeleteSet(true)} aria-label="Remove set">🗑</button>
         </div>
       </div>
@@ -401,6 +454,15 @@ export default function SetTracker() {
           onCancel={() => setConfirmDeleteSet(false)}
         />
       )}
+
+      {showShare && (
+        <ShareSheet
+          uid={user.uid}
+          displayName={user.displayName || 'Trainer'}
+          setId={setId}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   )
 }
@@ -438,6 +500,7 @@ function SetCardTile({ card, owned, onTap, onLongPress, onDots }) {
   const isRH = !!card.isReverseHolo
   const isPB = card.rhSuffix === '_rh_pb'
   const isMB = card.rhSuffix === '_rh_mb'
+  const isEnergy = card.rhSuffix === '_rh_energy'
 
   return (
     <div className={`
@@ -445,9 +508,10 @@ function SetCardTile({ card, owned, onTap, onLongPress, onDots }) {
       ${owned ? styles.cardOwned : styles.cardMissing}
       ${pressing ? styles.cardPressing : ''}
       ${isRH ? styles.cardRH : ''}
-      ${isRH && owned ? styles.cardRHShimmer : ''}
+      ${isRH && owned && !isPB && !isMB && !isEnergy ? styles.cardRHShimmer : ''}
       ${isPB && owned ? styles.cardPBShimmer : ''}
       ${isMB && owned ? styles.cardMBShimmer : ''}
+      ${isEnergy && owned ? styles.cardEnergyShimmer : ''}
     `}>
       <div
         className={styles.cardTileInner}
@@ -472,7 +536,7 @@ function SetCardTile({ card, owned, onTap, onLongPress, onDots }) {
         <div className={styles.cardTileInfo}>
           <span className={styles.cardTileNum}>
             #{card.number}
-            {isPB ? ' PB' : isMB ? ' MB' : isRH ? ' RH' : ''}
+            {isPB ? ' PB' : isMB ? ' MB' : isEnergy ? ' EN' : isRH ? ' RH' : ''}
           </span>
           <span className={styles.cardTileName}>{card.name}</span>
         </div>
@@ -492,6 +556,7 @@ function CardDetailPopup({ card, owned, onToggle, onClose }) {
 
   const variantLabel = card.rhSuffix === '_rh_pb' ? ' (Poké Ball)' :
                        card.rhSuffix === '_rh_mb' ? ' (Master Ball)' :
+                       card.rhSuffix === '_rh_energy' ? ' (Energy)' :
                        card.isReverseHolo ? ' (Reverse Holo)' : ''
 
   return (

@@ -12,6 +12,7 @@ import {
 import CardSelectorPopup from '../components/pokedex/CardSelectorPopup'
 import CardDetailPopup from '../components/pokedex/CardDetailPopup'
 import SwipeToConfirm from '../components/common/SwipeToConfirm'
+import ShareSheet from '../components/common/ShareSheet'
 import styles from './NationalPokedex.module.css'
 
 export default function NationalPokedex() {
@@ -33,6 +34,7 @@ export default function NationalPokedex() {
   const [allExpanded, setAllExpanded] = useState(true)
 
   const [selectorPokemon, setSelectorPokemon] = useState(null)
+  const [showShare, setShowShare] = useState(false)
   const [detailPokemon, setDetailPokemon] = useState(null)
   const [removePokemon, setRemovePokemon] = useState(null)
 
@@ -118,7 +120,10 @@ export default function NationalPokedex() {
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={() => navigate('/')}>←</button>
         <span className={styles.headerTitle}>National Pokédex</span>
-        <div style={{ width: 40 }} />
+        {uid
+          ? <button className={styles.shareBtn} onClick={() => setShowShare(true)} aria-label="Share Pokédex">↗</button>
+          : <div style={{ width: 40 }} />
+        }
       </div>
 
       {/* ── Stats bar ──────────────────────────────────────────────────── */}
@@ -325,6 +330,14 @@ export default function NationalPokedex() {
           label={`Slide to remove ${removePokemon.name}`}
           onConfirm={handleRemoveConfirm}
           onCancel={() => setRemovePokemon(null)}
+        />
+      )}
+
+      {showShare && uid && (
+        <ShareSheet
+          uid={uid}
+          displayName={null}
+          onClose={() => setShowShare(false)}
         />
       )}
     </div>

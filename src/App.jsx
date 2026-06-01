@@ -6,6 +6,7 @@ import Home from './screens/Home'
 import NationalPokedex from './screens/NationalPokedex'
 import SetTracker from './screens/SetTracker'
 import GuestView from './screens/GuestView'
+import GuestSetView from './screens/GuestSetView'
 import LoadingScreen from './components/common/LoadingScreen'
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
   if (location.pathname.startsWith('/guest/')) {
     return (
       <Routes>
+        <Route path="/guest/:uid/set/:setId" element={<GuestSetView />} />
         <Route path="/guest/:uid" element={<GuestView />} />
       </Routes>
     )

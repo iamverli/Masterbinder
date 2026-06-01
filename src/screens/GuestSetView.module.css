@@ -1,4 +1,5 @@
-/* ── Root ─────────────────────────────────────────────────────────────────── */
+/* Mirrors SetTracker.module.css — read-only guest variant */
+
 .root {
   display: flex;
   flex-direction: column;
@@ -52,7 +53,7 @@
   text-overflow: ellipsis;
 }
 
-.setSeries {
+.trainerTag {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   overflow: hidden;
@@ -60,32 +61,7 @@
   text-overflow: ellipsis;
 }
 
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-.shareBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-pill);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  transition: color var(--transition-fast);
-  font-weight: 700;
-}
-
-.shareBtn:active { color: var(--accent); }
-
-.deleteSetBtn {
+.deleteBtn {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-pill);
@@ -100,34 +76,7 @@
   transition: color var(--transition-fast);
 }
 
-.deleteSetBtn:active { color: var(--color-error); }
-
-.modeToggle {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-overlay);
-  border: 1.5px solid var(--surface-medium);
-  color: var(--text-muted);
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-}
-
-.modeToggleMaster {
-  background: var(--accent-glow);
-  border-color: var(--accent-dim);
-  color: var(--accent);
-}
-
-.modeToggleGrand {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.5);
-  color: #a78bfa;
-}
+.deleteBtn:active { color: var(--color-error); }
 
 /* ── Stats row ────────────────────────────────────────────────────────────── */
 .statsRow {
@@ -146,9 +95,7 @@
   min-width: 60px;
 }
 
-.statsComplete {
-  color: var(--color-success);
-}
+.statsComplete { color: var(--color-success); }
 
 .progressWrap {
   flex: 1;
@@ -176,10 +123,7 @@
   flex-shrink: 0;
 }
 
-.filterBtns {
-  display: flex;
-  gap: var(--space-2);
-}
+.filterBtns { display: flex; gap: var(--space-2); }
 
 .filterBtn {
   padding: 6px 14px;
@@ -214,7 +158,7 @@
 
 .expandAllBtn:active { color: var(--accent); }
 
-/* ── Scroll area ──────────────────────────────────────────────────────────── */
+/* ── Scroll ───────────────────────────────────────────────────────────────── */
 .scroll {
   flex: 1;
   overflow-y: auto;
@@ -222,11 +166,16 @@
   padding: 0 var(--space-4);
 }
 
+/* ── Center (loading/error) ───────────────────────────────────────────────── */
 .center {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: var(--space-3);
+  height: 100%;
   padding: var(--space-10);
+  text-align: center;
 }
 
 .spinner {
@@ -240,7 +189,16 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Card groups ──────────────────────────────────────────────────────────── */
+.errorIcon { font-size: 40px; }
+.errorMsg { color: var(--text-muted); font-size: var(--font-size-sm); }
+.homeLink {
+  color: var(--accent);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ── Groups ───────────────────────────────────────────────────────────────── */
 .group {
   margin-bottom: var(--space-2);
   border-radius: var(--radius-lg);
@@ -277,10 +235,7 @@
   margin-right: var(--space-2);
 }
 
-.chevron {
-  font-size: 9px;
-  color: var(--text-muted);
-}
+.chevron { font-size: 9px; color: var(--text-muted); }
 
 /* ── Card grid ────────────────────────────────────────────────────────────── */
 .cardGrid {
@@ -298,30 +253,16 @@
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: manipulation;
 }
 
-.cardOwned {
-  background: var(--bg-card);
-}
+.cardOwned { background: var(--bg-card); }
+.cardMissing { background: rgba(30, 41, 59, 0.5); }
 
-.cardMissing {
-  background: rgba(30, 41, 59, 0.5);
-}
-
-.cardPressing {
-  transform: scale(0.94);
-  transition: transform 80ms ease;
-}
-
-.cardTileInner {
-  cursor: pointer;
-}
+.cardTileInner { pointer-events: none; }
 
 .cardTileFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 4px 5px 5px;
   gap: 2px;
 }
@@ -334,21 +275,6 @@
   flex: 1;
 }
 
-.cardDots {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #94a3b8;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1;
-  padding: 2px;
-  transition: color var(--transition-fast);
-}
-
-.cardDots:active { color: var(--text-primary); }
-
 .cardTileImg {
   width: 100%;
   aspect-ratio: 2.5 / 3.5;
@@ -356,7 +282,6 @@
   border-radius: 6px;
   display: block;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  -webkit-touch-callout: none;
   pointer-events: none;
 }
 
@@ -393,190 +318,29 @@
   max-width: 100%;
 }
 
-.cardMissing .cardTileName {
-  color: var(--text-muted);
-}
+.cardMissing .cardTileName { color: var(--text-muted); }
 
-.cardRH {
-  position: relative;
-  overflow: hidden;
-}
-
-/* Standard RH shimmer — white diagonal sweep */
-.cardRHShimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.18) 50%,
-    transparent 80%
-  );
-  animation: shimmer 2.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Poké Ball pattern — red/white tint shimmer */
-.cardPBShimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 20%,
-    rgba(255, 80, 80, 0.22) 50%,
-    transparent 80%
-  );
-  animation: shimmer 2.4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Energy pattern — yellow/gold tint shimmer (ME era) */
-.cardEnergyShimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 20%,
-    rgba(245, 196, 48, 0.25) 50%,
-    transparent 80%
-  );
-  animation: shimmer 2.6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Master Ball pattern — purple tint shimmer */
-.cardMBShimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 20%,
-    rgba(168, 139, 250, 0.28) 50%,
-    transparent 80%
-  );
-  animation: shimmer 2.0s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes shimmer {
-  0%   { left: -100%; }
-  50%  { left: 160%; }
-  100% { left: 160%; }
-}
-
-.detailImgRH {
-  box-shadow: 0 0 12px rgba(168, 139, 250, 0.3);
-}
-
-/* ── Card detail popup ────────────────────────────────────────────────────── */
-.detailPopup {
+/* ── Delete confirm dialog ────────────────────────────────────────────────── */
+.confirmDialog {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
-  width: min(360px, 92vw);
-  overflow: hidden;
+  width: min(320px, 88vw);
+  padding: var(--space-5) var(--space-5) var(--space-4);
   box-shadow: 0 24px 64px rgba(0,0,0,0.6);
 }
 
-.detailHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-4) var(--space-3);
-  border-bottom: 1px solid var(--separator);
-}
-
-.detailClose {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-overlay);
-  border: none;
-  color: var(--text-muted);
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.detailClose:active { background: var(--surface-medium); }
-
-.detailTitle {
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  color: var(--text-primary);
-  flex: 1;
-  text-align: center;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding: 0 var(--space-2);
-}
-
-.detailBody {
-  display: flex;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  align-items: flex-start;
-}
-
-.detailImg {
-  width: 110px;
-  height: 154px;
-  object-fit: contain;
-  border-radius: 6px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-}
-
-.detailInfo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.detailRow {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.detailLabel {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.detailValue {
+.confirmText {
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   font-weight: 600;
+  text-align: center;
+  margin-bottom: var(--space-5);
+  line-height: 1.5;
 }
 
-.detailActions {
+.confirmActions {
   display: flex;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  border-top: 1px solid var(--separator);
 }
+
+.confirmActions button { flex: 1; }

@@ -429,3 +429,212 @@
   transition: color var(--transition-fast);
 }
 .version:active { color: var(--accent); }
+
+/* ── Settings slide animation ─────────────────────────────────────────────── */
+.settingsPanel {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
+
+.settingsPanelOpen {
+  max-height: 600px;
+}
+
+/* ── Saved shares strip ───────────────────────────────────────────────────── */
+.sharesSection {
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  flex-shrink: 0;
+}
+
+.sharesSectionLabel {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-2);
+  opacity: 0.6;
+}
+
+.sharesStrip {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: var(--space-1);
+}
+
+.sharesStrip::-webkit-scrollbar { display: none; }
+
+.shareChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+  max-width: 64px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1) 0;
+  flex-shrink: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.shareChip:active { opacity: 0.6; }
+
+.shareChipImg {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.shareChipIcon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.shareChipFallback {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.shareChipName {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.shareChipSet {
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.shareChipMore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 48px;
+  background: var(--bg-overlay);
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-pill);
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: var(--space-1);
+  transition: background var(--transition-fast);
+}
+
+.shareChipMore:active { background: var(--surface-medium); }
+
+.shareChipMoreIcon {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.shareChipMoreLabel {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sharesEmpty {
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+}
+
+.sharesEmptyText {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── All shares bottom sheet ──────────────────────────────────────────────── */
+.allSharesSheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding-bottom: var(--safe-bottom);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.allSharesHandle {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-medium);
+  margin: var(--space-3) auto var(--space-2);
+  flex-shrink: 0;
+}
+
+.allSharesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--separator);
+  flex-shrink: 0;
+}
+
+.allSharesTitle {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.allSharesClose {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-overlay);
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.allSharesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}

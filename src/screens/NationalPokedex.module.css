@@ -32,6 +32,24 @@
 
 .backBtn:active { opacity: 0.6; }
 
+.shareBtn {
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.shareBtn:active { color: var(--accent); }
+
 .headerTitle {
   font-size: var(--font-size-md);
   font-weight: 700;

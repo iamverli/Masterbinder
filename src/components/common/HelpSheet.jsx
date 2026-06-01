@@ -9,6 +9,7 @@ const SECTIONS = [
       'Tap the ⋮ button to assign a specific card — search by name, set, or number.',
       'Long-press an owned tile to remove it.',
       'Filter by Owned / Missing, or expand all generations at once.',
+      'Tap ↗ in the header to share your full Pokédex with a QR code and link.',
     ],
   },
   {
@@ -17,17 +18,31 @@ const SECTIONS = [
     steps: [
       'Tap + on the Home screen to add a set from the full set list.',
       'Once added, tap the set card to open the Set Tracker.',
-      'Tap a card tile to mark it as owned. Tap again to unmark.',
-      'Switch between Base Set and Master Set modes using the toggle at the top.',
-      'Long-press a card tile to see its details.',
+      'Tap a card tile once to mark it as owned. Long-press to remove it.',
+      'Toggle between Base, Masterset, and Grand Master modes using the button in the header.',
+      'Base = printed cards only. Masterset adds reverse holos and secret rares. Grand Master adds Poké Ball and Master Ball pattern variants (SV era).',
+      'For Ascended Heroes and ME era sets, Masterset shows Pokémon with Poké Ball + Energy pattern variants and Trainers with 1 standard reverse holo.',
+      'Tap ↗ in the header to share the set with a QR code and link.',
+    ],
+  },
+  {
+    icon: '↗',
+    title: 'Sharing',
+    steps: [
+      'Tap ↗ in any Set Tracker or Pokédex header to share your collection.',
+      'A QR code and link are generated — anyone with the link can view your cards.',
+      'Guests see your progress in read-only mode — no edits possible.',
+      'When you open a shared set link, it\'s saved to your Trainer Cards in the side menu.',
+      'The Trainer Cards strip shows your 4 most recently opened shared sets. Tap one to reopen it. Tap › to see all saved shares.',
+      'To remove a saved share, open it and tap the trash icon.',
     ],
   },
   {
     icon: '💾',
     title: 'Backup & Restore',
     steps: [
-      'Open the side menu → Export collection to download a backup JSON file.',
-      'To restore, open the menu → Import collection and select your backup file.',
+      'Open the side menu → Settings → Export collection to download a backup JSON file.',
+      'To restore, open Settings → Import collection and select your backup file.',
       'If you sign in with Google, your data syncs to the cloud automatically.',
     ],
   },
@@ -35,7 +50,7 @@ const SECTIONS = [
     icon: '📲',
     title: 'Install as App',
     steps: [
-      'On the Home screen, tap Install App in the side menu (if available).',
+      'Open the side menu → tap Install App (if available).',
       'On iOS: tap the Share button in Safari → Add to Home Screen.',
       'The app works fully offline once installed.',
     ],

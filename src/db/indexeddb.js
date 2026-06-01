@@ -16,7 +16,7 @@
 import { openDB } from 'idb'
 
 const DB_NAME = 'masterbinder'
-const DB_VERSION = 2 // bumped to force upgrade and create any missing stores
+const DB_VERSION = 3 // v3: added savedShares store
 
 // Cache the PROMISE (not the resolved value) so concurrent calls
 // before the first resolves all share the same openDB call.
@@ -43,6 +43,9 @@ export function getDB() {
         }
         if (!db.objectStoreNames.contains('meta')) {
           db.createObjectStore('meta')
+        }
+        if (!db.objectStoreNames.contains('savedShares')) {
+          db.createObjectStore('savedShares')
         }
       },
     })
@@ -124,6 +127,31 @@ export async function idbGetCardCache(setId) {
 export async function idbPutCardCache(setId, data) {
   const db = await getDB()
   await db.put('cardCache', data, setId)
+}
+
+// ── Saved shares (visited guest set links) ────────────────────────────────────
+//
+// Key: `${uid}_${setId}`
+// Value: { uid, setId, trainerName, setName, setImage, visitedAt }
+
+export async function idbGetAllSavedShares() {
+  const db = await getDB()
+  const keys = await db.getAllKeys('savedShares')
+  const result = []
+  for (const key of keys) {
+    result.push(await db.get('savedShares', key))
+  }
+  return result.sort((a, b) => new Date(b.visitedAt) - new Date(a.visitedAt))
+}
+
+export async function idbPutSavedShare(uid, setId, data) {
+  const db = await getDB()
+  await db.put('savedShares', { uid, setId, ...data }, `${uid}_${setId}`)
+}
+
+export async function idbDeleteSavedShare(uid, setId) {
+  const db = await getDB()
+  await db.delete('savedShares', `${uid}_${setId}`)
 }
 
 // ── Guest trainers ────────────────────────────────────────────────────────────
@@ -303,13 +331,14 @@ export async function exportLocalData() {
 
 export async function clearAllLocalData() {
   const db = await getDB()
-  const tx = db.transaction(['profile', 'pokedex', 'userSets', 'cardCache', 'guestTrainers', 'meta'], 'readwrite')
+  const tx = db.transaction(['profile', 'pokedex', 'userSets', 'cardCache', 'guestTrainers', 'savedShares', 'meta'], 'readwrite')
   await Promise.all([
     tx.objectStore('profile').clear(),
     tx.objectStore('pokedex').clear(),
     tx.objectStore('userSets').clear(),
     tx.objectStore('cardCache').clear(),
     tx.objectStore('guestTrainers').clear(),
+    tx.objectStore('savedShares').clear(),
     tx.objectStore('meta').clear(),
   ])
   await tx.done

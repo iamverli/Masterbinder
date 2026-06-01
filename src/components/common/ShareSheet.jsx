@@ -5,14 +5,16 @@ import styles from './ShareSheet.module.css'
 
 const BASE_URL = 'https://bluemoontracker.netlify.app'
 
-export default function ShareSheet({ uid, displayName, onClose }) {
+export default function ShareSheet({ uid, displayName, setId, onClose }) {
   const { pokedex, sets } = useApp()
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState(null)
 
-  const shareUrl = `${BASE_URL}/guest/${uid}`
+  const shareUrl = setId
+    ? `${BASE_URL}/guest/${uid}/set/${setId}`
+    : `${BASE_URL}/guest/${uid}`
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&color=000000&bgcolor=ffffff&data=${encodeURIComponent(shareUrl)}`
 
   // Publish snapshot on open
@@ -39,6 +41,7 @@ export default function ShareSheet({ uid, displayName, onClose }) {
         total,
         mastersetMode: s.mastersetMode || false,
         images: s.images || {},
+        baseOwned: s.baseOwned || [],
       }
     }
 
@@ -81,7 +84,7 @@ export default function ShareSheet({ uid, displayName, onClose }) {
         {/* Header */}
         <div className={styles.header}>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
-          <span className={styles.title}>Share Collection</span>
+          <span className={styles.title}>{setId ? 'Share Set' : 'Share Collection'}</span>
           <div style={{ width: 32 }} />
         </div>
 
