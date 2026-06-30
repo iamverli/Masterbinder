@@ -48,17 +48,22 @@ export async function fetchAllSets() {
     }
   } catch { /* cache miss — fall through to API */ }
 
-  // Fetch from API — paginate through all sets
+  // Fetch from API — paginate through all sets (degraded fallback if API is unreachable)
   let page = 1
   const pageSize = 250
   let allSets = []
   let hasMore = true
 
-  while (hasMore) {
-    const json = await apiFetch(`/sets?page=${page}&pageSize=${pageSize}&orderBy=releaseDate`)
-    allSets = allSets.concat(json.data)
-    hasMore = json.data.length === pageSize
-    page++
+  try {
+    while (hasMore) {
+      const json = await apiFetch(`/sets?page=${page}&pageSize=${pageSize}&orderBy=releaseDate`)
+      allSets = allSets.concat(json.data)
+      hasMore = json.data.length === pageSize
+      page++
+    }
+  } catch (err) {
+    console.warn('[TCG API] Unavailable — returning degraded response:', err.message)
+    return []
   }
 
   // Normalize and sort
@@ -101,19 +106,24 @@ export async function fetchSetCards(setId) {
     }
   } catch { /* cache miss — fall through to API */ }
 
-  // Fetch from API — paginate
+  // Fetch from API — paginate (degraded fallback if API is unreachable)
   let page = 1
   const pageSize = 250
   let allCards = []
   let hasMore = true
 
-  while (hasMore) {
-    const json = await apiFetch(
-      `/cards?q=set.id:${setId}&page=${page}&pageSize=${pageSize}&orderBy=number`
-    )
-    allCards = allCards.concat(json.data)
-    hasMore = json.data.length === pageSize
-    page++
+  try {
+    while (hasMore) {
+      const json = await apiFetch(
+        `/cards?q=set.id:${setId}&page=${page}&pageSize=${pageSize}&orderBy=number`
+      )
+      allCards = allCards.concat(json.data)
+      hasMore = json.data.length === pageSize
+      page++
+    }
+  } catch (err) {
+    console.warn('[TCG API] Unavailable — returning degraded response:', err.message)
+    return { base: [], master: [], degraded: true }
   }
 
   // Normalize cards

@@ -3,9 +3,9 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
 import styles from './UpdateToast.module.css'
 
 /**
- * UpdateToast — shown when autoUpdate finishes installing a new SW.
- * The new SW activates on next navigation automatically, but we show
- * a tap-to-reload banner so the user gets the update immediately.
+ * UpdateToast — shown when a new service worker is waiting to activate.
+ * With registerType: 'prompt', the new SW waits until the user approves.
+ * Tapping "Update" calls skipWaiting on the waiting SW and reloads the page.
  */
 export default function UpdateToast() {
   const {
@@ -34,12 +34,12 @@ export default function UpdateToast() {
 
   return (
     <div className={styles.toast}>
-      <span className={styles.text}>✨ Update ready</span>
+      <span className={styles.text}>🆕 New version available</span>
       <button
         className={styles.reloadBtn}
         onClick={() => updateServiceWorker(true)}
       >
-        Reload
+        Update
       </button>
       <button
         className={styles.dismissBtn}

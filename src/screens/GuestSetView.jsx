@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { getPublicSnapshot } from '../firebase/firestore'
 import { fetchSetCards } from '../services/pokemonApi'
 import { idbPutSavedShare, idbDeleteSavedShare } from '../db/indexeddb'
+import { APP_BASE_URL } from '../config'
 import styles from './GuestSetView.module.css'
 
-const BASE_URL = 'https://bluemoontracker.netlify.app'
+const BASE_URL = APP_BASE_URL
 
 function sortByNumber(a, b) {
   const na = parseInt(a.number, 10)

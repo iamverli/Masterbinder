@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getPublicSnapshot } from '../firebase/firestore'
+import { APP_BASE_URL } from '../config'
 import styles from './GuestView.module.css'
 
 const POKEDEX_TOTAL = 1025
@@ -40,7 +41,7 @@ export default function GuestView() {
         <div className={styles.errorWrap}>
           <span className={styles.errorIcon}>😔</span>
           <p className={styles.errorMsg}>{error}</p>
-          <a href="https://bluemoontracker.netlify.app" className={styles.homeLink}>
+          <a href={APP_BASE_URL} className={styles.homeLink}>
             Open MasterBinder →
           </a>
         </div>
@@ -123,7 +124,7 @@ export default function GuestView() {
         <div className={styles.footer}>
           <p className={styles.footerText}>Track your own collection</p>
           <a
-            href="https://bluemoontracker.netlify.app"
+            href={APP_BASE_URL}
             className={styles.footerBtn}
           >
             🌙 Open MasterBinder

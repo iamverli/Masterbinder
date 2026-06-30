@@ -6,27 +6,39 @@ import { fetchSetCards } from '../services/pokemonApi'
 import { useAppBack } from '../hooks/useAppBack'
 import SwipeToConfirm from '../components/common/SwipeToConfirm'
 import ShareSheet from '../components/common/ShareSheet'
+import ErrorBoundary from '../components/common/ErrorBoundary'
 import styles from './SetTracker.module.css'
 
 // Rarities that get a Reverse Holo variant
 const REVERSE_HOLO_RARITIES = new Set(['Common', 'Uncommon', 'Rare', 'Rare Holo'])
 
-// ME era sets: card-type-aware RH — Pokémon get 2 pattern variants, Trainers/Energy get 1 standard RH
-// No grandmaster mode for ME era (master already contains all RH)
-const ME_ERA_SETS = new Set(['me2pt5'])
+// Era config — maps specific setId overrides to their era key.
+// 'sv'  = Scarlet & Violet era (auto-detected by prefix): standard RH + grandmaster PB/MB
+// 'me'  = ME era: Pokémon get PB+Energy pattern RH, Trainers/Energy get 1 standard RH, no grandmaster
+// Add more set IDs here as new eras or exceptions are identified.
+const SET_ERA_CONFIG = {
+  me2pt5: 'me',
+}
+
+function getSetEra(setId) {
+  if (!setId) return null
+  if (SET_ERA_CONFIG[setId]) return SET_ERA_CONFIG[setId]
+  if (setId.startsWith('sv')) return 'sv'
+  return null
+}
 
 // Pattern variants by set era
 // SV era: Poké Ball + Master Ball (grandmaster mode)
 // ME era: Poké Ball + Energy (master mode, Pokémon only)
 function getPatternVariants(setId) {
-  if (!setId) return []
-  if (setId.startsWith('sv')) {
+  const era = getSetEra(setId)
+  if (era === 'sv') {
     return [
       { suffix: '_rh_pb', label: 'Poké Ball' },
       { suffix: '_rh_mb', label: 'Master Ball' },
     ]
   }
-  if (ME_ERA_SETS.has(setId)) {
+  if (era === 'me') {
     return [
       { suffix: '_rh_pb', label: 'Poké Ball' },
       { suffix: '_rh_energy', label: 'Energy' },
@@ -69,7 +81,7 @@ export default function SetTracker() {
   useAppBack('/')
 
   const patternVariants = getPatternVariants(setId)
-  const isMEEra = ME_ERA_SETS.has(setId)
+  const isMEEra = getSetEra(setId) === 'me'
   // SV era: 3 modes (base → master → grandmaster)
   // ME era: 2 modes (base → master, pattern variants shown at master level)
   // Other: 2 modes (base → master, standard RH only)
@@ -79,6 +91,7 @@ export default function SetTracker() {
   const [cards, setCards] = useState({ base: [], master: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [degraded, setDegraded] = useState(false)
   const [mode, setMode] = useState(() => {
     if (setData?.grandMastersetMode) return 'grandmaster'
     if (setData?.mastersetMode) return 'master'
@@ -100,6 +113,7 @@ export default function SetTracker() {
     setLoading(true)
     fetchSetCards(setId)
       .then(data => {
+        if (data.degraded) setDegraded(true)
         setCards(data)
         const firstCard = data.master?.[0] || data.base?.[0]
         if (firstCard && setData) {
@@ -333,6 +347,7 @@ export default function SetTracker() {
   }
 
   return (
+    <ErrorBoundary fallbackLabel="Could not load this set. Tap to try again.">
     <div className={styles.root}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className={styles.header}>
@@ -352,6 +367,13 @@ export default function SetTracker() {
           <button className={styles.deleteSetBtn} onClick={() => setConfirmDeleteSet(true)} aria-label="Remove set">🗑</button>
         </div>
       </div>
+
+      {/* ── Degraded mode banner ───────────────────────────────────────── */}
+      {degraded && (
+        <div className={styles.degradedBanner}>
+          ⚠️ Couldn't load cards — check your connection. Ownership is preserved.
+        </div>
+      )}
 
       {/* ── Stats ──────────────────────────────────────────────────────── */}
       <div className={styles.statsRow}>
@@ -464,6 +486,7 @@ export default function SetTracker() {
         />
       )}
     </div>
+    </ErrorBoundary>
   )
 }
 

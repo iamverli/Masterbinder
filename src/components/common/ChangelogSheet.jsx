@@ -2,6 +2,20 @@ import styles from './ChangelogSheet.module.css'
 
 const CHANGELOG = [
   {
+    version: 'V3.0 Venusaur',
+    date: 'June 2026',
+    entries: [
+      { type: 'feature', text: 'Tap-to-update — app now asks before applying updates instead of updating silently' },
+      { type: 'feature', text: 'iOS data loss warning — local mode users on iOS see a warning to sign in and back up' },
+      { type: 'feature', text: 'Offline fallback — if cards can\'t load, an amber warning shows instead of a crash; your ownership is preserved' },
+      { type: 'feature', text: 'Last-write-wins sync — two-device conflicts now resolve by timestamp, not card count' },
+      { type: 'feature', text: 'Era config — ME era set rules are now extensible; new era exceptions can be added in one line' },
+      { type: 'feature', text: 'Crash recovery — top-level and per-set error boundaries catch unexpected failures with a Reload button' },
+      { type: 'fix', text: 'Guest share links in error screen opened the literal text "{APP_BASE_URL}" instead of the real URL' },
+      { type: 'fix', text: 'Firestore share snapshots now slim — Pokédex card details stripped from public profile (~80% smaller)' },
+    ],
+  },
+  {
     version: 'V2.1 Ivysaur',
     date: 'June 2026',
     entries: [

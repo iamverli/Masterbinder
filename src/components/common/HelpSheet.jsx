@@ -44,6 +44,7 @@ const SECTIONS = [
       'Open the side menu → Settings → Export collection to download a backup JSON file.',
       'To restore, open Settings → Import collection and select your backup file.',
       'If you sign in with Google, your data syncs to the cloud automatically.',
+      'On iOS in local mode: removing the app from your home screen will erase your collection. Sign in or export a backup first.',
     ],
   },
   {
@@ -52,7 +53,8 @@ const SECTIONS = [
     steps: [
       'Open the side menu → tap Install App (if available).',
       'On iOS: tap the Share button in Safari → Add to Home Screen.',
-      'The app works fully offline once installed.',
+      'The app works fully offline once installed — if cards can\'t load, your ownership is preserved and a warning will show.',
+      'When a new version is ready, a banner appears at the bottom — tap Update to apply it.',
     ],
   },
 ]

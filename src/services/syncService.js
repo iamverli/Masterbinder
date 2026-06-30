@@ -2,11 +2,12 @@
  * Sync Service — bridges IndexedDB (local) ↔ Firestore (cloud)
  *
  * Rules:
- *  - Local data always has priority. Never overwrite local with cloud
- *    if the user already has local data.
- *  - Cloud → Local: only on fresh install (no local data present)
- *  - Local → Cloud: triggered manually or after sign-in
- *  - All writes are optimistic: local first, cloud async
+ *  - Last write wins: each set carries an updatedAt ISO timestamp.
+ *    On sync, the set with the newer timestamp takes precedence.
+ *  - Cloud → Local: when cloud set is newer than local, or local is missing.
+ *  - Local → Cloud: when local set is newer than cloud, or cloud is missing.
+ *  - All writes are optimistic: local first, cloud async.
+ *  - Falls back to count-based comparison when no timestamps are present.
  */
 
 import {
@@ -25,12 +26,24 @@ import {
   idbGetPokedex,
   idbSetPokedex,
   idbGetAllSets,
+  idbGetSet,
   idbPutSet,
   idbGetMeta,
   idbSetMeta,
 } from '../db/indexeddb'
 
-// ── Pull cloud data into local (fresh install / new device) ───────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+// Convert a Firestore Timestamp object or ISO string to milliseconds.
+function tsToMs(ts) {
+  if (!ts) return 0
+  if (typeof ts === 'string') return new Date(ts).getTime()
+  if (typeof ts.toMillis === 'function') return ts.toMillis()
+  if (typeof ts.seconds === 'number') return ts.seconds * 1000
+  return 0
+}
+
+// ── Pull cloud data into local (last-write-wins per set) ──────────────────────
 
 export async function pullFromCloud(uid) {
   try {
@@ -46,10 +59,22 @@ export async function pullFromCloud(uid) {
       await idbSetPokedex(cloudPokedex.owned)
     }
 
-    // Sets
+    // Sets — only overwrite local if cloud set is newer (last write wins)
     const cloudSets = await getUserSets(uid)
-    for (const [setId, setData] of Object.entries(cloudSets)) {
-      await idbPutSet(setId, setData)
+    for (const [setId, cloudSet] of Object.entries(cloudSets)) {
+      const localSet = await idbGetSet(setId)
+      if (!localSet) {
+        // Not in local → always pull
+        await idbPutSet(setId, cloudSet)
+      } else {
+        const cloudMs = tsToMs(cloudSet.updatedAt)
+        const localMs = tsToMs(localSet.updatedAt)
+        if (cloudMs >= localMs) {
+          // Cloud is same age or newer → take cloud
+          await idbPutSet(setId, cloudSet)
+        }
+        // else: local is newer → keep local (push will handle this)
+      }
     }
 
     await idbSetMeta('lastSync', new Date().toISOString())
@@ -88,14 +113,13 @@ export async function pushToCloud(uid) {
 
 // ── Determine sync direction on sign-in ───────────────────────────────────────
 //
-// Returns: 'push' | 'pull' | 'merge' | 'none'
+// Returns: 'push' | 'pull' | 'none'
 //
-// Logic:
-//   - Compare counts: cloud wins if it has MORE data than local
-//   - This protects against fresh installs overwriting cloud with empty local
-//   - If local has more → push
-//   - If equal and non-zero → push (local is up to date)
-//   - Both empty → none
+// Strategy: last write wins via updatedAt timestamps.
+//   - For each set present in both local and cloud, compare updatedAt.
+//   - If any cloud set is newer → pull.
+//   - If any local set is newer, or local has sets cloud doesn't → push.
+//   - Falls back to count comparison when timestamps aren't available.
 
 export async function determineSyncDirection(uid) {
   const [localPokedex, localSets, cloudPokedex, cloudSets] = await Promise.all([
@@ -112,12 +136,51 @@ export async function determineSyncDirection(uid) {
     : 0
   const cloudSetsCount = Object.keys(cloudSets).length
 
-  // Cloud has more data → pull (fresh install, new device, or IDB was wiped)
-  if (cloudPokedexCount > localPokedexCount || cloudSetsCount > localSetsCount) {
+  // Both empty → nothing to do
+  if (localPokedexCount === 0 && localSetsCount === 0 && cloudPokedexCount === 0 && cloudSetsCount === 0) {
+    return 'none'
+  }
+
+  // Fresh install or IDB wiped → always pull from cloud
+  if (localPokedexCount === 0 && localSetsCount === 0 && (cloudPokedexCount > 0 || cloudSetsCount > 0)) {
     return 'pull'
   }
 
-  // Local has data → push
+  // New account with only local data → push
+  if (cloudPokedexCount === 0 && cloudSetsCount === 0 && (localPokedexCount > 0 || localSetsCount > 0)) {
+    return 'push'
+  }
+
+  // Both have data — compare set timestamps (last write wins)
+  let cloudHasNewer = false
+  let localHasNewer = false
+
+  for (const [setId, cloudSet] of Object.entries(cloudSets)) {
+    const localSet = localSets[setId]
+    if (!localSet) {
+      // Cloud has a set local doesn't → pull
+      cloudHasNewer = true
+      continue
+    }
+    const cloudMs = tsToMs(cloudSet.updatedAt)
+    const localMs = tsToMs(localSet.updatedAt)
+    if (cloudMs > localMs) cloudHasNewer = true
+    else if (localMs > cloudMs) localHasNewer = true
+  }
+
+  for (const setId of Object.keys(localSets)) {
+    if (!cloudSets[setId]) {
+      // Local has a set cloud doesn't → push
+      localHasNewer = true
+    }
+  }
+
+  // Cloud wins ties when both are newer (shouldn't happen often, but safe default)
+  if (cloudHasNewer && !localHasNewer) return 'pull'
+  if (localHasNewer) return 'push'
+
+  // No timestamp evidence — fall back to count comparison
+  if (cloudPokedexCount > localPokedexCount || cloudSetsCount > localSetsCount) return 'pull'
   if (localPokedexCount > 0 || localSetsCount > 0) return 'push'
 
   return 'none'
@@ -163,23 +226,26 @@ export async function syncRemovePokedexCard(uid, dexNumber) {
 // ── Optimistic write — Set ────────────────────────────────────────────────────
 
 export async function syncUpdateSet(uid, setId, setData) {
-  await idbPutSet(setId, setData)
+  // Stamp updatedAt on every local write so conflict resolution has a timestamp
+  const stamped = { ...setData, updatedAt: new Date().toISOString() }
+  await idbPutSet(setId, stamped)
 
   if (uid) {
     const { updateSetOwned } = await import('../firebase/firestore')
     updateSetOwned(uid, setId, {
-      baseOwned: setData.baseOwned,
-      masterOwned: setData.masterOwned,
+      baseOwned: stamped.baseOwned,
+      masterOwned: stamped.masterOwned,
     }).catch((err) => console.error('[Sync] Set cloud write failed:', err))
   }
 }
 
 export async function syncAddSet(uid, setId, setMeta) {
-  await idbPutSet(setId, setMeta)
+  const stamped = { ...setMeta, updatedAt: new Date().toISOString() }
+  await idbPutSet(setId, stamped)
 
   if (uid) {
     const { addUserSet } = await import('../firebase/firestore')
-    addUserSet(uid, setId, setMeta).catch((err) =>
+    addUserSet(uid, setId, stamped).catch((err) =>
       console.error('[Sync] Add set cloud write failed:', err)
     )
   }

@@ -66,6 +66,9 @@ export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog,
     if (syncStatus === 'done') setLastSync(new Date())
   }, [syncStatus])
 
+  // iOS standalone PWA: removing the app from home screen wipes IndexedDB
+  const isIOSStandalone = /iPad|iPhone|iPod/.test(navigator.userAgent) && window.navigator.standalone === true
+
   const displayName = user?.displayName || (isLocal ? 'Local Trainer' : 'Trainer')
   const email = user?.email || null
   const avatarLetter = displayName[0].toUpperCase()
@@ -314,6 +317,11 @@ export default function LeftDrawer({ open, onClose, onOpenHelp, onOpenChangelog,
 
             {/* ── Backup & Sync ── */}
             <span className={styles.settingsCat}>Backup & Sync</span>
+            {isLocal && isIOSStandalone && (
+              <div className={styles.iosWarning}>
+                ⚠️ iOS: deleting this app from your home screen will erase your collection. Sign in to back up to cloud.
+              </div>
+            )}
             <button className={styles.navItem} onClick={handleExport} disabled={exporting}>
               <span className={styles.navIcon}>💾</span>
               <span className={styles.navLabel}>{exporting ? 'Exporting…' : 'Export collection'}</span>

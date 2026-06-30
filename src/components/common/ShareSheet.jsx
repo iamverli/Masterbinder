@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { writePublicSnapshot } from '../../firebase/firestore'
+import { APP_BASE_URL } from '../../config'
 import styles from './ShareSheet.module.css'
 
-const BASE_URL = 'https://bluemoontracker.netlify.app'
+const BASE_URL = APP_BASE_URL
 
 export default function ShareSheet({ uid, displayName, setId, onClose }) {
   const { pokedex, sets } = useApp()
@@ -45,9 +46,13 @@ export default function ShareSheet({ uid, displayName, setId, onClose }) {
       }
     }
 
+    // Slim pokedex: keys only (no card objects/imageBase64). GuestView only needs the count.
+    const slimPokedex = {}
+    for (const k of Object.keys(pokedex)) slimPokedex[k] = true
+
     writePublicSnapshot(uid, {
       displayName,
-      pokedexOwned: pokedex,
+      pokedexOwned: slimPokedex,
       sets: publicSets,
     })
       .then(() => setPublished(true))

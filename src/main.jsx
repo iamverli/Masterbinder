@@ -5,6 +5,7 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 import { AppProvider } from './context/AppContext'
 import UpdateToast from './components/common/UpdateToast'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import { applyStoredTheme } from './db/indexeddb'
 import './index.css'
 
@@ -13,13 +14,15 @@ applyStoredTheme()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <AppProvider>
-          <App />
-          <UpdateToast />
-        </AppProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppProvider>
+            <App />
+            <UpdateToast />
+          </AppProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 )
